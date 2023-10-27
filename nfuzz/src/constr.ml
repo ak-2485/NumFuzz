@@ -121,8 +121,12 @@ module Simpl = struct
 				| SiConst 0.0, _ -> SiConst 0.0
 				| x, SiConst 1.0 -> x
 				| _, SiConst 0.0 -> SiConst 0.0
-				| _, _             -> SiMult (si1', si2')
+				| _, _           -> SiMult (si1', si2')
 			  end
+    | SiDiv(si1, si2) ->
+      let si1' = si_simpl si1 in
+      let si2' = si_simpl si2 in
+      SiDiv(si1', si2')
     | SiLub(si1, si2) ->
       let si1' = si_simpl si1 in
       let si2' = si_simpl si2 in
@@ -145,6 +149,11 @@ module Simpl = struct
 					| SiConst si1', SiConst si2' -> SiConst (si1' *. si2')
 					| _, SiInfty -> SiInfty
 					| SiInfty, _ -> SiInfty
+					| _, _ -> sis
+				end
+	 | SiDiv (si1,si2) ->
+				begin match si1, si2 with
+					| SiConst si1', SiConst si2' -> SiConst (si1' /. si2')
 					| _, _ -> sis
 				end
 	 | SiLub (si1,si2) ->
@@ -171,7 +180,8 @@ module Optimize = struct
     | SiConst _
     | SiVar   _ -> true
     | SiAdd  (si1, si2)
-    | SiMult (si1, si2) -> is_standard si1 &&
+    | SiMult (si1, si2)
+    | SiDiv (si1, si2) -> is_standard si1 &&
                            is_standard si2
     | SiLub   _ -> false
 
@@ -188,11 +198,8 @@ module Optimize = struct
       l_csl @ r_csl
 
     | SiAdd (_si1, _si2)
-    | SiMult(_si1, _si2) ->
-      (* TODO: Do - lower <- si1
-                  - lower <- si2,
-         then zip all the results with the +/*
-      *)
+    | SiMult(_si1, _si2)
+    | SiDiv(_si1, _si2) ->
       [cs]
 
     | _ -> [cs]

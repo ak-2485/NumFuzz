@@ -80,6 +80,22 @@ let with_new_ctx (f : context -> context) (m : 'a checker) : 'a checker =
 let fail (i : info) (e : ty_error_elem) : 'a checker = fun _ ->
   Left { i = i; v = e }
 
+let si_div (si1: si) (si2: si) =
+  let si1' = Simpl.si_simpl_compute si1 in
+  let si2' = Simpl.si_simpl_compute si2 in
+  SiDiv(si1', si2')
+
+let check_sens_div' (sil : si) (sir: si) : bool =
+  match sil, sir with
+  | SiConst _, SiConst _ -> true
+  | _, _ -> false
+
+let check_sens_div i (sil : si) (sir : si) : unit checker =
+  if check_sens_div' sil sir then
+    return ()
+  else
+    fail i @@ SensError(sil, sir)
+
 let check_sens_leq i (sil : si) (sir : si) : unit checker =
   if post_si_leq sil sir then
     return ()
@@ -132,6 +148,11 @@ let add_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
 let mult_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
   match bsi1, bsi2 with
   | Some si1, Some si2 -> Some (SiMult (si1, si2))
+  | _, _ -> None
+
+let div_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
+  match bsi1, bsi2 with
+  | Some si1, Some si2 -> Some (SiDiv (si1, si2))
   | _, _ -> None
 
 let si_of_bsi (bsi : bsi) : si =
@@ -262,14 +283,17 @@ module TypeSub = struct
     | TyUnion(ty1, ty2) -> return (ty1, ty2)
     | _                 -> fail i @@ WrongShape (ty, "union")
 
+  let check_bang_shape i sity =
+    match sity with
+    | TyBang(si1, ty1) -> return (si1, ty1)
+    | _                 -> fail i @@ WrongShape (sity, "bang")
+
   let check_amp_shape i ty =
     match ty with
     | TyAmpersand(ty1, ty2) -> return (ty1, ty2)
     | _                 -> fail i @@ WrongShape (ty, "amp")
 
   let check_sized_nat_shape i ty = fail i @@ WrongShape (ty, "nat")
-
-  let check_mu_shape i ty =  fail i @@ WrongShape (ty, "mu")
 
 end
 
@@ -336,6 +360,7 @@ let kind_of (i : info) (si : si) : kind checker =
 
   | SiAdd  (_ , _)
   | SiMult (_ , _)
+  | SiDiv (_ , _)
   | SiLub  (_ , _) -> return Sens
 
   ) >>= fun k ->
@@ -458,11 +483,11 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return (ty_e, add_sens sis_e (scale_sens (Some si_x) sis_v))
 
   (* *)
-  | TmBox(i,si_v,v) ->
+  | TmBox(_i,si_v,v) ->
 
     type_of v >>= fun (ty_v, sis_v) ->
 
-    return(TyBang(si_v, ty_v), scale_sens (Some si_v,sis_v))
+    return(TyBang(si_v, ty_v), scale_sens (Some si_v) sis_v)
 
   (* let [x] = v in e *)
   | TmBoxDest(i,x,tm_v,tm_e) ->
@@ -471,13 +496,14 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     check_bang_shape i sity_v >>= fun (si_v, ty_x) ->
 
-    type_of tm_e >>= fun (ty_e, sis_e) ->
+    with_extended_ctx i x.b_name ty_x (type_of tm_e) >>= fun (ty_e, si_x, sis_e) ->
 
-    with_extended_ctx i x.b_name ty_x y.b_name ty_y (type_of e) >>= fun (ty_e, si_x, si_y, sis_e) ->
+    let si_x = si_of_bsi si_x in
 
+    check_sens_div i si_x si_v >>
+    let t = si_div si_x si_v in
 
-
-    return()
+    return(ty_e, add_sens sis_e (scale_sens (Some t) sis_v))
 
 
   (* case v of inl(x) => e_l | inr(y) f_r *)

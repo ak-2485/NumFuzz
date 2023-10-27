@@ -1,1 +1,1 @@
-fun (y: num) {x = y; x}  
+fun (y: ! [1.0] num) {let [x] = y; x}  

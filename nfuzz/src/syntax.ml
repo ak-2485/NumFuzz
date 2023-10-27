@@ -73,6 +73,7 @@ type si =
   | SiVar   of var_info
   | SiAdd   of si * si
   | SiMult  of si * si
+  | SiDiv   of si * si
   | SiLub   of si * si
   (* We only allow to sup to happen over the first variable *)
 
@@ -84,6 +85,7 @@ let rec si_map n f si =
   | SiConst c       -> SiConst c
   | SiAdd  (x, y)   -> SiAdd (smf x, smf y)
   | SiMult (x, y)   -> SiMult(smf x, smf y)
+  | SiDiv (x, y)    -> SiDiv(smf x, smf y)
   | SiInfty         -> SiInfty
   | SiLub  (s1, s2) -> SiLub (smf s1, smf s2)
 
@@ -134,8 +136,12 @@ type ty =
   (* Functional type *)
   | TyLollipop of ty  * ty
 
-  (* Monad type *)
+  (* Monadic type *)
   | TyMu of si * ty
+
+  (* Comonadic type *)
+  | TyBang of si * ty
+
 
 
 (* map over types, first argument: action on vars, second argument
@@ -149,7 +155,9 @@ let rec ty_map n fv fsi ty = match ty with
   | TyAmpersand(ty1, ty2)   -> TyAmpersand(ty_map n fv fsi ty1, ty_map n fv fsi ty2)
   (* *)
   | TyLollipop(ty1, ty2) -> TyLollipop(ty_map n fv fsi ty1, ty_map n fv fsi ty2)
-  | TyMu(si1, ty1) -> TyMu (fsi n si1 , ty_map n fv fsi ty1)
+  | TyMu(si1, ty1)   -> TyMu (fsi n si1 , ty_map n fv fsi ty1)
+  | TyBang(si1, ty1) -> TyBang (fsi n si1 , ty_map n fv fsi ty1)
+
 
 
 let ty_shift o n ty =

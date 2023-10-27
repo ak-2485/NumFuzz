@@ -211,13 +211,16 @@ Term :
           let ctx' = extend_var $1.v ctx in
           TmLet($1.i, (nb_var $1.v), $3 ctx, $5 ctx')
       }
-  /* | LET LPAREN ID COMMA ID RPAREN SensAnn EQUAL Expr SEMI Term */
   | LET LPAREN ID COMMA ID RPAREN EQUAL Expr SEMI Term
       { fun ctx ->
-        (* TODO, what happens with let (x,x) = ...? *)
         let ctx_x  = extend_var $3.v ctx   in
         let ctx_xy = extend_var $5.v ctx_x in
         TmTensDest($1, (nb_var $3.v), (nb_var $5.v), $8 ctx, $10 ctx_xy)
+      }
+  | LET LBRACK ID RBRACK EQUAL Expr SEMI Term
+      { fun ctx ->
+        let ctx_x  = extend_var $3.v ctx   in
+        TmBoxDest($1, (nb_var $3.v), $6 ctx, $8 ctx_x)
       }
   | PROJ1 Term
       { fun ctx -> TmAmp1($1, $2 ctx)}
@@ -509,6 +512,8 @@ AType :
       { fun _cx -> TyPrim PrimNum }
   | LPAREN RPAREN
       { fun _cx -> TyPrim PrimUnit }
+  | BANG LBRACK SensTerm RBRACK Type
+      { fun ctx -> TyBang ($3 ctx, $5 ctx) }
   | LPAREN TPairSeq RPAREN
       { fun ctx -> $2 ctx }
   | LPAREN PIPE Type COMMA Type PIPE RPAREN

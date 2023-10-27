@@ -126,6 +126,7 @@ let rec pp_si fmt s =
   | SiVar   v              -> pp_vinfo fmt v
   | SiAdd (si1, si2)       -> fprintf fmt "(%a + %a)" pp_si si1 pp_si si2
   | SiMult(si1, si2)       -> fprintf fmt "(%a * %a)" pp_si si1 pp_si si2
+  | SiDiv(si1, si2)        -> fprintf fmt "(%a / %a)" pp_si si1 pp_si si2
   | SiInfty                -> fprintf fmt "%s" (u_sym Symbols.Inf)
   | SiLub  (s1, s2)        -> fprintf fmt "(%a @<1>%s %a)" pp_si s1 (u_sym Symbols.Lub) pp_si s2
 
@@ -183,7 +184,8 @@ let rec pp_type ppf ty = match ty with
   | TyAmpersand(ty1, ty2)   -> fprintf ppf "(%a & @[<h>%a@])" pp_type ty1 pp_type ty2
   (* Funs *)
   | TyLollipop(ty1, ty2) -> fprintf ppf "(@[<hov>%a %a@ %a@])" pp_type ty1 pp_arrow (SiConst 1.0) pp_type ty2
-  | TyMu(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Bang)  pp_si si pp_type ty1
+  | TyMu(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Mu)  pp_si si pp_type ty1
+  | TyBang(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Bang)  pp_si si pp_type ty1
 
   (* Abs *)
 

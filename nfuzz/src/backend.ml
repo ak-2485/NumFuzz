@@ -89,6 +89,11 @@ let rec gen_term ppf t =
     | TmAmp1 (_i, e1) -> fprintf ppf "Proj1 %a" gen_term e1
     | TmAmp2 (_i, e1) -> fprintf ppf "Proj2 %a" gen_term e1
 
+    | TmBox(_i, _s1, e1) -> fprintf ppf "\n[%a@\n]" gen_term e1
+    | TmBoxDest (_i, b_x, tm_e1, tm_e2) ->
+      fprintf ppf "(let \n[%s\n] =  %a in@\n@[%a@])"
+        (ml_b b_x) gen_term tm_e1 gen_term tm_e2
+
 
     (* let bi = e1 in e2 *)
     | TmLet (_, bi, e1, e2) ->
