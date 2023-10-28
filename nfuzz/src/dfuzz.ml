@@ -65,7 +65,7 @@ let parse file =
   close_in pi;
   program
 
-(* Main must be db_source -> fuzzy string *)
+(* Main must be fun *)
 let check_main_type ty =
   match ty with
   | TyLollipop (TyPrim _, _) -> ()
@@ -124,10 +124,8 @@ let main () =
     | Some out_f ->
       let out_ml  = out_f ^ ".ml"   in
       let out_exe = out_f ^ ".byte" in
-      (* let out_exe = out_f ^ ".native" in *)
       let command = "ocamlbuild -I runtime -libs str -cflag '-rectypes' " ^ out_exe in
 
-     (* let command = "ocamlfind ocamlc -package str -linkpkg -w -A -rectypes -I runtime/ prim.cmo bag.cmo db_sources.cmo init.cmo " ^ out_ml ^ " -o " ^ out_f in *)
       gen_caml program out_ml;
 
       main_info dp "Compiling: %s" command;

@@ -47,7 +47,6 @@ let rec gen_term ppf t =
           match v.v_name with
           | "p_inl"      -> fprintf ppf "Left"
           | "p_inr"      -> fprintf ppf "Right"
-          (* | "num2string" -> fprintf ppf "" *)
           | _           ->  fprintf ppf "%s" (ml_n v.v_name)
         end
     (* Will be represented as applications soon *)
@@ -82,7 +81,7 @@ let rec gen_term ppf t =
           end
         | _ -> fprintf ppf "(@[%a@ %a@])" gen_term f gen_term e
       end
-    | TmAbs (_, b, _sty, _t2, body) ->
+    | TmAbs (_, b, _sty, body) ->
       fprintf ppf "(fun %s ->@\n @[%a@])" (ml_b b) gen_term body
 
     | TmAmpersand (_i, e1, e2) -> fprintf ppf "(%a,%a)" gen_term e1 gen_term e2
@@ -96,12 +95,8 @@ let rec gen_term ppf t =
 
 
     (* let bi = e1 in e2 *)
-    | TmLet (_, bi, e1, e2) ->
-      begin
-        match e1 with
-        | TmPrim(_, PrimTFun(_, _)) -> gen_term ppf e2
-        | _ -> fprintf ppf "(let %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
-      end
+    | TmLet (_, bi, e1, e2) -> fprintf ppf "(let %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
+
 
 
 

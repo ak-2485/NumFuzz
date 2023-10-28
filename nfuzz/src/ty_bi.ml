@@ -347,7 +347,7 @@ let kind_of (i : info) (si : si) : kind checker =
   ty_debug i "--> [%3d] Enter kind_of: @[%a@]" !ty_seq
     (Print.limit_boxes Print.pp_si) si; incr ty_seq;
 
-  let ck k = if k <> Star then return k else fail i @@ WrongKind(Sens, k) in
+  let ck k = return k in
 
   (match si with
   | SiInfty       -> return Sens
@@ -396,14 +396,13 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
   (* Abstraction and Application *)
 
-  (* λ (x :[si] tya_x) : tya_tm { tm } *)
-  | TmAbs(i, b_x, tya_x, otya_tm, tm) ->
+  (* λ (x :[si] tya_x) { tm } *)
+  | TmAbs(i, b_x, tya_x, tm) ->
 
     with_extended_ctx i b_x.b_name tya_x (type_of tm) >>= fun (ty_tm, si_x, sis) ->
 
     ty_debug (tmInfo t) "### [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si (si_of_bsi si_x);
 
-    check_type_ann i otya_tm ty_tm                    >>
       check_sens_eq i (SiConst 1.0) (si_of_bsi si_x)         >>
       return (TyLollipop (tya_x, ty_tm), sis)
 

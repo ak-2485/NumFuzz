@@ -59,10 +59,7 @@ type binder_info = {
 }
 
 (* Kinds for type variables *)
-type kind =
-    Star
-  | Size
-  | Sens
+type kind = Sens
 
 (* Part 1: Sizes and Sensitivities *)
 
@@ -116,7 +113,6 @@ let cs_shift n d cs = match cs with
 (* Primitive types *)
 type ty_prim =
     PrimNum
-  | PrimInt
   | PrimUnit
   | PrimString
 
@@ -217,7 +213,7 @@ type term =
 
   (* Regular Abstraction and Applicacion *)
   | TmApp of info * term * term
-  | TmAbs of info * binder_info * ty * ty option * term
+  | TmAbs of info * binder_info * ty * term
 
   (* & constructor and eliminator *)
   | TmAmpersand of info * term * term
@@ -241,13 +237,10 @@ let map_prim_ty n f p =
 
 let rec map_term_ty_aux n ft fsi tm =
   let tf n = map_term_ty_aux n ft fsi                  in
-  let opf  = Option.map (ft n)                         in
-  (* let opsf = Option.map (fun (si, ty) -> (si, f n ty)) in *)
   match tm with
     TmVar(i, v)                -> TmVar (i, v)
   | TmPrim(i, p)               -> TmPrim(i, map_prim_ty n ft p)
 
-  (* Will die soon *)
   | TmTens(i,      tm1,      tm2)    ->
     TmTens(i, tf n tm1, tf n tm2)
 
@@ -259,8 +252,8 @@ let rec map_term_ty_aux n ft fsi tm =
     TmUnionCase(i, tf n tm, bi_l, tf n tm_l, bi_r, tf n tm_r)
 
   (* The three fundamental constructs of the language *)
-  | TmAbs(i, bi,       ty,     orty,      tm)           ->
-    TmAbs(i, bi,  ft n ty, opf orty, tf n tm)
+  | TmAbs(i, bi,       ty,      tm)           ->
+    TmAbs(i, bi,  ft n ty, tf n tm)
 
   | TmApp(i,      tm1,      tm2)          ->
     TmApp(i, tf n tm1, tf n tm2)
@@ -313,7 +306,7 @@ let tmInfo t = match t with
   | TmUnionCase(fi,_,_,_,_,_)-> fi
 
   (* The three fundamental constructs of the language *)
-  | TmAbs(fi,_,_,_,_)          -> fi
+  | TmAbs(fi,_,_,_)          -> fi
   | TmApp(fi, _, _)            -> fi
   (* *)
   | TmAmpersand(fi,_,_)        -> fi

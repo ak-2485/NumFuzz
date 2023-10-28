@@ -15,8 +15,6 @@ let parser_error   fi = Support.Error.error_msg   Support.Options.Parser fi
 (* let parser_info    fi = Support.Error.message   2 Support.Options.Parser fi *)
 
 (* let si_zero  = SiConst 0.0 *)
-let si_one   = SiConst 1.0
-let si_infty = SiInfty
 let dummy_ty  = TyPrim PrimUnit
 
 (* look for a variable in the current context *)
@@ -35,32 +33,17 @@ let existing_tyvar fi id ctx =
 let extend_var id ctx =
   Ctx.extend_var id dummy_ty ctx
 
-let extend_ty_var id ki ctx =
-  Ctx.extend_ty_var id ki ctx
 
 (* Create a new binder *)
-(* TODO: set the proper b_size !!! *)
-let nb_prim  n = {b_name = n; b_type = BiVar;   b_size = -1; b_prim = true;}
 let nb_var   n = {b_name = n; b_type = BiVar;   b_size = -1; b_prim = false;}
 
-(* From a list of arguments to a type *)
-let qf_to_type qf ty = match qf with
-    []               -> ty
-  | _ -> ty
 
-let rec list_to_type l ret_ty = match l with
-    []                        -> TyLollipop (TyPrim PrimUnit, ret_ty) (* Not yet allowed constant function *)
-  | (ty, _n, _i) :: []    -> TyLollipop (ty, ret_ty)
-  | (ty,_n, _i) :: tyl   -> TyLollipop (ty, list_to_type tyl ret_ty)
-
-let from_args_to_type qf arg_list ret_ty =
-  qf_to_type qf (list_to_type arg_list ret_ty)
-
-
+(*
 let mk_infix ctx info op t1 t2 =
   match Ctx.lookup_var op ctx with
       None      -> parser_error info "The primitive infix operator %s is not in scope" op
     | Some(v,_) -> TmApp(info, TmApp(info, TmVar(info, v), t1), t2)
+*)
 
 (* This takes a *reversed* list of arguments *)
 let rec mk_prim_app_args info v arglist = match arglist with
@@ -81,13 +64,8 @@ let mk_prim_ty_app ctx info prim arglist =
     None      -> parser_error info "Primitive %s is not in scope" prim
   | Some(v,_) -> mk_prim_app_ty_args info (TmVar(info, v)) (List.rev arglist)
 
-let mk_lambda info bi oty term = TmAbs(info, bi, oty, None, term)
+let mk_lambda info bi ty term = TmAbs(info, bi, ty, term)
 
-(*
-let rec remove_quantifiers ty = match ty with
-    TyForall(_,_,ty_i) -> remove_quantifiers ty_i
-  | _ -> ty
-*)
 
 %}
 
@@ -180,7 +158,6 @@ let rec remove_quantifiers ty = match ty with
 
 /* Identifier and constant value tokens */
 %token <string Support.FileInfo.withinfo> ID
-%token <int    Support.FileInfo.withinfo> INTV
 %token <float  Support.FileInfo.withinfo> FLOATV
 %token <string Support.FileInfo.withinfo> STRINGV
 
@@ -227,95 +204,11 @@ Term :
   | PROJ2 Term
       { fun ctx -> TmAmp1($1, $2 ctx)}
 
-
-
-  | PRIMITIVE ID Quantifiers Arguments COLON Type LBRACE PrimSpec RBRACE Term
-      { fun ctx ->
-        let (qf,   ctx_qf)   = $3 ctx                                              in
-        let (args, ctx_args) = $4 ctx_qf                                           in
-        let f_type           = from_args_to_type qf args ($6 ctx_args)             in
-        let ctx_f_outer      = extend_var $2.v ctx                                 in
-        let tm_prim          = TmPrim($8.i, PrimTFun($8.v, f_type))                in
-        TmLet($1, (nb_prim $2.v), tm_prim, $10 ctx_f_outer)
-      }
-
-  | LogOrTerm
+  | Expr
       { $1 }
-
-Argument :
-    LPAREN ID COLON MaybeSensitivity Type RPAREN
-      { fun ctx -> ([($5 ctx, $2.v, $2.i)], extend_var $2.v ctx) }
-
-/*
-   Arguments returns a tuple of (arg, ctx), where arg is the list of
-   arguments ready to build a higher-order type, including quantifiers.
-*/
-Arguments :
-    Argument
-      { $1 }
-  | Argument Arguments
-      { fun ctx ->
-          let (l,  ctx')  = $1 ctx in
-          let (l2, ctx'') = $2 ctx' in
-          (l @ l2, ctx'')
-      }
 
 Expr :
-      LogOrTerm
-      { $1 }
-
-LogOrTerm :
-    LogOrTerm OR LogAndTerm
-      { fun ctx -> mk_infix ctx $2 "op_lor" ($1 ctx) ($3 ctx) }
-  | LogAndTerm
-      { $1 }
-
-LogAndTerm:
-    LogAndTerm AND BequalTerm
-      { fun ctx -> mk_infix ctx $2 "op_land" ($1 ctx) ($3 ctx) }
-  | BequalTerm
-      { $1 }
-
-BequalTerm :
-    BequalTerm BEQUAL RelTerm
-      { fun ctx -> mk_infix ctx $2 "op_eq" ($1 ctx) ($3 ctx) }
-  | BequalTerm BANG EQUAL RelTerm
-      { fun ctx -> mk_infix ctx $2 "op_neq" ($1 ctx) ($4 ctx) }
-  | RelTerm
-      { $1 }
-
-RelTerm :
-    RelTerm LT AddTerm
-      { fun ctx -> mk_infix ctx $2 "op_lt" ($1 ctx) ($3 ctx) }
-  | RelTerm GT AddTerm
-      { fun ctx -> mk_infix ctx $2 "op_gt" ($1 ctx) ($3 ctx) }
-  | RelTerm LT EQUAL AddTerm
-      { fun ctx -> mk_infix ctx $2 "op_lte" ($1 ctx) ($4 ctx) }
-  | RelTerm GT EQUAL AddTerm
-      { fun ctx -> mk_infix ctx $2 "op_gte" ($1 ctx) ($4 ctx) }
-  | AddTerm
-      { $1 }
-
-AddTerm :
-    AddTerm ADD MulTerm
-      { fun ctx -> mk_infix ctx $2 "op_add" ($1 ctx) ($3 ctx) }
-  | AddTerm DOT ADD MulTerm
-      { fun ctx -> mk_infix ctx $2 "op_iadd" ($1 ctx) ($4 ctx) }
-  | AddTerm HAT MulTerm
-      { fun ctx -> mk_infix ctx $2 "string_concat" ($1 ctx) ($3 ctx) }
-  | AddTerm SUB MulTerm
-      { fun ctx -> mk_infix ctx $2 "op_sub" ($1 ctx) ($3 ctx) }
-  | AddTerm DOT SUB MulTerm
-      { fun ctx -> mk_infix ctx $2 "op_isub" ($1 ctx) ($4 ctx) }
-  | MulTerm
-      { $1 }
-
-MulTerm :
-    MulTerm MUL FTerm
-      { fun ctx -> mk_infix ctx $2 "op_mul" ($1 ctx) ($3 ctx) }
-  | MulTerm DIV FTerm
-      { fun ctx -> mk_infix ctx $2 "op_div" ($1 ctx) ($3 ctx) }
-  | FTerm
+      FTerm
       { $1 }
 
 FTerm :
@@ -340,9 +233,8 @@ STerm :
         let ctx_r = extend_var $14.v ctx in
         TmUnionCase($1, $2 ctx, nb_var $7.v, $10 ctx_l, nb_var  $14.v, $17 ctx_r) }
 
-
-  | FUN LPAREN ID ColType RPAREN MaybeType LBRACE Term RBRACE
-      { fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $6 ctx, $8 (extend_var $3.v ctx )) }
+  | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
+      { fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $7 (extend_var $3.v ctx )) }
   | FExpr
       { $1 }
 
@@ -396,21 +288,9 @@ SensMulTerm :
   | SensAtomicTerm
       { $1 }
 
-SizeTerm :
-    ID
-      { fun ctx -> let (v, k) = existing_tyvar $1.i $1.v ctx in
-                   match k with
-                   | Star -> parser_error $1.i "Cannot bind a type variable in sensitivity"
-                   | Sens -> parser_error $1.i "Cannot bind a sens variable in a size"
-                   | Size -> (SiVar v)
-      }
-
 SensAtomicTerm :
     ID
-      { fun ctx -> let (v, k) = existing_tyvar $1.i $1.v ctx in
-                   match k with
-                   | Star -> parser_error $1.i "Cannot bind a type variable in sensitivity"
-                   | _    -> SiVar v
+      { fun ctx -> let (v, _k) = existing_tyvar $1.i $1.v ctx in SiVar v
       }
 
   | FLOATV
@@ -420,70 +300,15 @@ ColType :
   | COLON Type
       { fun ctx -> ($2 ctx) }
 
-SensAnn :
-  | COLON MaybeSensitivity
-      { fun ctx -> $2 ctx }
-
-MaybeSensitivity:
-    /* nothing */
-      { fun _cx -> si_infty }
-  | LBRACK RBRACK
-      { fun _cx -> si_one }
-  | LBRACK SensTerm RBRACK
-      { $2 }
-
-/* Binding type */
-Kind :
-    SIZE
-      { Size }
-  | TYPE
-      { Star }
-  | SENS
-      { Sens }
-
-KindAnn :
-    ID
-      { fun ctx -> ([($1.i, $1.v, Star)], extend_ty_var $1.v Star ctx) }
-  | ID COLON Kind
-      { fun ctx -> ([($1.i, $1.v, $3)],   extend_ty_var $1.v $3 ctx) }
-
-QuantifierList :
-    KindAnn
-      { $1 }
-  | KindAnn COMMA QuantifierList
-      { fun ctx -> let (tyv, ctx')  = $1 ctx  in
-                   let (qf, ctx_qf) = $3 ctx' in
-                   (tyv @ qf, ctx_qf)
-      }
-
-Quantifiers :
-  /* Nothing */
-    { fun ctx -> ([], ctx) }
-  | FORALL LPAREN QuantifierList RPAREN
-    { $3 }
-
-MaybeType:
-    {fun _ctx -> None}
-  | COLON Type
-      {fun ctx -> Some ($2 ctx)}
-
 Type :
-    AType BAG
-      { fun ctx -> ($1 ctx) }
-  | ComplexType
+    ComplexType
       { $1 }
 
 ComplexType :
-    AType ARROW ComplexType
-      { fun ctx -> TyLollipop($1 ctx, $3 ctx) }
-  | AType ADD ComplexType
+    AType ADD ComplexType
       { fun ctx -> TyUnion($1 ctx, $3 ctx) }
   | AType LOLLIPOP ComplexType
       { fun ctx -> TyLollipop($1 ctx, $3 ctx) }
-  | AType LOLLIPOP LBRACK SensTerm RBRACK ComplexType
-      { fun ctx -> TyLollipop($1 ctx, $6 ctx) }
-  | FUZZY Type
-      { fun ctx -> ($2 ctx) }
   | AType
       { $1 }
 
@@ -502,14 +327,8 @@ AType :
       }
   | NUM
       { fun _cx -> TyPrim PrimNum }
-  | INT
-      { fun _cx -> TyPrim PrimInt }
   | STRING
       { fun _cx -> TyPrim PrimString }
-  | CLIPPED
-      { fun _cx -> TyPrim PrimNum }
-  | DBSOURCE
-      { fun _cx -> TyPrim PrimNum }
   | LPAREN RPAREN
       { fun _cx -> TyPrim PrimUnit }
   | BANG LBRACK SensTerm RBRACK Type

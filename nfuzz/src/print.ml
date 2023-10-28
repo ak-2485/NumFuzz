@@ -112,10 +112,7 @@ let pp_vinfo fmt v =
 let pp_binfo fmt b = pp_name fmt (b.b_type, b.b_name)
 
 (* Kinds *)
-let pp_kind fmt k = match k with
-    Star       -> fprintf fmt "*"
-  | Size       -> fprintf fmt "%s" (u_sym Symbols.Nat)
-  | Sens       -> fprintf fmt "%s" (u_sym Symbols.Num)
+let pp_kind fmt _k = fprintf fmt "%s" (u_sym Symbols.Num)
 
 (**********************************************************************)
 (* Pretty printing for sensitivities *)
@@ -164,7 +161,6 @@ let pp_cs fmt cs =
 (* Primitive types *)
 let pp_primtype fmt ty = match ty with
     PrimNum     -> fprintf fmt "@<1>%s" (u_sym Symbols.Num)
-  | PrimInt     -> fprintf fmt "@<1>%s" (u_sym Symbols.Int)
   | PrimUnit    -> fprintf fmt "()"
   | PrimString  -> fprintf fmt "string"
 
@@ -186,8 +182,6 @@ let rec pp_type ppf ty = match ty with
   | TyLollipop(ty1, ty2) -> fprintf ppf "(@[<hov>%a %a@ %a@])" pp_type ty1 pp_arrow (SiConst 1.0) pp_type ty2
   | TyMu(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Mu)  pp_si si pp_type ty1
   | TyBang(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Bang)  pp_si si pp_type ty1
-
-  (* Abs *)
 
 let pp_type_list = pp_list pp_type
 
@@ -296,9 +290,9 @@ let rec pp_term ppf t =
   (* Data type manipulation *)
 
   (* Regular Abstraction and Application *)
-  | TmAbs(_, a_n, ty_a, r_ty, tm) ->
-    fprintf ppf "@<1>%s (%a%a)%a {@\n@[<hov 1> %a@]@\n}"
-      (u_sym Symbols.Lambda) pp_binfo a_n pp_type ty_a pp_maybe_type r_ty pp_term tm
+  | TmAbs(_, a_n, ty_a, tm) ->
+    fprintf ppf "@<1>%s (%a%a) {@\n@[<hov 1> %a@]@\n}"
+      (u_sym Symbols.Lambda) pp_binfo a_n pp_type ty_a pp_term tm
 
   | TmApp(_, tm1, tm2)         -> print_special_app ppf tm1 tm2
 
