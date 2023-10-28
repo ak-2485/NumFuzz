@@ -216,6 +216,7 @@ FTerm :
       { $1 }
 
 STerm :
+
     IF Expr THEN LBRACK Type RBRACK LBRACE Term RBRACE ELSE LBRACE Term RBRACE
       { fun ctx ->
         let if_then_spec = mk_prim_ty_app ctx $1 "if_then_else" [$5 ctx] in
@@ -307,6 +308,8 @@ Type :
 ComplexType :
     AType ADD ComplexType
       { fun ctx -> TyUnion($1 ctx, $3 ctx) }
+  | AType AMP ComplexType
+      { fun ctx -> TyAmpersand($1 ctx, $3 ctx) }
   | AType LOLLIPOP ComplexType
       { fun ctx -> TyLollipop($1 ctx, $3 ctx) }
   | AType
@@ -335,5 +338,5 @@ AType :
       { fun ctx -> TyBang ($3 ctx, $5 ctx) }
   | LPAREN TPairSeq RPAREN
       { fun ctx -> $2 ctx }
-  | LPAREN PIPE Type COMMA Type PIPE RPAREN
-      { fun ctx -> TyAmpersand($3 ctx, $5 ctx) }
+  | LT Type COMMA Type GT
+      { fun ctx -> TyAmpersand($2 ctx, $4 ctx) }
