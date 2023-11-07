@@ -2,7 +2,7 @@
  (name dfuzz)
  (wrapped false)
  (modules :standard \ dfuzz)
- (libraries unix menhirLib))
+ (libraries unix menhirLib mlmpfr))
 
 (executable
  (public_name dfuzz)

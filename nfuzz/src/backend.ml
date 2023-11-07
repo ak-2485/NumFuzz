@@ -34,6 +34,11 @@ let gen_primitive prim =
   | PrimTString(s)   -> "\"" ^ s ^ "\""
   | PrimTFun(f, _ty) -> f
 
+let gen_op op =
+  match op with
+    AddOp        -> "add"
+  | MulOp        -> "mul"
+
 (* Avoid clashes with ML names *)
 let ml_n n = "_" ^ n
 let ml_b b = "_" ^ b.b_name
@@ -63,6 +68,9 @@ let rec gen_term ppf t =
 
     (* Regular stuff for fuzz *)
     | TmPrim (_, prim) -> fprintf ppf "%s" (gen_primitive prim)
+
+    (* Round *)
+    | TmRnd (_, v) -> fprintf ppf "rnd(%a)" gen_term v
 
     | TmApp (_, f, e)  ->
       (* Some (hacky) optimizations for the OCaml translation *)
@@ -97,7 +105,9 @@ let rec gen_term ppf t =
     (* let bi = e1 in e2 *)
     | TmLet (_, bi, e1, e2) -> fprintf ppf "(let %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
 
+    | TmLetBind (_, bi, e1, e2) -> fprintf ppf "(letM %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
 
+    | TmOp (_, op, e1) -> fprintf ppf "(%s %a)" (gen_op op) gen_term e1
 
 
 

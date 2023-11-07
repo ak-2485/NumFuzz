@@ -21,6 +21,7 @@ module P   = Print
 (* Errors *)
 type ty_error_elem =
 | SensError    of si * si
+| SensErrorEq  of si * si
 | MoreGeneral  of ty * ty
 | TypeMismatch of ty * ty
 | TypeInst     of ty * ty
@@ -81,12 +82,12 @@ let fail (i : info) (e : ty_error_elem) : 'a checker = fun _ ->
   Left { i = i; v = e }
 
 let si_div (si1: si) (si2: si) =
-  let si1' = Simpl.si_simpl_compute si1 in
-  let si2' = Simpl.si_simpl_compute si2 in
-  SiDiv(si1', si2')
+  Simpl.si_simpl_compute (SiDiv(si1, si2))
 
 let check_sens_div' (sil : si) (sir: si) : bool =
-  match sil, sir with
+  let sil' = Simpl.si_simpl_compute sil in
+  let sir' = Simpl.si_simpl_compute sir in
+  match sil', sir' with
   | SiConst _, SiConst _ -> true
   | _, _ -> false
 
@@ -106,7 +107,7 @@ let check_sens_eq  i (sil : si) (sir : si) : unit checker =
   if post_si_eq sil sir then
     return ()
   else
-    fail i @@ SensError(sil, sir)
+    fail i @@ SensErrorEq(sil, sir)
 
 (* Constants *)
 let si_zero  = SiConst 0.0
@@ -266,8 +267,7 @@ module TypeSub = struct
     match ty_arr with
     (* Here we do inference of type applications *)
 
-    | TyLollipop(tya, tyb) ->
-      check_type_sub i tya ty_arg >>
+    | TyLollipop(_tya, tyb) ->
       return (tyb)
     | _                        -> fail i @@ CannotApply(ty_arr, ty_arg)
 
@@ -277,6 +277,23 @@ module TypeSub = struct
     match ty with
     | TyTensor(ty1, ty2) -> return (ty1, ty2)
     | _                  -> fail i @@ WrongShape (ty, "tensor")
+
+  let check_op_shape op =
+    let num  = (TyPrim PrimNum) in
+    match op with
+    | AddOp -> return (TyAmpersand(num, num))
+    | MulOp -> return (TyTensor(num, num))
+
+let check_is_num' ty : bool =
+  match ty with
+  | TyPrim PrimNum -> true
+  | _ -> false
+
+let check_is_num i ty : unit checker =
+  if check_is_num' ty then
+    return ()
+  else
+    fail i @@ WrongShape (ty, "num")
 
   let check_union_shape i ty =
     match ty with
@@ -292,6 +309,11 @@ module TypeSub = struct
     match ty with
     | TyAmpersand(ty1, ty2) -> return (ty1, ty2)
     | _                 -> fail i @@ WrongShape (ty, "amp")
+
+  let check_monadic_shape i sity =
+    match sity with
+    | TyMonad(si, ty) -> return (si, ty)
+    | _                 -> fail i @@ WrongShape (sity, "monad")
 
   let check_sized_nat_shape i ty = fail i @@ WrongShape (ty, "nat")
 
@@ -394,6 +416,14 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     get_ctx_length >>= fun len ->
     return (type_of_prim pt, zeros len)
 
+  (* Rounding *)
+  | TmRnd(i, v) ->
+    type_of v    >>= fun (ty_v, sis_v)  ->
+    check_is_num i ty_v >>
+
+    let eps = SiConst 1e-23 in
+    return (TyMonad(eps, TyPrim PrimNum), sis_v)
+
   (* Abstraction and Application *)
 
   (* λ (x :[si] tya_x) { tm } *)
@@ -401,9 +431,19 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     with_extended_ctx i b_x.b_name tya_x (type_of tm) >>= fun (ty_tm, si_x, sis) ->
 
-    ty_debug (tmInfo t) "### [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si (si_of_bsi si_x);
+    let si_x = si_of_bsi si_x in
+    let si_x  =  Simpl.si_simpl_compute si_x in
 
-      check_sens_eq i (SiConst 1.0) (si_of_bsi si_x)         >>
+    ty_debug (tmInfo t) "### [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si si_x;
+
+      let si_x  = Simpl.si_simpl si_x in
+      let si_x  = Simpl.si_simpl_compute si_x in
+      check_sens_eq i (SiConst 1.0) si_x         >>
+
+      (*let si_x  = Simpl.si_simpl si_x in
+      let si_x  = Simpl.si_simpl_compute si_x in
+      let ty    = TyBang (si_x,tya_x) in*)
+
       return (TyLollipop (tya_x, ty_tm), sis)
 
   (* tm1 β → α, tm2: β *)
@@ -419,9 +459,9 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return (tya, add_sens sis1 sis2)
 
   (************************************************************)
-  (* Identical to app + lam *)
+  (* For now, identical to app + lam *)
 
-  (* let x [: otya_x] = tm in e *)
+  (* x = tm ; e *)
   | TmLet(i, x, tm_x, e)                   ->
 
     type_of tm_x >>= fun (ty_x, sis_x)  ->
@@ -431,8 +471,29 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
 
     let si_max = SiLub (si_of_bsi si_x, (SiConst 1.0)) in
-      return (ty_e, add_sens sis_e (scale_sens (Some si_max) sis_x))
+    let si_max = Simpl.si_simpl si_max in
+    let si_max = Simpl.si_simpl_compute si_max in
 
+    return (ty_e, add_sens sis_e (scale_sens (Some si_max) sis_x))
+
+  (* Monadic x = v ; e *)
+  | TmLetBind(i, x, v, e)                   ->
+
+    type_of v >>= fun (ty_v, sis_v)  ->
+
+    check_monadic_shape i ty_v >>= fun(si_v, ty_x) ->
+
+    ty_info2 i "### Type of binder %a is %a" Print.pp_binfo x Print.pp_type ty_x;
+
+    with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
+
+    check_monadic_shape i ty_e >>= fun(si_e, ty_e') ->
+
+    let si_x     = si_of_bsi si_x in
+    let si1      =  Simpl.si_simpl_compute (SiMult(si_x, si_v)) in
+    let si_total = Simpl.si_simpl_compute (SiAdd( si1, si_e)) in
+
+    return (TyMonad(si_total,ty_e'), add_sens sis_e (scale_sens (Some si_x) sis_v))
 
   (* Tensor and & *)
   | TmAmpersand(_i, tm1, tm2)      ->
@@ -498,9 +559,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     with_extended_ctx i x.b_name ty_x (type_of tm_e) >>= fun (ty_e, si_x, sis_e) ->
 
     let si_x = si_of_bsi si_x in
-
-    check_sens_div i si_x si_v >>
-    let t = si_div si_x si_v in
+    let t    = si_div si_x si_v in
 
     return(ty_e, add_sens sis_e (scale_sens (Some t) sis_v))
 
@@ -527,7 +586,16 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
       return (tyr, add_sens theta (scale_sens (Some (SiLub (si_x, si_one))) sis_v))
 
-  (* Type/Sensitivity Abstraction and Application *)
+  (* Ops *)
+  | TmOp(i, fop, v) ->
+
+    type_of v >>= fun (ty_v, sis_v) ->
+
+    check_op_shape fop >>= fun (ty_op) ->
+
+    check_type_eq i ty_v ty_op >>
+
+    return ((TyPrim PrimNum), sis_v)
 
   ) >>= fun (ty, sis) ->
 
@@ -545,6 +613,7 @@ open Format
 open Print
 
 let pp_tyerr ppf s = match s with
+  | SensErrorEq (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a = %a" !ty_seq pp_si si1 pp_si si2
   | SensError (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a <= %a" !ty_seq pp_si si1 pp_si si2
   | MoreGeneral(ty1, ty2) -> fprintf ppf "EEE [%3d] %a is not more general than %a"     !ty_seq pp_type ty1 pp_type ty2
   | TypeInst(ty1, ty2)    -> fprintf ppf "EEE [%3d] Type %a is not instance of %a"      !ty_seq pp_type ty1 pp_type ty2

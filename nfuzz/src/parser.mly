@@ -67,6 +67,12 @@ let mk_prim_ty_app ctx info prim arglist =
 let mk_lambda info bi ty term = TmAbs(info, bi, ty, term)
 
 
+let rec list_to_term l body = match l with
+    []                    -> body
+  | (ty, n, i) :: tml -> TmAbs (i, nb_var n, ty, list_to_term tml body)
+
+let from_args_to_term arg_list body = (list_to_term arg_list body)
+
 %}
 
 /* ---------------------------------------------------------------------- */
@@ -85,6 +91,7 @@ let mk_lambda info bi ty term = TmAbs(info, bi, ty, term)
 %token <Support.FileInfo.info> LBRACE
 %token <Support.FileInfo.info> QUESTION
 %token <Support.FileInfo.info> SEMI
+%token <Support.FileInfo.info> SEMIM
 %token <Support.FileInfo.info> RBRACE
 %token <Support.FileInfo.info> EQUAL
 %token <Support.FileInfo.info> HAT
@@ -102,6 +109,7 @@ let mk_lambda info bi ty term = TmAbs(info, bi, ty, term)
 %token <Support.FileInfo.info> PIPE
 %token <Support.FileInfo.info> OR
 %token <Support.FileInfo.info> BANG
+%token <Support.FileInfo.info> EM
 %token <Support.FileInfo.info> LOLLIPOP
 %token <Support.FileInfo.info> TRUE
 %token <Support.FileInfo.info> FALSE
@@ -154,6 +162,12 @@ let mk_lambda info bi ty term = TmAbs(info, bi, ty, term)
 %token <Support.FileInfo.info> SUCC
 %token <Support.FileInfo.info> PROJ1
 %token <Support.FileInfo.info> PROJ2
+%token <Support.FileInfo.info> RND
+%token <Support.FileInfo.info> OP
+%token <Support.FileInfo.info> ADDOP
+%token <Support.FileInfo.info> MULOP
+
+
 
 
 /* Identifier and constant value tokens */
@@ -188,6 +202,11 @@ Term :
           let ctx' = extend_var $1.v ctx in
           TmLet($1.i, (nb_var $1.v), $3 ctx, $5 ctx')
       }
+  | LET ID EQUAL Expr SEMI Term
+      { fun ctx ->
+          let ctx' = extend_var $2.v ctx in
+          TmLetBind($2.i, (nb_var $2.v), $4 ctx, $6 ctx')
+      }
   | LET LPAREN ID COMMA ID RPAREN EQUAL Expr SEMI Term
       { fun ctx ->
         let ctx_x  = extend_var $3.v ctx   in
@@ -199,13 +218,39 @@ Term :
         let ctx_x  = extend_var $3.v ctx   in
         TmBoxDest($1, (nb_var $3.v), $6 ctx, $8 ctx_x)
       }
+  | FUNCTION ID Arguments COLON Type LBRACE Term RBRACE Term
+      {
+        fun ctx ->
+        let ctx_let          = extend_var $2.v ctx        in
+        let (args, ctx_args) = $3 ctx_let                 in
+        let f_term           = from_args_to_term args ($7 ctx_args) in
+
+        TmLet($2.i, nb_var $2.v, f_term, $9 ctx_let)
+      }
   | PROJ1 Term
       { fun ctx -> TmAmp1($1, $2 ctx)}
   | PROJ2 Term
       { fun ctx -> TmAmp1($1, $2 ctx)}
-
   | Expr
       { $1 }
+
+Argument :
+    LPAREN ID COLON Type RPAREN
+      { fun ctx -> ([($4 ctx, $2.v, $2.i)], extend_var $2.v ctx) }
+
+/*
+   Arguments returns a tuple of (arg, ctx), where arg is the list of
+   arguments ready.
+*/
+Arguments :
+    Argument
+      { $1 }
+  | Argument Arguments
+      { fun ctx ->
+          let (l,  ctx')  = $1 ctx in
+          let (l2, ctx'') = $2 ctx' in
+          (l @ l2, ctx'')
+      }
 
 Expr :
       FTerm
@@ -270,6 +315,14 @@ AExpr:
       { fun ctx -> $2 ctx }
   | LPAREN PIPE Term COMMA Term PIPE RPAREN
       { fun ctx -> TmAmpersand($1, $3 ctx, $5 ctx) }
+  | RND Term
+      { fun ctx -> TmRnd($1, $2 ctx) }
+  | ADDOP Term
+      { fun ctx -> TmOp($1, AddOp, $2 ctx) }
+  | MULOP Term
+      { fun ctx -> TmOp($1, MulOp, $2 ctx) }
+  | Term Term
+      { fun ctx -> let e1 = $1 ctx in let e2 = $2 ctx in TmApp(tmInfo e1, e1, e2) }
   | STRINGV
       { fun _cx -> TmPrim($1.i, PrimTString $1.v) }
   | FLOATV
@@ -296,6 +349,14 @@ SensAtomicTerm :
 
   | FLOATV
       { fun _cx -> SiConst $1.v }
+
+MaybeSensitivity:
+    /* nothing */
+      { fun _cx -> SiInfty }
+  | LBRACK RBRACK
+      { fun _cx -> SiConst 1.0 }
+  | LBRACK SensTerm RBRACK
+      { $2 }
 
 ColType :
   | COLON Type
@@ -336,6 +397,8 @@ AType :
       { fun _cx -> TyPrim PrimUnit }
   | BANG LBRACK SensTerm RBRACK Type
       { fun ctx -> TyBang ($3 ctx, $5 ctx) }
+  | EM LBRACK SensTerm RBRACK Type
+      { fun ctx -> TyMonad ($3 ctx, $5 ctx) }
   | LPAREN TPairSeq RPAREN
       { fun ctx -> $2 ctx }
   | LT Type COMMA Type GT

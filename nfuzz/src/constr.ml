@@ -90,7 +90,12 @@ module Decide = struct
 
   let is_infty si =   si = SiInfty
 
-  (* We should also decide constants, etc... *)
+  let decide_leq_constant sil sir =
+        match sil, sir with
+				| SiConst a, SiConst b ->
+						if a <= b then Some true else None
+				| _, _           -> None
+
   let decide_leq sil sir =
     if sil = sir then
       Some true
@@ -99,7 +104,8 @@ module Decide = struct
     else if is_infty sir then
       Some true
     else
-      None
+      decide_leq_constant sil sir
+
 end
 
 module Simpl = struct
@@ -136,29 +142,37 @@ module Simpl = struct
 
 	let max c1 c2 = if c1 <= c2 then c2 else c1
 
-	let si_simpl_compute (sis : si) = match sis with
-		| SiAdd (si1,si2) ->
-				begin match si1, si2 with
-					| SiConst si1', SiConst si2' -> SiConst (si1' +. si2')
+	let rec si_simpl_compute (sis : si) = match sis with
+		| SiAdd (si1 , si2) ->
+      let si1' = si_simpl_compute si1 in
+      let si2' = si_simpl_compute si2 in
+				begin match si1', si2' with
+					| SiConst si1'', SiConst si2'' -> SiConst (si1'' +. si2'')
 					| _, SiInfty -> SiInfty
 					| SiInfty, _ -> SiInfty
 					| _, _ -> sis
 				end
 		| SiMult (si1,si2) ->
-				begin match si1, si2 with
-					| SiConst si1', SiConst si2' -> SiConst (si1' *. si2')
+      let si1' = si_simpl_compute si1 in
+      let si2' = si_simpl_compute si2 in
+				begin match si1', si2' with
+					| SiConst si1'', SiConst si2'' -> SiConst (si1'' *. si2'')
 					| _, SiInfty -> SiInfty
 					| SiInfty, _ -> SiInfty
 					| _, _ -> sis
 				end
 	 | SiDiv (si1,si2) ->
-				begin match si1, si2 with
-					| SiConst si1', SiConst si2' -> SiConst (si1' /. si2')
+      let si1' = si_simpl_compute si1 in
+      let si2' = si_simpl_compute si2 in
+				begin match si1', si2' with
+					| SiConst si1'', SiConst si2'' -> SiConst (si1'' /. si2'')
 					| _, _ -> sis
 				end
 	 | SiLub (si1,si2) ->
-			 begin match si1, si2 with
-				 | SiConst si1', SiConst si2' -> SiConst (max si1' si2')
+      let si1' = si_simpl_compute si1 in
+      let si2' = si_simpl_compute si2 in
+				begin match si1', si2' with
+				 | SiConst si1'', SiConst si2'' -> SiConst (max si1'' si2'')
 				 | _, SiInfty -> SiInfty
 				 | SiInfty, _ -> SiInfty
 				 | _, _ -> sis

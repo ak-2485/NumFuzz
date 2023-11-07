@@ -10,8 +10,6 @@ open Support.FileInfo
 (* Abstract Syntax Tree for sensitivities, terms and types                *)
 (* ---------------------------------------------------------------------- *)
 
-(* TODO: Modularize. TyLollipop -> Type.Lollipop, etc... *)
-
 (* Binders are represented using Debruijn notation *)
 
 (* Different types of variable binding, for debug purposes *)
@@ -133,7 +131,7 @@ type ty =
   | TyLollipop of ty  * ty
 
   (* Monadic type *)
-  | TyMu of si * ty
+  | TyMonad of si * ty
 
   (* Comonadic type *)
   | TyBang of si * ty
@@ -151,7 +149,7 @@ let rec ty_map n fv fsi ty = match ty with
   | TyAmpersand(ty1, ty2)   -> TyAmpersand(ty_map n fv fsi ty1, ty_map n fv fsi ty2)
   (* *)
   | TyLollipop(ty1, ty2) -> TyLollipop(ty_map n fv fsi ty1, ty_map n fv fsi ty2)
-  | TyMu(si1, ty1)   -> TyMu (fsi n si1 , ty_map n fv fsi ty1)
+  | TyMonad(si1, ty1)   -> TyMonad (fsi n si1 , ty_map n fv fsi ty1)
   | TyBang(si1, ty1) -> TyBang (fsi n si1 , ty_map n fv fsi ty1)
 
 
@@ -196,6 +194,10 @@ let type_of_prim t = match t with
   | PrimTString  _  -> TyPrim PrimString
   | PrimTFun(_, ty) -> ty
 
+type op =
+    AddOp
+  | MulOp
+
 type term =
     TmVar of info * var_info
 
@@ -209,7 +211,8 @@ type term =
   (* Primitive terms *)
   | TmPrim     of info * term_prim
 
-  (* The three fundamental constructs of our language: *)
+  (* Rounding *)
+  | TmRnd of info * term
 
   (* Regular Abstraction and Applicacion *)
   | TmApp of info * term * term
@@ -224,9 +227,14 @@ type term =
   | TmBox of info * si * term
   | TmBoxDest of info * binder_info * term * term
 
-
-  (* Only needed to avoid type inference *)
+  (* Regular sequencing *)
   | TmLet      of info * binder_info * term * term
+
+  (* Monadic sequencing *)
+  | TmLetBind  of info * binder_info * term * term
+
+  (* Basic ops *)
+  | TmOp  of info * op * term
 
 let map_prim_ty n f p =
   match p with
@@ -240,6 +248,9 @@ let rec map_term_ty_aux n ft fsi tm =
   match tm with
     TmVar(i, v)                -> TmVar (i, v)
   | TmPrim(i, p)               -> TmPrim(i, map_prim_ty n ft p)
+
+  | TmRnd(i,      tm1)    ->
+    TmRnd(i, tf n tm1)
 
   | TmTens(i,      tm1,      tm2)    ->
     TmTens(i, tf n tm1, tf n tm2)
@@ -276,7 +287,13 @@ let rec map_term_ty_aux n ft fsi tm =
   | TmLet(i, bi,      tm,      tm_i)      ->
     TmLet(i, bi, tf n tm, tf n tm_i)
 
+  (*  *)
+  | TmLetBind(i, bi,      tm,      tm_i)      ->
+    TmLetBind(i, bi, tf n tm, tf n tm_i)
 
+  (*  *)
+  | TmOp(i, opi,      tm)      ->
+    TmOp(i, opi, tf n tm)
 
 let map_term_ty fty fsi tm = map_term_ty_aux 0 fty fsi tm
 
@@ -300,6 +317,8 @@ let tmInfo t = match t with
     TmVar(fi, _)               -> fi
   | TmPrim(fi, _)              -> fi
 
+  | TmRnd(fi, _)              -> fi
+
   (* Will die soon *)
   | TmTens(fi, _, _)           -> fi
   | TmTensDest(fi,_,_,_,_)   -> fi
@@ -317,5 +336,11 @@ let tmInfo t = match t with
   | TmBox(fi,_,_) -> fi
   | TmBoxDest(fi,_,_,_) -> fi
 
-  (* Only needed for polymorphism *)
+  (*  *)
   | TmLet(fi,_,_,_)          -> fi
+
+  (*  *)
+  | TmLetBind(fi,_,_,_)          -> fi
+
+  (*  *)
+  | TmOp(fi,_,_)          -> fi

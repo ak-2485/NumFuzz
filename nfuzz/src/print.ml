@@ -119,7 +119,7 @@ let pp_kind fmt _k = fprintf fmt "%s" (u_sym Symbols.Num)
 
 let rec pp_si fmt s =
   match s with
-  | SiConst flt            -> fprintf fmt "%.3f" flt
+  | SiConst flt            -> fprintf fmt "%e" flt
   | SiVar   v              -> pp_vinfo fmt v
   | SiAdd (si1, si2)       -> fprintf fmt "(%a + %a)" pp_si si1 pp_si si2
   | SiMult(si1, si2)       -> fprintf fmt "(%a * %a)" pp_si si1 pp_si si2
@@ -180,7 +180,7 @@ let rec pp_type ppf ty = match ty with
   | TyAmpersand(ty1, ty2)   -> fprintf ppf "(%a & @[<h>%a@])" pp_type ty1 pp_type ty2
   (* Funs *)
   | TyLollipop(ty1, ty2) -> fprintf ppf "(@[<hov>%a %a@ %a@])" pp_type ty1 pp_arrow (SiConst 1.0) pp_type ty2
-  | TyMu(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Mu)  pp_si si pp_type ty1
+  | TyMonad(si,ty1) -> fprintf ppf "(M[%a] @[<h>%a@])" pp_si si pp_type ty1
   | TyBang(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Bang)  pp_si si pp_type ty1
 
 let pp_type_list = pp_list pp_type
@@ -232,6 +232,10 @@ let is_binary_op s = List.mem_assoc s binary_op_table
 
 let string_of_op s = List.assoc s binary_op_table
 
+let string_of_op2 fop = match fop with
+  AddOp -> "add"
+  | MulOp -> "mul"
+
 let string_of_term_prim t = match t with
     PrimTUnit         -> "()"
   | PrimTNum f        -> string_of_float f
@@ -274,6 +278,9 @@ let rec pp_term ppf t =
   (* Primitive terms *)
   | TmPrim(_, pt)           -> fprintf ppf "%s" (string_of_term_prim pt)
 
+  (* Rounding *)
+  | TmRnd(_, tm1)           -> fprintf ppf "rnd(%a)" pp_term tm1
+
   (* Tensor and & *)
   | TmTens(_, tm1, tm2)     -> fprintf ppf "(@[%a@], @[%a@])" pp_term tm1 pp_term tm2
   | TmTensDest(_, x, y, tm, term) -> fprintf ppf "@[<v>let (%a,%a) : = @[%a@];@,@[%a@]@]" pp_binfo x pp_binfo y pp_term tm pp_term term
@@ -281,6 +288,9 @@ let rec pp_term ppf t =
   | TmAmpersand(_, tm1, tm2)          -> fprintf ppf "(<@[%a@], @[%a@]>)" pp_term tm1 pp_term tm2
   | TmAmp1(_, tm1)      -> fprintf ppf "Proj1 @[%a@]" pp_term tm1
   | TmAmp2(_, tm1)      -> fprintf ppf "Proj2 @[%a@]" pp_term tm1
+
+  (* OP *)
+  | TmOp(_, op, tm1)    -> fprintf ppf "%s(%a)" (string_of_op2 op) pp_term tm1
 
   (* Box *)
   | TmBox (_,_s,tm1)                -> fprintf ppf "\n[%a\n]" pp_term tm1
@@ -299,6 +309,8 @@ let rec pp_term ppf t =
   | TmLet(_, n, tm1, tm2) ->
     fprintf ppf "@[<v>@[<hov>%a =@;<1 1>@[%a@]@];@,@[%a@]@]" pp_binfo n pp_term tm1 pp_term tm2
 
+  | TmLetBind(_, x, tm1, tm2) ->
+    fprintf ppf "@[<v>let %a : = @[%a@];@,@[%a@]@]" pp_binfo x pp_term tm1 pp_term tm2
 
   (* Case expressions *)
   | TmUnionCase(_, tm, ln, ltm, rn, rtm) ->

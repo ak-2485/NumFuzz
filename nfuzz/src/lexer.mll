@@ -15,6 +15,7 @@ let reservedWords = [
   ("@", fun i -> Parser.AT i);
   ("$", fun i -> Parser.DOLLAR i);
   (";", fun i -> Parser.SEMI i);
+  (";M", fun i -> Parser.SEMIM i);
   ("^", fun i -> Parser.HAT i);
   ("?", fun i -> Parser.QUESTION i);
   ("{", fun i -> Parser.LBRACE i);
@@ -41,6 +42,7 @@ let reservedWords = [
   ("||", fun i -> Parser.OR i);
   ("&&", fun i -> Parser.AND i);
   ("!", fun i -> Parser.BANG i);
+  ("M", fun i -> Parser.EM i);
   (".", fun i -> Parser.DOT i);
 
   (* Keywords *)
@@ -49,6 +51,9 @@ let reservedWords = [
   ("inf", fun i -> Parser.INF i);
   ("fuzzy", fun i -> Parser.FUZZY i);
   ("fun", fun i -> Parser.FUN i);
+  ("rnd", fun i -> Parser.RND i);
+  ("add", fun i -> Parser.ADDOP i);
+  ("mul", fun i -> Parser.MULOP i);
   ("case", fun i -> Parser.UNIONCASE i);
   ("listcase", fun i -> Parser.LISTCASE i);
   ("inl", fun i -> Parser.INL i);
