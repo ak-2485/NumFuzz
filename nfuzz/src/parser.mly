@@ -218,13 +218,13 @@ Term :
         let ctx_x  = extend_var $3.v ctx   in
         TmBoxDest($1, (nb_var $3.v), $6 ctx, $8 ctx_x)
       }
+  | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
+      { fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $7 (extend_var $3.v ctx )) }
   | FUNCTION ID Arguments COLON Type LBRACE Term RBRACE Term
-      {
-        fun ctx ->
+      { fun ctx ->
         let ctx_let          = extend_var $2.v ctx        in
         let (args, ctx_args) = $3 ctx_let                 in
         let f_term           = from_args_to_term args ($7 ctx_args) in
-
         TmLet($2.i, nb_var $2.v, f_term, $9 ctx_let)
       }
   | PROJ1 Term
@@ -261,7 +261,6 @@ FTerm :
       { $1 }
 
 STerm :
-
     IF Expr THEN LBRACK Type RBRACK LBRACE Term RBRACE ELSE LBRACE Term RBRACE
       { fun ctx ->
         let if_then_spec = mk_prim_ty_app ctx $1 "if_then_else" [$5 ctx] in
@@ -278,9 +277,6 @@ STerm :
         let ctx_l = extend_var $7.v  ctx in
         let ctx_r = extend_var $14.v ctx in
         TmUnionCase($1, $2 ctx, nb_var $7.v, $10 ctx_l, nb_var  $14.v, $17 ctx_r) }
-
-  | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
-      { fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $7 (extend_var $3.v ctx )) }
   | FExpr
       { $1 }
 
