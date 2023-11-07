@@ -421,7 +421,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
 
-    let eps = SiConst 1e-23 in
+    let eps = SiConst (1e-53) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Abstraction and Application *)
@@ -438,7 +438,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
       let si_x  = Simpl.si_simpl si_x in
       let si_x  = Simpl.si_simpl_compute si_x in
-      check_sens_eq i (SiConst 1.0) si_x         >>
+      check_sens_eq i (si_one) si_x         >>
 
       (*let si_x  = Simpl.si_simpl si_x in
       let si_x  = Simpl.si_simpl_compute si_x in
@@ -470,7 +470,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
 
-    let si_max = SiLub (si_of_bsi si_x, (SiConst 1.0)) in
+    let si_max = SiLub (si_of_bsi si_x, si_one) in
     let si_max = Simpl.si_simpl si_max in
     let si_max = Simpl.si_simpl_compute si_max in
 

@@ -5,17 +5,14 @@
    See the LICENSE file for details on licensing.
 */
 %{
-
 open Syntax
-
 open Support.FileInfo
 
 let parser_error   fi = Support.Error.error_msg   Support.Options.Parser fi
 (* let parser_warning fi = Support.Error.message   1 Support.Options.Parser fi *)
 (* let parser_info    fi = Support.Error.message   2 Support.Options.Parser fi *)
 
-(* let si_zero  = SiConst 0.0 *)
-let dummy_ty  = TyPrim PrimUnit
+  let dummy_ty  = TyPrim PrimUnit
 
 (* look for a variable in the current context *)
 let existing_var fi id ctx =
@@ -167,12 +164,9 @@ let from_args_to_term arg_list body = (list_to_term arg_list body)
 %token <Support.FileInfo.info> ADDOP
 %token <Support.FileInfo.info> MULOP
 
-
-
-
 /* Identifier and constant value tokens */
 %token <string Support.FileInfo.withinfo> ID
-%token <float  Support.FileInfo.withinfo> FLOATV
+%token <float Support.FileInfo.withinfo> FLOATV
 %token <string Support.FileInfo.withinfo> STRINGV
 
 /* ---------------------------------------------------------------------- */
@@ -218,14 +212,14 @@ Term :
         let ctx_x  = extend_var $3.v ctx   in
         TmBoxDest($1, (nb_var $3.v), $6 ctx, $8 ctx_x)
       }
-  | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
-      { fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $7 (extend_var $3.v ctx )) }
-  | FUNCTION ID Arguments COLON Type LBRACE Term RBRACE Term
+  | Term Term
+      { fun ctx -> let e1 = $1 ctx in let e2 = $2 ctx in TmApp(tmInfo e1, e1, e2) }
+  | FUNCTION ID Arguments LBRACE Term RBRACE Term
       { fun ctx ->
-        let ctx_let          = extend_var $2.v ctx        in
-        let (args, ctx_args) = $3 ctx_let                 in
-        let f_term           = from_args_to_term args ($7 ctx_args) in
-        TmLet($2.i, nb_var $2.v, f_term, $9 ctx_let)
+        let (args, ctx_args) = $3 ctx                 in
+        let ctx_let          = extend_var $2.v ctx    in
+        let f_term           = from_args_to_term args ($5 ctx_args) in
+        TmLet($2.i, nb_var $2.v, f_term, $7 ctx_let)
       }
   | PROJ1 Term
       { fun ctx -> TmAmp1($1, $2 ctx)}
@@ -317,8 +311,10 @@ AExpr:
       { fun ctx -> TmOp($1, AddOp, $2 ctx) }
   | MULOP Term
       { fun ctx -> TmOp($1, MulOp, $2 ctx) }
-  | Term Term
-      { fun ctx -> let e1 = $1 ctx in let e2 = $2 ctx in TmApp(tmInfo e1, e1, e2) }
+  | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
+      {
+        fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $7 (extend_var $3.v ctx ))
+      }
   | STRINGV
       { fun _cx -> TmPrim($1.i, PrimTString $1.v) }
   | FLOATV
@@ -346,13 +342,6 @@ SensAtomicTerm :
   | FLOATV
       { fun _cx -> SiConst $1.v }
 
-MaybeSensitivity:
-    /* nothing */
-      { fun _cx -> SiInfty }
-  | LBRACK RBRACK
-      { fun _cx -> SiConst 1.0 }
-  | LBRACK SensTerm RBRACK
-      { $2 }
 
 ColType :
   | COLON Type

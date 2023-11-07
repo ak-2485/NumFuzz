@@ -178,7 +178,7 @@ rule main = parse
 
 
 | ['0'-'9']+ '.' ['0'-'9']+
-    { Parser.FLOATV{i=info lexbuf; v=float_of_string (text lexbuf)} }
+    { Parser.FLOATV {i=info lexbuf; v=float_of_string (text lexbuf)} }
 
 | "-o" { Parser.LOLLIPOP(info lexbuf) }
 

@@ -30,7 +30,7 @@ let paren s = "(" ^ s ^ ")"
 let gen_primitive prim =
   match prim with
     PrimTUnit        -> "()"
-  | PrimTNum(r)      -> string_of_float r
+  | PrimTNum(r)      -> string_of_float  r
   | PrimTString(s)   -> "\"" ^ s ^ "\""
   | PrimTFun(f, _ty) -> f
 
