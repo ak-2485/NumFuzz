@@ -6,6 +6,8 @@
 *)
 open Support.FileInfo
 
+module M = Mlmpfr
+
 (* ---------------------------------------------------------------------- *)
 (* Abstract Syntax Tree for sensitivities, terms and types                *)
 (* ---------------------------------------------------------------------- *)
@@ -64,7 +66,7 @@ type kind = Sens
 (* Sensitivities *)
 type si =
   | SiInfty
-  | SiConst of float
+  | SiConst of M.mpfr_float
   | SiVar   of var_info
   | SiAdd   of si * si
   | SiMult  of si * si

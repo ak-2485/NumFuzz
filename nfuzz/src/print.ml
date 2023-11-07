@@ -119,7 +119,7 @@ let pp_kind fmt _k = fprintf fmt "%s" (u_sym Symbols.Num)
 
 let rec pp_si fmt s =
   match s with
-  | SiConst flt            -> fprintf fmt "%e" flt
+  | SiConst flt            -> fprintf fmt "%s" (M.get_formatted_str flt)
   | SiVar   v              -> pp_vinfo fmt v
   | SiAdd (si1, si2)       -> fprintf fmt "(%a + %a)" pp_si si1 pp_si si2
   | SiMult(si1, si2)       -> fprintf fmt "(%a * %a)" pp_si si1 pp_si si2
@@ -166,7 +166,11 @@ let pp_primtype fmt ty = match ty with
 
 (* Helper for our sensitivity annotated arrows *)
 let pp_arrow fmt s = match s with
-    SiConst 1.0      -> fprintf fmt "@<1>%s" (u_sym Symbols.Lollipop)
+    SiConst a        ->
+      if a = (M.make_from_float 1.0) then
+        fprintf fmt "@<1>%s" (u_sym Symbols.Lollipop)
+      else
+        fprintf fmt "@<1>%s[%a]" (u_sym Symbols.Lollipop) pp_si s
   | SiInfty          -> fprintf fmt "@<1>%s" (u_sym Symbols.Arrow)
   | si               -> fprintf fmt "@<1>%s[%a]" (u_sym Symbols.Lollipop) pp_si si
 
@@ -179,7 +183,7 @@ let rec pp_type ppf ty = match ty with
   | TyTensor(ty1, ty2)      -> fprintf ppf "(%a @<1>%s @[<h>%a@])" pp_type ty1 (u_sym Symbols.Tensor) pp_type ty2
   | TyAmpersand(ty1, ty2)   -> fprintf ppf "(%a & @[<h>%a@])" pp_type ty1 pp_type ty2
   (* Funs *)
-  | TyLollipop(ty1, ty2) -> fprintf ppf "(@[<hov>%a %a@ %a@])" pp_type ty1 pp_arrow (SiConst 1.0) pp_type ty2
+  | TyLollipop(ty1, ty2) -> fprintf ppf "(@[<hov>%a %a@ %a@])" pp_type ty1 pp_arrow (SiConst (M.make_from_float 1.0)) pp_type ty2
   | TyMonad(si,ty1) -> fprintf ppf "(M[%a] @[<h>%a@])" pp_si si pp_type ty1
   | TyBang(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Bang)  pp_si si pp_type ty1
 
@@ -243,7 +247,11 @@ let string_of_term_prim t = match t with
   | PrimTFun(s, _)    -> ("primitive " ^ s)
 
 let pp_colon ppf s = match s with
-    SiConst 1.0      -> fprintf ppf " :[]"
+    SiConst a        ->
+      if a = (M.make_from_float 1.0) then
+        fprintf ppf " :[]"
+      else
+        fprintf ppf " :[%a]" pp_si s
   | SiInfty          -> fprintf ppf " :"
   | si               -> fprintf ppf " :[%a]" pp_si si
 

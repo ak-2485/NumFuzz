@@ -84,9 +84,15 @@ let mk_constr_leq (i : FI.info) (ctx : context) (sil : si) (sir : si) : constr =
 
 let cs_store : (constr list) ref = ref []
 
+let m_zero   = (M.make_from_float 0.0)
+let m_one    = (M.make_from_float 1.0)
+let si_zero = SiConst m_zero
+let si_one  = SiConst m_one
+
+
 module Decide = struct
 
-  let is_zero si =    si = SiConst 0.0
+  let is_zero si =    si =  si_zero
 
   let is_infty si =   si = SiInfty
 
@@ -123,10 +129,18 @@ module Simpl = struct
       let si2' = si_simpl si2 in
       begin
         match si1', si2' with
-				| SiConst 1.0, y -> y
-				| SiConst 0.0, _ -> SiConst 0.0
-				| x, SiConst 1.0 -> x
-				| _, SiConst 0.0 -> SiConst 0.0
+				| SiConst a, y ->
+						if a = m_one then
+							y
+						else if a = m_zero then
+							si_zero
+						else SiMult (si1', si2')
+				| x, SiConst b ->
+						if b = m_one then
+							x
+						else if b = m_zero then
+							si_zero
+						else SiMult (si1', si2')
 				| _, _           -> SiMult (si1', si2')
 			  end
     | SiDiv(si1, si2) ->
@@ -147,7 +161,7 @@ module Simpl = struct
       let si1' = si_simpl_compute si1 in
       let si2' = si_simpl_compute si2 in
 				begin match si1', si2' with
-					| SiConst si1'', SiConst si2'' -> SiConst (si1'' +. si2'')
+					| SiConst si1'', SiConst si2'' -> SiConst (M.add si1'' si2'')
 					| _, SiInfty -> SiInfty
 					| SiInfty, _ -> SiInfty
 					| _, _ -> sis
@@ -156,7 +170,7 @@ module Simpl = struct
       let si1' = si_simpl_compute si1 in
       let si2' = si_simpl_compute si2 in
 				begin match si1', si2' with
-					| SiConst si1'', SiConst si2'' -> SiConst (si1'' *. si2'')
+					| SiConst si1'', SiConst si2'' -> SiConst (M.mul si1'' si2'')
 					| _, SiInfty -> SiInfty
 					| SiInfty, _ -> SiInfty
 					| _, _ -> sis
@@ -165,7 +179,7 @@ module Simpl = struct
       let si1' = si_simpl_compute si1 in
       let si2' = si_simpl_compute si2 in
 				begin match si1', si2' with
-					| SiConst si1'', SiConst si2'' -> SiConst (si1'' /. si2'')
+					| SiConst si1'', SiConst si2'' -> SiConst (M.div si1'' si2'')
 					| _, _ -> sis
 				end
 	 | SiLub (si1,si2) ->

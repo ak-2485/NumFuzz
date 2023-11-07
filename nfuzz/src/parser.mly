@@ -340,7 +340,7 @@ SensAtomicTerm :
       }
 
   | FLOATV
-      { fun _cx -> SiConst $1.v }
+      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
 
 
 ColType :
