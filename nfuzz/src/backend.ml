@@ -103,7 +103,7 @@ let rec gen_term ppf t =
 
 
     (* let bi = e1 in e2 *)
-    | TmLet (_, bi, e1, e2) -> fprintf ppf "(let %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
+    | TmLet (_, bi, _sty, e1, e2) -> fprintf ppf "(let %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
 
     | TmLetBind (_, bi, e1, e2) -> fprintf ppf "(letM %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
 

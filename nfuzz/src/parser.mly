@@ -70,6 +70,16 @@ let rec list_to_term l body = match l with
 
 let from_args_to_term arg_list body = (list_to_term arg_list body)
 
+let rec list_to_type l ret_ty = match l with
+    []                        -> TyLollipop (TyPrim PrimUnit, ret_ty) (* Not yet allowed constant function *)
+  | (ty, _n, _i) :: []    -> TyLollipop (ty, ret_ty)
+  | (ty, _n, _i) :: tyl   -> TyLollipop (ty, list_to_type tyl ret_ty)
+
+let from_args_to_type arg_list oty = match oty with
+  | Some ty -> Some (list_to_type arg_list ty)
+  | None -> oty
+
+
 %}
 
 /* ---------------------------------------------------------------------- */
@@ -167,6 +177,7 @@ let from_args_to_term arg_list body = (list_to_term arg_list body)
 /* Identifier and constant value tokens */
 %token <string Support.FileInfo.withinfo> ID
 %token <float Support.FileInfo.withinfo> FLOATV
+%token <float Support.FileInfo.withinfo> EPS
 %token <string Support.FileInfo.withinfo> STRINGV
 
 /* ---------------------------------------------------------------------- */
@@ -190,11 +201,11 @@ PrimSpec :
       { $1 }
 
 Term :
-    ID EQUAL Expr SEMI Term
+    ID MaybeType EQUAL Expr SEMI Term
       {
         fun ctx ->
           let ctx' = extend_var $1.v ctx in
-          TmLet($1.i, (nb_var $1.v), $3 ctx, $5 ctx')
+          TmLet($1.i, (nb_var $1.v), $2 ctx, $4 ctx, $6 ctx')
       }
   | LET ID EQUAL Expr SEMI Term
       { fun ctx ->
@@ -214,12 +225,13 @@ Term :
       }
   | Term Term
       { fun ctx -> let e1 = $1 ctx in let e2 = $2 ctx in TmApp(tmInfo e1, e1, e2) }
-  | FUNCTION ID Arguments LBRACE Term RBRACE Term
+  | FUNCTION ID Arguments MaybeType LBRACE Term RBRACE Term
       { fun ctx ->
         let (args, ctx_args) = $3 ctx                 in
         let ctx_let          = extend_var $2.v ctx    in
-        let f_term           = from_args_to_term args ($5 ctx_args) in
-        TmLet($2.i, nb_var $2.v, f_term, $7 ctx_let)
+        let f_term           = from_args_to_term args ($6 ctx_args) in
+        let f_type           = from_args_to_type args ($4 ctx_args) in
+        TmLet($2.i, nb_var $2.v, f_type , f_term, $8 ctx_let)
       }
   | PROJ1 Term
       { fun ctx -> TmAmp1($1, $2 ctx)}
@@ -338,10 +350,15 @@ SensAtomicTerm :
     ID
       { fun ctx -> let (v, _k) = existing_tyvar $1.i $1.v ctx in SiVar v
       }
-
   | FLOATV
       { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
+  | EPS
+      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
 
+MaybeType:
+    {fun _ctx -> None}
+  | COLON Type
+      {fun ctx -> Some ($2 ctx)}
 
 ColType :
   | COLON Type

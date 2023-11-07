@@ -205,7 +205,20 @@ module TypeSub = struct
       check_type_sub i tyr1 tyl1 >>
       check_type_sub i tyl2 tyr2
 
+    | TyMonad(sl, tyl), TyMonad(sr, tyr) ->
+      check_type_sub i tyl tyr >>
+      check_sens_leq i sl sr
+
+    | TyBang(sl, tyl), TyBang(sr, tyr) ->
+      check_type_sub i tyl tyr >>
+      check_sens_leq i sl sr
+
     | _, _ -> fail
+
+    let check_type_sub' i (sty : ty)  (oty_x : ty option) =
+      match oty_x with
+      | Some ty' -> check_type_sub i sty ty'
+      | None -> return ()
 
     let rec check_type_eq (i : info) (ty_1 : ty) (ty_2 : ty) : unit checker =
       let fail = fail i @@ TypeMismatch (ty_1, ty_2) in
@@ -421,7 +434,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
 
-    let eps = SiConst (M.make_from_float (1e-53)) in
+    let eps = SiConst (M.make_from_float (1.11e-16)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Abstraction and Application *)
@@ -461,12 +474,14 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
   (************************************************************)
   (* For now, identical to app + lam *)
 
-  (* x = tm ; e *)
-  | TmLet(i, x, tm_x, e)                   ->
+  (* x : t = tm ; e *)
+  | TmLet(i, x, oty_x, tm_x, e)                   ->
 
     type_of tm_x >>= fun (ty_x, sis_x)  ->
 
     ty_info2 i "### Type of binder %a is %a" Print.pp_binfo x Print.pp_type ty_x;
+
+    check_type_sub' i ty_x oty_x >>
 
     with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
 

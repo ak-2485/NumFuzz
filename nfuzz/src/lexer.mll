@@ -180,6 +180,9 @@ rule main = parse
 | ['0'-'9']+ '.' ['0'-'9']+
     { Parser.FLOATV {i=info lexbuf; v=float_of_string (text lexbuf)} }
 
+| ['0'-'9']+ '.' ['0'-'9']+ 'e' '-' ['0'-'9']+
+    { Parser.EPS {i=info lexbuf; v=float_of_string (text lexbuf)} }
+
 | "-o" { Parser.LOLLIPOP(info lexbuf) }
 
 | ['A'-'Z' 'a'-'z' '_']

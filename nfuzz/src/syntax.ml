@@ -230,7 +230,7 @@ type term =
   | TmBoxDest of info * binder_info * term * term
 
   (* Regular sequencing *)
-  | TmLet      of info * binder_info * term * term
+  | TmLet      of info * binder_info * ty option * term * term
 
   (* Monadic sequencing *)
   | TmLetBind  of info * binder_info * term * term
@@ -247,6 +247,7 @@ let map_prim_ty n f p =
 
 let rec map_term_ty_aux n ft fsi tm =
   let tf n = map_term_ty_aux n ft fsi                  in
+  let opf  = Option.map (ft n)                         in
   match tm with
     TmVar(i, v)                -> TmVar (i, v)
   | TmPrim(i, p)               -> TmPrim(i, map_prim_ty n ft p)
@@ -286,8 +287,8 @@ let rec map_term_ty_aux n ft fsi tm =
     TmBoxDest(i, bi, tf n tm1, tf n tm2)
 
   (*  *)
-  | TmLet(i, bi,      tm,      tm_i)      ->
-    TmLet(i, bi, tf n tm, tf n tm_i)
+  | TmLet(i, bi,     orty,      tm,      tm_i)      ->
+    TmLet(i, bi, opf orty, tf n tm, tf n tm_i)
 
   (*  *)
   | TmLetBind(i, bi,      tm,      tm_i)      ->
@@ -339,7 +340,7 @@ let tmInfo t = match t with
   | TmBoxDest(fi,_,_,_) -> fi
 
   (*  *)
-  | TmLet(fi,_,_,_)          -> fi
+  | TmLet(fi,_,_,_,_)          -> fi
 
   (*  *)
   | TmLetBind(fi,_,_,_)          -> fi

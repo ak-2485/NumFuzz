@@ -314,7 +314,7 @@ let rec pp_term ppf t =
 
   | TmApp(_, tm1, tm2)         -> print_special_app ppf tm1 tm2
 
-  | TmLet(_, n, tm1, tm2) ->
+  | TmLet(_, n, _sty, tm1, tm2) ->
     fprintf ppf "@[<v>@[<hov>%a =@;<1 1>@[%a@]@];@,@[%a@]@]" pp_binfo n pp_term tm1 pp_term tm2
 
   | TmLetBind(_, x, tm1, tm2) ->
