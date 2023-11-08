@@ -1,0 +1,12 @@
+function pow2 (x : ![2.0]num) {
+  let [x'] = x;
+  rnd(mul(x',x'))
+}
+
+function pow4 (x : ![2.0]num) {
+  let [y] = x;
+  let s = (pow2([y {2.0}]));
+  pow2([s {1.0}])
+}
+
+pow4

@@ -317,6 +317,8 @@ AExpr:
       { fun ctx -> $2 ctx }
   | LPAREN PIPE Term COMMA Term PIPE RPAREN
       { fun ctx -> TmAmpersand($1, $3 ctx, $5 ctx) }
+  | LBRACK Term SensTerm RBRACK
+      { fun ctx -> TmBox($1, $3 ctx, $2 ctx) }
   | RND Term
       { fun ctx -> TmRnd($1, $2 ctx) }
   | ADDOP Term
@@ -350,10 +352,16 @@ SensAtomicTerm :
     ID
       { fun ctx -> let (v, _k) = existing_tyvar $1.i $1.v ctx in SiVar v
       }
+  | LBRACE SensTerm RBRACE
+      { fun ctx -> $2 ctx}
   | FLOATV
       { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
   | EPS
       { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
+
+ColSens :
+  | COLON SensTerm
+      { fun ctx -> ($2 ctx) }
 
 MaybeType:
     {fun _ctx -> None}
