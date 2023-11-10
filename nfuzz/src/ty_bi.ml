@@ -244,6 +244,10 @@ module TypeSub = struct
         check_type_eq i tyr1 tyl1 >>
         check_type_eq i tyl2 tyr2
 
+      | TyBang(sl, tyl), TyBang(sr, tyr) ->
+        check_type_eq i tyl tyr >>
+        check_sens_eq i sl sr
+
       | _, _ -> fail
 
 
@@ -280,8 +284,8 @@ module TypeSub = struct
     match ty_arr with
     (* Here we do inference of type applications *)
 
-    | TyLollipop(_tya, tyb) ->
-      return (tyb)
+    | TyLollipop(tya, tyb) ->
+      check_type_eq i tya ty_arg >> return (tyb)
     | _                        -> fail i @@ CannotApply(ty_arr, ty_arg)
 
   let check_fuzz_shape i ty = fail i @@ WrongShape (ty, "fuzzy")
