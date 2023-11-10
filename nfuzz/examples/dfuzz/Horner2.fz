@@ -6,7 +6,7 @@ function FMA (x : num) (y : num) (z : num) : M[1.11e-16]num {
 
 function Horner2 (a0 : num) (a1 : num) (a2 : num) (x : ![2.0]num) : M[2.3e-16]num {
   let [x1] = x ;
-  z = FMA a2 x' a1;
+  z = FMA a2 x1 a1;
   let  y1 = z;
   FMA y1 x1 a0
 }
