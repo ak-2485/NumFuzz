@@ -1,0 +1,10 @@
+#include "nlibrary.fz"
+
+function t_div_t1 
+   (t : ![2.0]num) : M[3.331e-16]num { 
+  let [t'] = t;
+  let d = addfp(|t',1.0|);
+  divfp(t',d)
+}
+
+t_div_t1
