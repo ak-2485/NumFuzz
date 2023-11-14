@@ -39,6 +39,7 @@ let gen_op op =
     AddOp        -> "add"
   | MulOp        -> "mul"
   | SqrtOp       -> "sqrt"
+  | DivOp        -> "div"
 
 
 (* Avoid clashes with ML names *)

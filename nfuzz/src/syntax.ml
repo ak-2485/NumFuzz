@@ -200,6 +200,7 @@ type op =
     AddOp
   | MulOp
   | SqrtOp
+  | DivOp
 
 type term =
     TmVar of info * var_info

@@ -8,20 +8,20 @@ function add_mul_1
   let ax = mulfp(a,x3);
   let bx = mulfp(b,x2);
   let cx = mulfp(c,x');
-  let z1 = addfp(cx,d);
-  let z2 = addfp(bx,z1);
-  addfp(ax,z2)
+  let z1 = addfp(|cx,d|);
+  let z2 = addfp(|bx,z1|);
+  addfp(|ax,z2|)
 }
 
 function add_mul_2 
    (x : ![3.0]num) (a : num) (b: num)  (c: num) (d: num) : M[6.67e-16]num { 
   let [x'] = x; 
   let ax = mulfp(x',a);
-  let bp = addfp(b,ax);
+  let bp = addfp(|b,ax|);
   let z1 = mulfp(x',bp);
-  let cp = addfp(c,z1);
+  let cp = addfp(|c,z1|);
   let z2 = mulfp(x',cp);
-  addfp(d,z2)
+  addfp(|d,z2|)
 }
 
 

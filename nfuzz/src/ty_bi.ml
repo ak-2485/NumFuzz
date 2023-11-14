@@ -308,6 +308,7 @@ module TypeSub = struct
     | AddOp  -> return (TyAmpersand(num, num))
     | MulOp  -> return (TyTensor(num, num))
     | SqrtOp -> return (TyBang(si_hlf, num))
+    | DivOp  -> return (TyTensor(num, num))
 
 let check_is_num' ty : bool =
   match ty with
@@ -446,7 +447,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
 
-    let eps = SiConst (M.make_from_float ~prec:1024 (1.11e-16)) in
+    let eps = SiConst (M.make_from_float (1.11e-16)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Abstraction and Application *)

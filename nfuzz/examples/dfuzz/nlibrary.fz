@@ -3,11 +3,21 @@ function mulfp (xy: (num, num) ) : M[1.11e-16]num {
   rnd(mul(x,y))
 }
 
-function addfp (xy: (num, num) ) : M[1.11e-16]num { 
+function addfp (xy: <num, num> ) : M[1.11e-16]num { 
+  rnd(add(|(pi1 xy),(pi2 xy)|))
+}
+
+function divfp (xy: (num, num) ) : M[1.11e-16]num { 
   let (x,y) = xy; 
-  rnd(add(|x,y|))
+  rnd(div(x,y))
 }
 
 function sqrtfp (x: ![0.5]num ) : M[1.11e-16]num {  
   rnd(sqrt(x))
+}
+
+function FMA (x : num) (y : num) (z : num) : M[1.11e-16]num { 
+  a = mul(x,y);
+  b = add(|a,z|);
+  rnd b
 }

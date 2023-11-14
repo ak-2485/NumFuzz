@@ -1,8 +1,4 @@
-function FMA (x : num) (y : num) (z : num) : M[1.11e-16]num { 
-  a = mul(x,y);
-  b = add(|a,z|);
-  rnd b
-}
+#include "nlibrary.fz"
 
 function Horner2 (a0 : num) (a1 : num) (a2 : num) (x : ![2.0]num) : M[2.3e-16]num {
   let [x1] = x ;

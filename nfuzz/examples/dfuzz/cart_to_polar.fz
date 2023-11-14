@@ -6,7 +6,7 @@ function CartesianToPolarRadius
   let [y'] = y;
   let x2 = mulfp(x',x');
   let y2 = mulfp(y',y');
-  addfp(x2,y2)
+  addfp(|x2,y2|)
 }
 
 CartesianToPolarRadius

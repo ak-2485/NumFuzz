@@ -6,7 +6,7 @@ function hypot
   let [y'] = y;
   let x2 = mulfp(x',x');
   let y2 = mulfp(y',y'); 
-  let y3 = addfp(x2,y2);
+  let y3 = addfp(|x2,y2|);
   sqrtfp([y3{0.5}])
 }
 

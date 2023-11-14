@@ -173,6 +173,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> OP
 %token <Support.FileInfo.info> ADDOP
 %token <Support.FileInfo.info> MULOP
+%token <Support.FileInfo.info> DIVOP
 %token <Support.FileInfo.info> SQRTOP
 
 /* Identifier and constant value tokens */
@@ -324,6 +325,8 @@ AExpr:
       { fun ctx -> TmOp($1, AddOp, $2 ctx) }
   | MULOP Term
       { fun ctx -> TmOp($1, MulOp, $2 ctx) }
+  | DIVOP Term
+      { fun ctx -> TmOp($1, DivOp, $2 ctx) }
   | SQRTOP Term
       { fun ctx -> TmOp($1, SqrtOp, $2 ctx) }
   | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
