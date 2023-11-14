@@ -38,6 +38,8 @@ let gen_op op =
   match op with
     AddOp        -> "add"
   | MulOp        -> "mul"
+  | SqrtOp       -> "sqrt"
+
 
 (* Avoid clashes with ML names *)
 let ml_n n = "_" ^ n

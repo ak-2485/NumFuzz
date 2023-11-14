@@ -54,6 +54,7 @@ let reservedWords = [
   ("rnd", fun i -> Parser.RND i);
   ("add", fun i -> Parser.ADDOP i);
   ("mul", fun i -> Parser.MULOP i);
+  ("sqrt", fun i -> Parser.SQRTOP i);
   ("case", fun i -> Parser.UNIONCASE i);
   ("listcase", fun i -> Parser.LISTCASE i);
   ("inl", fun i -> Parser.INL i);

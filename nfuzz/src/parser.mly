@@ -173,6 +173,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> OP
 %token <Support.FileInfo.info> ADDOP
 %token <Support.FileInfo.info> MULOP
+%token <Support.FileInfo.info> SQRTOP
 
 /* Identifier and constant value tokens */
 %token <string Support.FileInfo.withinfo> ID
@@ -207,7 +208,7 @@ Term :
           let ctx' = extend_var $1.v ctx in
           TmLet($1.i, (nb_var $1.v), $2 ctx, $4 ctx, $6 ctx')
       }
-  | LET ID EQUAL Expr SEMI Term
+  | LET ID EQUAL Term SEMI Term
       { fun ctx ->
           let ctx' = extend_var $2.v ctx in
           TmLetBind($2.i, (nb_var $2.v), $4 ctx, $6 ctx')
@@ -223,7 +224,7 @@ Term :
         let ctx_x  = extend_var $3.v ctx   in
         TmBoxDest($1, (nb_var $3.v), $6 ctx, $8 ctx_x)
       }
-  | Term Term
+  | AExpr AExpr
       { fun ctx -> let e1 = $1 ctx in let e2 = $2 ctx in TmApp(tmInfo e1, e1, e2) }
   | FUNCTION ID Arguments MaybeType LBRACE Term RBRACE Term
       { fun ctx ->
@@ -276,8 +277,6 @@ STerm :
                                        mk_lambda $11 (nb_var "thunk") (TyPrim PrimUnit) ($12 (extend_var "_" ctx)));] in
         mk_prim_app_args $1 if_then_spec (List.rev arg_list)
       }
-
-
   | UNIONCASE Expr OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE INR LPAREN ID RPAREN DBLARROW Term RBRACE
       { fun ctx ->
         let ctx_l = extend_var $7.v  ctx in
@@ -325,6 +324,8 @@ AExpr:
       { fun ctx -> TmOp($1, AddOp, $2 ctx) }
   | MULOP Term
       { fun ctx -> TmOp($1, MulOp, $2 ctx) }
+  | SQRTOP Term
+      { fun ctx -> TmOp($1, SqrtOp, $2 ctx) }
   | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
       {
         fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $7 (extend_var $3.v ctx ))
@@ -337,14 +338,8 @@ AExpr:
 
 /* Sensitivities and sizes */
 SensTerm :
-    SensTerm ADD SensMulTerm
-      { fun ctx -> SiAdd($1 ctx, $3 ctx) }
-  | SensMulTerm
-      { $1 }
-
-SensMulTerm :
-    SensMulTerm MUL SensAtomicTerm
-      { fun ctx -> SiMult($1 ctx, $3 ctx) }
+  | LBRACE SensTerm RBRACE
+      { fun ctx -> $2 ctx}
   | SensAtomicTerm
       { $1 }
 
@@ -352,8 +347,6 @@ SensAtomicTerm :
     ID
       { fun ctx -> let (v, _k) = existing_tyvar $1.i $1.v ctx in SiVar v
       }
-  | LBRACE SensTerm RBRACE
-      { fun ctx -> $2 ctx}
   | FLOATV
       { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
   | EPS
@@ -367,6 +360,11 @@ MaybeType:
     {fun _ctx -> None}
   | COLON Type
       {fun ctx -> Some ($2 ctx)}
+
+MaybeSens:
+    {fun _ctx -> None}
+  | SensTerm
+      {fun ctx -> Some ($1 ctx)}
 
 ColType :
   | COLON Type

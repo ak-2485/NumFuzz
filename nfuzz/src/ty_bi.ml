@@ -103,6 +103,12 @@ let check_sens_leq i (sil : si) (sir : si) : unit checker =
   else
     fail i @@ SensError(sil, sir)
 
+let check_sens_lt i (sil : si) (sir : si) : unit checker =
+  if post_si_lt sil sir then
+    return ()
+  else
+    fail i @@ SensError(sil, sir)
+
 let check_sens_eq  i (sil : si) (sir : si) : unit checker =
   if post_si_eq sil sir then
     return ()
@@ -112,6 +118,7 @@ let check_sens_eq  i (sil : si) (sir : si) : unit checker =
 (* Constants *)
 let si_zero = SiConst (M.make_from_float 0.0)
 let si_one  = SiConst (M.make_from_float 1.0)
+let si_hlf  = SiConst (M.make_from_float 0.5)
 let si_infty = SiInfty
 
 (* Type of sensitivities augmented with □, with corresponding
@@ -246,7 +253,7 @@ module TypeSub = struct
 
       | TyBang(sl, tyl), TyBang(sr, tyr) ->
         check_type_eq i tyl tyr >>
-        check_sens_eq i sl sr
+        check_sens_leq i sl sr
 
       | _, _ -> fail
 
@@ -298,8 +305,9 @@ module TypeSub = struct
   let check_op_shape op =
     let num  = (TyPrim PrimNum) in
     match op with
-    | AddOp -> return (TyAmpersand(num, num))
-    | MulOp -> return (TyTensor(num, num))
+    | AddOp  -> return (TyAmpersand(num, num))
+    | MulOp  -> return (TyTensor(num, num))
+    | SqrtOp -> return (TyBang(si_hlf, num))
 
 let check_is_num' ty : bool =
   match ty with
@@ -423,10 +431,10 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
   (match t with
   (* Variables *)
-  | TmVar(_i, v)  ->
+  | TmVar(_i, x)  ->
     get_ctx_length              >>= fun len ->
-    get_var_ty v                >>= fun ty  ->
-    return (ty, singleton len v)
+    get_var_ty x                >>= fun ty_x  ->
+    return (ty_x, singleton len x)
 
   (* Primitive terms *)
   | TmPrim(_, pt) ->
@@ -438,12 +446,12 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
 
-    let eps = SiConst (M.make_from_float (1.11e-16)) in
+    let eps = SiConst (M.make_from_float ~prec:1024 (1.11e-16)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Abstraction and Application *)
 
-  (* λ (x :[si] tya_x) { tm } *)
+   (* λ (x : tya_x) { tm } *)
   | TmAbs(i, b_x, tya_x, tm) ->
 
     with_extended_ctx i b_x.b_name tya_x (type_of tm) >>= fun (ty_tm, si_x, sis) ->
@@ -455,11 +463,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
       let si_x  = Simpl.si_simpl si_x in
       let si_x  = Simpl.si_simpl_compute si_x in
-      check_sens_eq i (si_one) si_x         >>
-
-      (*let si_x  = Simpl.si_simpl si_x in
-      let si_x  = Simpl.si_simpl_compute si_x in
-      let ty    = TyBang (si_x,tya_x) in*)
+      check_sens_leq i (si_one) si_x         >>
 
       return (TyLollipop (tya_x, ty_tm), sis)
 
@@ -478,7 +482,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
   (************************************************************)
   (* For now, identical to app + lam *)
 
-  (* x : t = tm ; e *)
+  (* x : oty_x = tm_x ; e *)
   | TmLet(i, x, oty_x, tm_x, e)                   ->
 
     type_of tm_x >>= fun (ty_x, sis_x)  ->
@@ -489,28 +493,29 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
 
-    let si_max = SiLub (si_of_bsi si_x, si_one) in
-    let si_max = Simpl.si_simpl si_max in
-    let si_max = Simpl.si_simpl_compute si_max in
+    let si_x =  (si_of_bsi si_x) in
+    check_sens_lt i si_zero si_x >> 
+    let si_x = Simpl.si_simpl si_x in
+    let si_x = Simpl.si_simpl_compute si_x in
 
-    return (ty_e, add_sens sis_e (scale_sens (Some si_max) sis_x))
+    return (ty_e, add_sens sis_e (scale_sens (Some si_x) sis_x))
 
   (* Monadic x = v ; e *)
   | TmLetBind(i, x, v, e)                   ->
 
     type_of v >>= fun (ty_v, sis_v)  ->
 
-    check_monadic_shape i ty_v >>= fun(si_v, ty_x) ->
+    check_monadic_shape i ty_v >>= fun(er_v, ty_x) ->
 
     ty_info2 i "### Type of binder %a is %a" Print.pp_binfo x Print.pp_type ty_x;
 
     with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
 
-    check_monadic_shape i ty_e >>= fun(si_e, ty_e') ->
+    check_monadic_shape i ty_e >>= fun(er_e, ty_e') ->
 
     let si_x     = si_of_bsi si_x in
-    let si1      =  Simpl.si_simpl_compute (SiMult(si_x, si_v)) in
-    let si_total = Simpl.si_simpl_compute (SiAdd( si1, si_e)) in
+    let si1      =  Simpl.si_simpl_compute (SiMult(si_x, er_v)) in
+    let si_total = Simpl.si_simpl_compute (SiAdd( si1, er_e)) in
 
     return (TyMonad(si_total,ty_e'), add_sens sis_e (scale_sens (Some si_x) sis_v))
 
@@ -554,12 +559,13 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     (* Extend context with x and y *)
     with_extended_ctx_2 i x.b_name ty_x y.b_name ty_y (type_of e) >>= fun (ty_e, si_x, si_y, sis_e) ->
 
-    let si_x = si_of_bsi si_x in
-    let si_y = si_of_bsi si_y in
+    let si_x   = si_of_bsi si_x in
+    let si_y   = si_of_bsi si_y in
+    let si_max = SiLub(si_x,si_y) in 
 
-    check_sens_eq i si_x si_y    >>
-
-    return (ty_e, add_sens sis_e (scale_sens (Some si_x) sis_v))
+(*    check_sens_eq i si_x si_y    >>
+*)
+    return (ty_e, add_sens sis_e (scale_sens (Some si_max) sis_v))
 
   (* *)
   | TmBox(_i,si_v,v) ->
@@ -600,10 +606,11 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
       let si_y = si_of_bsi si_y in
 
       check_sens_eq i si_x si_y >>
+      check_sens_lt i si_zero si_x >>
 
-      let theta = (lub_sens sis_l sis_r) in (* should check eq? *)
+      let theta = (lub_sens sis_l sis_r) in 
 
-      return (tyr, add_sens theta (scale_sens (Some (SiLub (si_x, si_one))) sis_v))
+      return (tyr, add_sens theta (scale_sens (Some si_x) sis_v))
 
   (* Ops *)
   | TmOp(i, fop, v) ->

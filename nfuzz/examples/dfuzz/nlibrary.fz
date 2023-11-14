@@ -1,0 +1,13 @@
+function mulfp (xy: (num, num) ) : M[1.11e-16]num { 
+  let (x,y) = xy; 
+  rnd(mul(x,y))
+}
+
+function addfp (xy: (num, num) ) : M[1.11e-16]num { 
+  let (x,y) = xy; 
+  rnd(add(|x,y|))
+}
+
+function sqrtfp (x: ![0.5]num ) : M[1.11e-16]num {  
+  rnd(sqrt(x))
+}

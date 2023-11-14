@@ -1,0 +1,7 @@
+function sqrt_check (x : ![0.5]num) { 
+  let [x'] = x;
+  y = add(|x',1.0|);
+  sqrt([y{0.5}])
+}
+
+sqrt_check

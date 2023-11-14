@@ -112,6 +112,22 @@ module Decide = struct
     else
       decide_leq_constant sil sir
 
+ let decide_lt_constant sil sir =
+        match sil, sir with
+				| SiConst a, SiConst b ->
+						if a < b then Some true else None
+				| _, _           -> None
+
+  let decide_lt sil sir =
+    if sil = sir then
+      Some false
+    else if is_zero sil then
+      Some true
+    else if is_infty sir then
+      Some true
+    else
+      decide_lt_constant sil sir
+
 end
 
 module Simpl = struct
@@ -259,6 +275,15 @@ let post_si_leq (sil : si) (sir : si) : bool =
 	let sil' = Simpl.si_simpl_compute sil in
   let sir' = Simpl.si_simpl_compute sir in
 	match Decide.decide_leq sil' sir' with
+	| Some _ -> true
+	| _ -> false
+
+let post_si_lt (sil : si) (sir : si) : bool =
+  let sil = Simpl.si_simpl sil in
+  let sir = Simpl.si_simpl sir in
+	let sil' = Simpl.si_simpl_compute sil in
+  let sir' = Simpl.si_simpl_compute sir in
+	match Decide.decide_lt sil' sir' with
 	| Some _ -> true
 	| _ -> false
 

@@ -1,0 +1,13 @@
+#include "nlibrary.fz"
+
+function hypot 
+   (x : ![0.5]num) (y : ![0.5]num) : M[3.331e-16]num { 
+  let [x'] = x;
+  let [y'] = y;
+  let x2 = mulfp(x',x');
+  let y2 = mulfp(y',y'); 
+  let y3 = addfp(x2,y2);
+  sqrtfp([y3{0.5}])
+}
+
+hypot

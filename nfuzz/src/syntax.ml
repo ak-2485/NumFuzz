@@ -199,6 +199,7 @@ let type_of_prim t = match t with
 type op =
     AddOp
   | MulOp
+  | SqrtOp
 
 type term =
     TmVar of info * var_info
