@@ -13,15 +13,15 @@
    (:standard -O2 -Werror))))
 
 (library
- (name dfuzz)
+ (name nfuzz)
  (wrapped false)
- (modules :standard \ dfuzz)
+ (modules :standard \ nfuzz)
  (libraries unix menhirLib mlmpfr))
 
 (executable
- (public_name dfuzz)
- (modules dfuzz)
- (libraries dfuzz))
+ (public_name nfuzz)
+ (modules nfuzz)
+ (libraries nfuzz))
 
 (ocamllex lexer)
 (menhir

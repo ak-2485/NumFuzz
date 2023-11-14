@@ -7,7 +7,7 @@
 module Options = struct
 
   (* Are we running in dependent mode? *)
-  let dfuzz_enabled = ref false
+  let nfuzz_enabled = ref false
 
   (* Components of the compiler *)
   type component =

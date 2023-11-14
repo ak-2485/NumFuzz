@@ -1,29 +1,64 @@
-dfuzz: Linear Dependent Types for Differential Privacy
+A Type System for Numerical Error Analysis
 =====
 
-This repository implements a type checker for the linear dependent
-lambda calculus of [1].
-
-The details of the algorithm are on a IFL 2014 paper:
-
-http://arxiv.org/abs/1503.04522
-
-[1] Marco Gaboardi, Andreas Haeberlen, Justin Hsu, Arjun Narayan, and Benjamin C. Pierce. 2013. Linear dependent types for differential privacy. In Proceedings of the 40th annual ACM SIGPLAN-SIGACT symposium on Principles of programming languages (POPL '13). ACM, New York, NY, USA, 357-370. DOI=10.1145/2429069.2429113 http://doi.acm.org/10.1145/2429069.2429113
+This repository implements a type checker for a type system
+that tracks function sensitivity and roundoff error.
 
 ## Install
 
-You need ocaml >= 4.07.1 plus dune, and the why3
-dependencies plus standard gnu tools like gcc and make.
+You need ocaml >= 4.14.1 plus dune, the mlmpfr
+dependencies, and standard gnu tools like gcc and make.
 
-You can obtain all that by doing:
+You can obtain everything other than mlmpfr through the
+command :
 ```
 $ opam install --deps-only -d -t .
 ```
 
-then run
+### Install mlmpfr
+Building mlmpfr (Ocaml bindings for MPFR) depends on 
+MPFR library version 4.1.1. Your machine might already have the appropriate MPFR version. You can check this by typing the 
+following command.
 
 ```
-$ why3 config --detect
+$ opam install mlmpfr
+```
+
+If the install fails due to the MPFR version, you can obtain 
+the required version from
+https://www.mpfr.org/mpfr-4.1.1/ and build as follows.
+
+
+To build MPFR, you first have to install GNU MP (version 5.0.0 or higher). Then, in the MPFR build directory, type the following commands.
+```
+$ ./configure
+```
+This will prepare the build and set up the options according to your system. 
+
+``` 
+$ make 
+```
+This will compile MPFR, and create a library archive file libmpfr.a. On most platforms, a dynamic library will be produced too.
+
+```
+$ make check
+```
+This will make sure that MPFR was built correctly. If any test fails, information about this failure can be found in the tests/test-suite.log file. 
+
+```
+$ make install
+```
+This will copy the files mpfr.h and mpf2mpfr.h to the directory /usr/local/include, the library files (libmpfr.a and possibly others) to the directory /usr/local/lib, the file mpfr.info to the directory /usr/local/share/info, and some other documentation files to the directory /usr/local/share/doc/mpfr (or if you passed the ‘--prefix’ option to configure, using the prefix directory given as argument to ‘--prefix’ instead of /usr/local).
+
+Once the correct version of MPFR has been installed, run
+```
+$ opam install mlmpfr
+```
+### Build the type-checker
+
+Once mlmpfr has been built and installed, run
+
+```
 $ dune build
 ```
 
@@ -34,9 +69,7 @@ to compile the tool
 To typecheck a program type:
 
 ```
-$ dune exec -- dfuzz examples/dfuzz/cdf.fz
+$ dune exec -- nfuzz examples/filename.fz
 ```
-
-Running the program is still not supported in dFuzz.
 
 
