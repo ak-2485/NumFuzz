@@ -5,6 +5,7 @@ This repository implements a type checker for a type system
 that tracks function sensitivity and roundoff error. The type
 checker is based on the implementation due to Arthur Azevedo de Amorim
 and co-authors [1].
+
 [1] Arthur Azevedo de Amorim, Marco Gaboardi, Emilio Jesús Gallego Arias, and Justin Hsu. 2014. Really Natural Linear Indexed Type Checking. In Proceedings of the 26nd 2014 International Symposium on Implementation and Application of Functional Languages (IFL '14). Association for Computing Machinery, New York, NY, USA, Article 5, 1–12. https://doi.org/10.1145/2746325.2746335
 
 ## Install
