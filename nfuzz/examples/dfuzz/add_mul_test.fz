@@ -1,7 +1,7 @@
 #include "nlibrary.fz"
 
 function add_mul_1 
-   (x : ![3.0]num) (a : num) (b: num)  (c: num) (d: num) : M[9.999e-16]num { 
+   (x : ![3.0]num) (a : num) (b: num)  (c: num) (d: num) : M[1.999e-15]num { 
   let [x'] = x; 
   let x2 = mulfp(x',x');
   let x3 = mulfp(x2,x');
@@ -14,7 +14,7 @@ function add_mul_1
 }
 
 function add_mul_2 
-   (x : ![3.0]num) (a : num) (b: num)  (c: num) (d: num) : M[6.67e-16]num { 
+   (x : ![3.0]num) (a : num) (b: num)  (c: num) (d: num) : M[1.333e-15]num { 
   let [x'] = x; 
   let ax = mulfp(x',a);
   let bp = addfp(|b,ax|);

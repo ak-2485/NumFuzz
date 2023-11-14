@@ -1,7 +1,7 @@
 #include "nlibrary.fz"
 
 function hypot 
-   (x : ![0.5]num) (y : ![0.5]num) : M[3.331e-16]num { 
+   (x : ![0.5]num) (y : ![0.5]num) : M[5.552e-16]num { 
   let [x'] = x;
   let [y'] = y;
   let x2 = mulfp(x',x');

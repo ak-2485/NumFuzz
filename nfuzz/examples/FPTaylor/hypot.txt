@@ -1,0 +1,9 @@
+{
+Variables
+	real x1 in [1, 100];
+	real x2 in [1, 100];
+
+Expressions
+	hypot rnd64_up= sqrt(((x1 * x1) + (x2 * x2)));
+}
+

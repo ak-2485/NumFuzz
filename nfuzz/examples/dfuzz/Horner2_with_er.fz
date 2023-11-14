@@ -1,8 +1,8 @@
 #include "nlibrary.fz"
 
 function Horner2_with_error 
-  (a0 : M[1.11e-16]num) (a1 : M[1.11e-16]num)
-  (a2 : M[1.11e-16]num) (x  : ![2.0]M[1.11e-16]num) : (M[7.78e-16]num) { 
+  (a0 : M[eps64_up]num) (a1 : M[eps64_up]num)
+  (a2 : M[eps64_up]num) (x  : ![2.0]M[eps64_up]num) : (M[1.555e-15]num) { 
   let [x1] = x ;
   let a0'  = a0;
   let a1'  = a1;
