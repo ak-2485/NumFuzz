@@ -187,6 +187,9 @@ rule main = parse
 | ['0'-'9']+ '.' ['0'-'9']+ 'e' '-' ['0'-'9']+
     { Parser.EPS {i=info lexbuf; v=float_of_string (text lexbuf)} }
 
+| "eps64_up"
+    { Parser.EPS2 {i=info lexbuf; v=float_of_string "2.220446049250313e-16"} }
+
 | "-o" { Parser.LOLLIPOP(info lexbuf) }
 
 | ['A'-'Z' 'a'-'z' '_']

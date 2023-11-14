@@ -447,7 +447,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
 
-    let eps = SiConst (M.make_from_float (1.11e-16)) in
+    let eps = SiConst (M.make_from_float (2.220446049250313e-16)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Abstraction and Application *)

@@ -180,6 +180,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <string Support.FileInfo.withinfo> ID
 %token <float Support.FileInfo.withinfo> FLOATV
 %token <float Support.FileInfo.withinfo> EPS
+%token <float Support.FileInfo.withinfo> EPS2
 %token <string Support.FileInfo.withinfo> STRINGV
 
 /* ---------------------------------------------------------------------- */
@@ -353,6 +354,8 @@ SensAtomicTerm :
   | FLOATV
       { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
   | EPS
+      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
+  | EPS2
       { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
 
 ColSens :
