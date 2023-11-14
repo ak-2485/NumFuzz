@@ -1,13 +1,13 @@
 function FMA (x : num) (y : num) (z : num) : M[1.11e-16]num { 
   a = mul(x,y);
-  b = add<a,z>;
+  b = add(|a,z|);
   rnd b
 }
 
 function Horner2 (a0 : num) (a1 : num) (a2 : num) (x : ![2.0]num) : M[2.3e-16]num {
   let [x1] = x ;
-  let z = FMA a2 x1 a1;
-  FMA z x1 a0
+  let z = ((FMA a2) x1) a1;
+  ((FMA z) x1) a0
 }
 
 Horner2
