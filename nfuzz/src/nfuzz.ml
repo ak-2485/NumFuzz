@@ -53,7 +53,11 @@ let parseArgs () =
 let parse file =
   let readme,writeme = Unix.pipe () in
   ignore (Unix.create_process
+<<<<<<< Updated upstream
       "/usr/bin/cpp" [|"/usr/bin/cpp" ; "-w" ; file |]
+=======
+      "/usr/bin/cpp" [|"/usr/bin/cpp" ; "-w"  ; file |]
+>>>>>>> Stashed changes
       Unix.stdin writeme Unix.stderr);
   Unix.close writeme;
   let pi = Unix.in_channel_of_descr readme in
@@ -134,10 +138,16 @@ let main () =
       main_info dp "Executable: %s generated" out_exe;
       ()
 
+let time f x =
+    let t = Sys.time() in
+    let fx = f x in
+    Printf.printf "Execution time: %fs\n" (Sys.time() -. t);
+    fx
+
 (* === Call the main function and catch any exceptions === *)
 
 let res =
-  try main (); 0
+  try (time main ()); 0
   with Exit x -> x
 
 let () = exit res
