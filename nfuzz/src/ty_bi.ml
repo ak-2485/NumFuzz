@@ -296,7 +296,7 @@ module TypeSub = struct
     (* Here we do inference of type applications *)
 
     | TyLollipop(tya, tyb) ->
-      check_type_eq i tya ty_arg >> return (tyb)
+      check_type_sub i ty_arg tya >> return (tyb)
     | _                        -> fail i @@ CannotApply(ty_arr, ty_arg)
 
   let check_fuzz_shape i ty = fail i @@ WrongShape (ty, "fuzzy")
