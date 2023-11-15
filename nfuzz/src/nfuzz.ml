@@ -53,11 +53,7 @@ let parseArgs () =
 let parse file =
   let readme,writeme = Unix.pipe () in
   ignore (Unix.create_process
-<<<<<<< Updated upstream
       "/usr/bin/cpp" [|"/usr/bin/cpp" ; "-w" ; file |]
-=======
-      "/usr/bin/cpp" [|"/usr/bin/cpp" ; "-w"  ; file |]
->>>>>>> Stashed changes
       Unix.stdin writeme Unix.stderr);
   Unix.close writeme;
   let pi = Unix.in_channel_of_descr readme in
