@@ -1,5 +1,5 @@
 Variables
-	real x in [1, 1000];
+	float64 x in [0.1, 1000];
 
 Expressions
 	sqrt_add rnd64_up= (1 / (sqrt((x + 1)) + sqrt(x)));

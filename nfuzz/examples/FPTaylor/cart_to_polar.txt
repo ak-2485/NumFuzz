@@ -1,9 +1,7 @@
-                                                                                                                                V{
 Variables
-	real x in [1, 100];
-	real y in [1, 100];
+	float64 x in [0.1, 1000];
+	float64 y in [0.1, 1000];
 
 Expressions
-	carthesianToPolarRadius rnd64_up= sqrt(((x * x) + (y * y)));
-}
+	cartesianToPolarRadius rnd64_up= sqrt(((x * x) + (y * y)));
 
