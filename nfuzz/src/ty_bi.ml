@@ -253,7 +253,11 @@ module TypeSub = struct
 
       | TyBang(sl, tyl), TyBang(sr, tyr) ->
         check_type_eq i tyl tyr >>
-        check_sens_leq i sl sr
+        check_sens_eq i sl sr
+
+      | TyMonad(el, tyl), TyMonad(er, tyr) ->
+        check_type_eq i tyl tyr >>
+        check_sens_eq i el er
 
       | _, _ -> fail
 
@@ -495,7 +499,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
 
     let si_x =  (si_of_bsi si_x) in
-    check_sens_lt i si_zero si_x >> 
+    check_sens_lt i si_zero si_x >>
     let si_x = Simpl.si_simpl si_x in
     let si_x = Simpl.si_simpl_compute si_x in
 
@@ -562,7 +566,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     let si_x   = si_of_bsi si_x in
     let si_y   = si_of_bsi si_y in
-    let si_max = SiLub(si_x,si_y) in 
+    let si_max = SiLub(si_x,si_y) in
 
 (*    check_sens_eq i si_x si_y    >>
 *)
@@ -609,7 +613,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
       check_sens_eq i si_x si_y >>
       check_sens_lt i si_zero si_x >>
 
-      let theta = (lub_sens sis_l sis_r) in 
+      let theta = (lub_sens sis_l sis_r) in
 
       return (tyr, add_sens theta (scale_sens (Some si_x) sis_v))
 
