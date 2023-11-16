@@ -1,0 +1,15 @@
+#include "nlibrary.fz"
+
+function test02_sum8 
+  (x0 : num) (x1 : num) (x2 : num) (x3 : num) 
+  (x4 : num) (x5 : num) (x6 : num) (x7 : num)  : M[1.555e-15]num {
+  let a = addfp(|x0,x1|);
+  let b = addfp(|a,x2|);
+  let c = addfp(|b,x3|);
+  let d = addfp(|c,x4|);
+  let e = addfp(|d,x5|);
+  let f = addfp(|e,x6|);
+  addfp(|f,x7|)
+}
+
+test02_sum8
