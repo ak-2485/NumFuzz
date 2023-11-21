@@ -60,7 +60,7 @@ $ opam install mlmpfr
 ```
 ### Build the type-checker
 
-Once mlmpfr has been built and installed, run
+Once mlmpfr builds, run
 
 ```
 $ dune build
