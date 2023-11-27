@@ -1,5 +1,5 @@
 # Program main file
-MAIN=_build/install/default/bin/dfuzz
+MAIN=_build/install/default/bin/nfuzz
 
 .PHONY: all clean
 
