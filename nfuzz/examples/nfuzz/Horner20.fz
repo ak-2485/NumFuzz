@@ -1,0 +1,54 @@
+#include "nlibrary.fz"
+
+function list20 (as: (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, num))))))))))))))))))))
+{
+    let (a0, rest) = as;
+    let (a1, rest2) = rest;
+    let (a2, rest3) = rest2;
+    let (a3, rest4) = rest3;
+    let (a4, rest5) = rest4;
+    let (a5, rest6) = rest5;
+    let (a6, rest7) = rest6;
+    let (a7, rest8) = rest7;
+    let (a8, rest9) = rest8;
+    let (a9, rest10) = rest9;
+    let (a10, rest11) = rest10;
+    let (a11, rest12) = rest11;
+    let (a12, rest13) = rest12;
+    let (a13, rest14) = rest13;
+    let (a14, rest15) = rest14;
+    let (a15, rest16) = rest15;
+    let (a16, rest17) = rest16;
+    let (a17, rest18) = rest17;
+    let (a18, a19) = rest18;
+    fun (c : num -o (num -o M[eps64_up]num))
+    {
+        let z18 = (c a18) a19;
+        let z17 = (c a17) z18;
+        let z16 = (c a16) z17;
+        let z15 = (c a15) z16;
+        let z14 = (c a14) z15;
+        let z13 = (c a13) z14;
+        let z12 = (c a12) z13;
+        let z11 = (c a11) z12;
+        let z10 = (c a10) z11;
+        let z9 = (c a9) z10;
+        let z8 = (c a8) z9;
+        let z7 = (c a7) z8;
+        let z6 = (c a6) z7;
+        let z5 = (c a5) z6;
+        let z4 = (c a4) z5;
+        let z3 = (c a3) z4;
+        let z2 = (c a2) z3;
+        let z1 = (c a1) z2;
+        (c a0) z1
+    }
+}
+
+function Horner20_HO (as: (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, num)))))))))))))))))))) (x : num) {
+  g = fun (a: num) {fun (b: num) {((FMA b) x) a}};
+  l = (list20 as);
+  (l g)
+}
+
+Horner20_HO
