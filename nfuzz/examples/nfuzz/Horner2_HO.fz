@@ -1,26 +1,18 @@
 #include "nlibrary.fz"
 
-function fold3 (v : num) (g: num -o num -o M[eps64_up]num)
-  (l3 : num -o (num -o num -o M[eps64_up]num) -o M[6.662e-16]num) : M[6.662e-16]num {
-  (l3 v) g
-}
-
-function list3 (as : (num,(num,num))) :
-  num -o (num -o num -o (M[eps64_up]num)) -o M[6.662e-16]num
+function list3 (as : (num,(num,num)))
 {
   let (a0,a12) = as; let (a1,a2) = a12;
-  fun (n : num) {fun (c : num -o (num -o M[eps64_up]num))
-                  { let z2 = (c a2) n;
-                    let z1 = (c a1) z2;
+    fun (c : num -o (num -o M[eps64_up]num))
+                  { let z1 = (c a1) a2;
                     (c a0) z1
                   }
-                }
 }
 
-function Horner2_HO (as : (num,(num,num))) (x : num) : M[6.662e-16]num {
+function Horner2_HO (as : (num,(num,num))) (x : num) {
   g = fun (a: num) {fun (b: num) {((FMA b) x) a}};
   l = (list3 as);
-  ((fold3 0.0) g) l
+  (l g)
 }
 
 Horner2_HO
