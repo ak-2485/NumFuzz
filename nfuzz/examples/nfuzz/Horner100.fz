@@ -1,0 +1,239 @@
+#include "nlibrary.fz"
+
+function list100 (as:
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, num)))))))))
+))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+)))))))))))))))))))))))))
+{
+    let (a0, rest) = as;
+    let (a1, rest2) = rest;
+    let (a2, rest3) = rest2;
+    let (a3, rest4) = rest3;
+    let (a4, rest5) = rest4;
+    let (a5, rest6) = rest5;
+    let (a6, rest7) = rest6;
+    let (a7, rest8) = rest7;
+    let (a8, rest9) = rest8;
+    let (a9, rest10) = rest9;
+    let (a10, rest11) = rest10;
+    let (a11, rest12) = rest11;
+    let (a12, rest13) = rest12;
+    let (a13, rest14) = rest13;
+    let (a14, rest15) = rest14;
+    let (a15, rest16) = rest15;
+    let (a16, rest17) = rest16;
+    let (a17, rest18) = rest17;
+    let (a18, rest19) = rest18;
+    let (a19, rest20) = rest19;
+    let (a20, rest21) = rest20;
+    let (a21, rest22) = rest21;
+    let (a22, rest23) = rest22;
+    let (a23, rest24) = rest23;
+    let (a24, rest25) = rest24;
+    let (a25, rest26) = rest25;
+    let (a26, rest27) = rest26;
+    let (a27, rest28) = rest27;
+    let (a28, rest29) = rest28;
+    let (a29, rest30) = rest29;
+    let (a30, rest31) = rest30;
+    let (a31, rest32) = rest31;
+    let (a32, rest33) = rest32;
+    let (a33, rest34) = rest33;
+    let (a34, rest35) = rest34;
+    let (a35, rest36) = rest35;
+    let (a36, rest37) = rest36;
+    let (a37, rest38) = rest37;
+    let (a38, rest39) = rest38;
+    let (a39, rest40) = rest39;
+    let (a40, rest41) = rest40;
+    let (a41, rest42) = rest41;
+    let (a42, rest43) = rest42;
+    let (a43, rest44) = rest43;
+    let (a44, rest45) = rest44;
+    let (a45, rest46) = rest45;
+    let (a46, rest47) = rest46;
+    let (a47, rest48) = rest47;
+    let (a48, rest49) = rest48;
+    let (a49, rest50) = rest49;
+    let (a50, rest51) = rest50;
+    let (a51, rest52) = rest51;
+    let (a52, rest53) = rest52;
+    let (a53, rest54) = rest53;
+    let (a54, rest55) = rest54;
+    let (a55, rest56) = rest55;
+    let (a56, rest57) = rest56;
+    let (a57, rest58) = rest57;
+    let (a58, rest59) = rest58;
+    let (a59, rest60) = rest59;
+    let (a60, rest61) = rest60;
+    let (a61, rest62) = rest61;
+    let (a62, rest63) = rest62;
+    let (a63, rest64) = rest63;
+    let (a64, rest65) = rest64;
+    let (a65, rest66) = rest65;
+    let (a66, rest67) = rest66;
+    let (a67, rest68) = rest67;
+    let (a68, rest69) = rest68;
+    let (a69, rest70) = rest69;
+    let (a70, rest71) = rest70;
+    let (a71, rest72) = rest71;
+    let (a72, rest73) = rest72;
+    let (a73, rest74) = rest73;
+    let (a74, rest75) = rest74;
+    let (a75, rest76) = rest75;
+    let (a76, rest77) = rest76;
+    let (a77, rest78) = rest77;
+    let (a78, rest79) = rest78;
+    let (a79, rest80) = rest79;
+    let (a80, rest81) = rest80;
+    let (a81, rest82) = rest81;
+    let (a82, rest83) = rest82;
+    let (a83, rest84) = rest83;
+    let (a84, rest85) = rest84;
+    let (a85, rest86) = rest85;
+    let (a86, rest87) = rest86;
+    let (a87, rest88) = rest87;
+    let (a88, rest89) = rest88;
+    let (a89, rest90) = rest89;
+    let (a90, rest91) = rest90;
+    let (a91, rest92) = rest91;
+    let (a92, rest93) = rest92;
+    let (a93, rest94) = rest93;
+    let (a94, rest95) = rest94;
+    let (a95, rest96) = rest95;
+    let (a96, rest97) = rest96;
+    let (a97, rest98) = rest97;
+    let (a98, a99) = rest98;
+    fun (c: num -o (num -o M[eps64_up]num))
+    {
+        let z98 = (c a98) a99;
+        let z97 = (c a97) z98;
+        let z96 = (c a96) z97;
+        let z95 = (c a95) z96;
+        let z94 = (c a94) z95;
+        let z93 = (c a93) z94;
+        let z92 = (c a92) z93;
+        let z91 = (c a91) z92;
+        let z90 = (c a90) z91;
+        let z89 = (c a89) z90;
+        let z88 = (c a88) z89;
+        let z87 = (c a87) z88;
+        let z86 = (c a86) z87;
+        let z85 = (c a85) z86;
+        let z84 = (c a84) z85;
+        let z83 = (c a83) z84;
+        let z82 = (c a82) z83;
+        let z81 = (c a81) z82;
+        let z80 = (c a80) z81;
+        let z79 = (c a79) z80;
+        let z78 = (c a78) z79;
+        let z77 = (c a77) z78;
+        let z76 = (c a76) z77;
+        let z75 = (c a75) z76;
+        let z74 = (c a74) z75;
+        let z73 = (c a73) z74;
+        let z72 = (c a72) z73;
+        let z71 = (c a71) z72;
+        let z70 = (c a70) z71;
+        let z69 = (c a69) z70;
+        let z68 = (c a68) z69;
+        let z67 = (c a67) z68;
+        let z66 = (c a66) z67;
+        let z65 = (c a65) z66;
+        let z64 = (c a64) z65;
+        let z63 = (c a63) z64;
+        let z62 = (c a62) z63;
+        let z61 = (c a61) z62;
+        let z60 = (c a60) z61;
+        let z59 = (c a59) z60;
+        let z58 = (c a58) z59;
+        let z57 = (c a57) z58;
+        let z56 = (c a56) z57;
+        let z55 = (c a55) z56;
+        let z54 = (c a54) z55;
+        let z53 = (c a53) z54;
+        let z52 = (c a52) z53;
+        let z51 = (c a51) z52;
+        let z50 = (c a50) z51;
+        let z49 = (c a49) z50;
+        let z48 = (c a48) z49;
+        let z47 = (c a47) z48;
+        let z46 = (c a46) z47;
+        let z45 = (c a45) z46;
+        let z44 = (c a44) z45;
+        let z43 = (c a43) z44;
+        let z42 = (c a42) z43;
+        let z41 = (c a41) z42;
+        let z40 = (c a40) z41;
+        let z39 = (c a39) z40;
+        let z38 = (c a38) z39;
+        let z37 = (c a37) z38;
+        let z36 = (c a36) z37;
+        let z35 = (c a35) z36;
+        let z34 = (c a34) z35;
+        let z33 = (c a33) z34;
+        let z32 = (c a32) z33;
+        let z31 = (c a31) z32;
+        let z30 = (c a30) z31;
+        let z29 = (c a29) z30;
+        let z28 = (c a28) z29;
+        let z27 = (c a27) z28;
+        let z26 = (c a26) z27;
+        let z25 = (c a25) z26;
+        let z24 = (c a24) z25;
+        let z23 = (c a23) z24;
+        let z22 = (c a22) z23;
+        let z21 = (c a21) z22;
+        let z20 = (c a20) z21;
+        let z19 = (c a19) z20;
+        let z18 = (c a18) z19;
+        let z17 = (c a17) z18;
+        let z16 = (c a16) z17;
+        let z15 = (c a15) z16;
+        let z14 = (c a14) z15;
+        let z13 = (c a13) z14;
+        let z12 = (c a12) z13;
+        let z11 = (c a11) z12;
+        let z10 = (c a10) z11;
+        let z9 = (c a9) z10;
+        let z8 = (c a8) z9;
+        let z7 = (c a7) z8;
+        let z6 = (c a6) z7;
+        let z5 = (c a5) z6;
+        let z4 = (c a4) z5;
+        let z3 = (c a3) z4;
+        let z2 = (c a2) z3;
+        let z1 = (c a1) z2;
+        (c a0) z1
+    }
+}
+
+function Horner100_HO (as:
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+(num, (num, (num, (num, (num, (num, (num, (num, (num, num)))))))))
+))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+)))))))))))))))))))))))))
+(x : num) {
+  g = fun (a: num) {fun (b: num) {((FMA b) x) a}};
+  l = (list100 as);
+  (l g)
+}
+
+Horner100_HO
