@@ -73,10 +73,8 @@ let check_main_type ty =
 
 let type_check program =
   let ty = Ty_bi.get_type program  in
-  let cs = Constr.get_cs ()        in
 
-  main_info  dp "Type of the program: @[%a@]" Print.pp_type ty;
-  main_info  dp "CS: @[<v>%a@]" (Print.pp_list Print.pp_cs) cs
+  main_info  dp "Type of the program: @[%a@]" Print.pp_type ty
 
 let gen_caml program outfile =
   let out  = open_out outfile in

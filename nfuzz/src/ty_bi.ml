@@ -115,13 +115,10 @@ let check_sens_eq  i (sil : si) (sir : si) : unit checker =
   else
     fail i @@ SensErrorEq(sil, sir)
 
-(* Constants *) (*
-let si_zero = SiConst (M.make_from_float 0.0)
-let si_one  = SiConst (M.make_from_float 1.0)
-let si_hlf  = SiConst (M.make_from_float 0.5) *)
-let si_zero = SiConst ( 0.0)
-let si_one  = SiConst ( 1.0)
-let si_hlf  = SiConst ( 0.5)
+(* Constants *)
+let si_zero  = SiConst  0.0
+let si_one   = SiConst  1.0
+let si_hlf   = SiConst  0.5
 let si_infty = SiInfty
 
 (* Type of sensitivities augmented with □, with corresponding
@@ -454,25 +451,24 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
 
-    (*let eps = SiConst (M.make_from_float (2.220446049250313e-16)) in *)
     let eps = SiConst ( (2.220446049250313e-16)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Abstraction and Application *)
 
-   (* λ (x : tya_x) { tm } *)
+  (* λ (x : tya_x) { tm }        *)
   | TmAbs(i, b_x, tya_x, tm) ->
 
     with_extended_ctx i b_x.b_name tya_x (type_of tm) >>= fun (ty_tm, si_x, sis) ->
 
-    let si_x = si_of_bsi si_x in
-    let si_x  =  Simpl.si_simpl_compute si_x in
+    let si_x1 =  si_of_bsi si_x in
+    let si_x2 =  Simpl.si_simpl_compute si_x1 in
 
-    ty_debug (tmInfo t) "### [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si si_x;
+    ty_debug (tmInfo t) "### [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si si_x2;
 
-      let si_x  = Simpl.si_simpl si_x in
-      let si_x  = Simpl.si_simpl_compute si_x in
-      check_sens_leq i (si_one) si_x         >>
+      let si_x3  = Simpl.si_simpl si_x2 in
+      let si_x4  = Simpl.si_simpl_compute si_x3 in
+      check_sens_leq i (si_one) si_x4         >>
 
       return (TyLollipop (tya_x, ty_tm), sis)
 
@@ -488,9 +484,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     return (tya, add_sens sis1 sis2)
 
-  (************************************************************)
-  (* For now, identical to app + lam *)
-
+  (* Standard let-binding *)
   (* x : oty_x = tm_x ; e *)
   | TmLet(i, x, oty_x, tm_x, e)                   ->
 
@@ -509,7 +503,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     return (ty_e, add_sens sis_e (scale_sens (Some si_x) sis_x))
 
-  (* Monadic x = v ; e *)
+  (* Monadic let-binding x = v ; e *)
   | TmLetBind(i, x, v, e)                   ->
 
     type_of v >>= fun (ty_v, sis_v)  ->
@@ -528,7 +522,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     return (TyMonad(si_total,ty_e'), add_sens sis_e (scale_sens (Some si_x) sis_v))
 
-  (* Tensor and & *)
+  (* Tensor product and Cartesian product (ampersand &)*)
   | TmAmpersand(_i, tm1, tm2)      ->
 
     type_of tm1 >>= fun (ty1, sis1) ->
@@ -550,8 +544,6 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
       return (ty_2, sis2)
 
-  (************************************************************)
-
   | TmTens(_i, e1, e2) ->
 
     type_of e1 >>= fun (ty1, sis1) ->
@@ -572,11 +564,9 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     let si_y   = si_of_bsi si_y in
     let si_max = SiLub(si_x,si_y) in
 
-(*    check_sens_eq i si_x si_y    >>
-*)
     return (ty_e, add_sens sis_e (scale_sens (Some si_max) sis_v))
 
-  (* *)
+  (* Exponentials (bangs and boxes) *)
   | TmBox(_i,si_v,v) ->
 
     type_of v >>= fun (ty_v, sis_v) ->
@@ -597,7 +587,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     return(ty_e, add_sens sis_e (scale_sens (Some t) sis_v))
 
-
+  (* Case analysis *)
   (* case v of inl(x) => e_l | inr(y) f_r *)
   | TmUnionCase(i, v, b_x, e_l, b_y, f_r)      ->
 
