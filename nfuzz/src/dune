@@ -16,7 +16,7 @@
  (name nfuzz)
  (wrapped false)
  (modules :standard \ nfuzz)
- (libraries unix menhirLib mlmpfr))
+ (libraries unix menhirLib))
 
 (executable
  (public_name nfuzz)
