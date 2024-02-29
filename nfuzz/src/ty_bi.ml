@@ -115,10 +115,13 @@ let check_sens_eq  i (sil : si) (sir : si) : unit checker =
   else
     fail i @@ SensErrorEq(sil, sir)
 
-(* Constants *)
+(* Constants *) (*
 let si_zero = SiConst (M.make_from_float 0.0)
 let si_one  = SiConst (M.make_from_float 1.0)
-let si_hlf  = SiConst (M.make_from_float 0.5)
+let si_hlf  = SiConst (M.make_from_float 0.5) *)
+let si_zero = SiConst ( 0.0)
+let si_one  = SiConst ( 1.0)
+let si_hlf  = SiConst ( 0.5)
 let si_infty = SiInfty
 
 (* Type of sensitivities augmented with □, with corresponding
@@ -451,7 +454,8 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
 
-    let eps = SiConst (M.make_from_float (2.220446049250313e-16)) in
+    (*let eps = SiConst (M.make_from_float (2.220446049250313e-16)) in *)
+    let eps = SiConst ( (2.220446049250313e-16)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Abstraction and Application *)

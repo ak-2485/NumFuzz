@@ -6,7 +6,7 @@
 *)
 open Support.FileInfo
 
-module M = Mlmpfr
+(*module M = Mlmpfr*)
 
 (* ---------------------------------------------------------------------- *)
 (* Abstract Syntax Tree for sensitivities, terms and types                *)
@@ -35,7 +35,6 @@ type var_info = {
 (* Default varinfo *)
 let dvi = {
   v_index       = -1;
-
   v_name        = "deadbeef";
   v_size        = -1;
   v_type        = BiVar;
@@ -66,7 +65,8 @@ type kind = Sens
 (* Sensitivities *)
 type si =
   | SiInfty
-  | SiConst of M.mpfr_float
+  | SiConst of float
+(*  | SiConst of M.mpfr_float*)
   | SiVar   of var_info
   | SiAdd   of si * si
   | SiMult  of si * si

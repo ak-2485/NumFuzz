@@ -84,8 +84,11 @@ let mk_constr_leq (i : FI.info) (ctx : context) (sil : si) (sir : si) : constr =
 
 let cs_store : (constr list) ref = ref []
 
+(*
 let m_zero   = (M.make_from_float 0.0)
-let m_one    = (M.make_from_float 1.0)
+let m_one    = (M.make_from_float 1.0) *)
+let m_zero   = 0.0
+let m_one    = 1.0
 let si_zero = SiConst m_zero
 let si_one  = SiConst m_one
 
@@ -177,7 +180,8 @@ module Simpl = struct
       let si1' = si_simpl_compute si1 in
       let si2' = si_simpl_compute si2 in
 				begin match si1', si2' with
-					| SiConst si1'', SiConst si2'' -> SiConst (M.add si1'' si2'')
+					(*| SiConst si1'', SiConst si2'' -> SiConst (M.add si1'' si2'') *)
+					| SiConst si1'', SiConst si2'' -> SiConst ( si1'' +. si2'')
 					| _, SiInfty -> SiInfty
 					| SiInfty, _ -> SiInfty
 					| _, _ -> sis
@@ -186,7 +190,8 @@ module Simpl = struct
       let si1' = si_simpl_compute si1 in
       let si2' = si_simpl_compute si2 in
 				begin match si1', si2' with
-					| SiConst si1'', SiConst si2'' -> SiConst (M.mul si1'' si2'')
+					(*| SiConst si1'', SiConst si2'' -> SiConst (M.mul si1'' si2'') *)
+					| SiConst si1'', SiConst si2'' -> SiConst ( si1'' *. si2'')
 					| _, SiInfty -> SiInfty
 					| SiInfty, _ -> SiInfty
 					| _, _ -> sis
@@ -194,8 +199,9 @@ module Simpl = struct
 	 | SiDiv (si1,si2) ->
       let si1' = si_simpl_compute si1 in
       let si2' = si_simpl_compute si2 in
-				begin match si1', si2' with
-					| SiConst si1'', SiConst si2'' -> SiConst (M.div si1'' si2'')
+				begin match si1', si2' with (*
+					| SiConst si1'', SiConst si2'' -> SiConst (M.div si1'' si2'') *)
+					| SiConst si1'', SiConst si2'' -> SiConst ( si1'' /. si2'')
 					| _, _ -> sis
 				end
 	 | SiLub (si1,si2) ->

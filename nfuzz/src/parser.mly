@@ -351,13 +351,15 @@ SensAtomicTerm :
     ID
       { fun ctx -> let (v, _k) = existing_tyvar $1.i $1.v ctx in SiVar v
       }
-  | FLOATV
-      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
-  | EPS
-      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
-  | EPS2
-      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) }
-
+  | FLOATV (*
+      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) } *)
+      { fun _cx -> SiConst ( $1.v) }
+  | EPS (*
+      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) } *)
+      { fun _cx -> SiConst ( $1.v) }
+  | EPS2 (*
+      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) } *)
+      { fun _cx -> SiConst ( $1.v) }
 ColSens :
   | COLON SensTerm
       { fun ctx -> ($2 ctx) }
