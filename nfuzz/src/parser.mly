@@ -41,6 +41,7 @@ let mk_infix ctx info op t1 t2 =
 *)
 
 (* This takes a *reversed* list of arguments *)
+(*
 let rec mk_prim_app_args info v arglist = match arglist with
   | []        -> v
   | (o :: op) -> TmApp(info, (mk_prim_app_args info v op), o)
@@ -49,7 +50,7 @@ let mk_prim_app ctx info prim arglist =
   match Ctx.lookup_var prim ctx with
     None      -> parser_error info "Primitive %s is not in scope" prim
   | Some(v,_) -> mk_prim_app_args info (TmVar(info, v)) (List.rev arglist)
-(*
+
 let mk_prim_app_ty_args _ v arglist = match arglist with
   | []        -> v
   | _ -> v
@@ -270,8 +271,10 @@ FTerm :
 STerm :
     IF Expr THEN LBRACE Term RBRACE ELSE LBRACE Term RBRACE
       { fun ctx ->
-        TmUnionCase($1, $2 ctx, nb_var "unit" , $5 ctx, nb_var "unit" , $9 ctx)
-      }
+        let ctx_l = extend_var "unit" ctx in
+        let ctx_r = extend_var "unit" ctx in
+        TmUnionCase($1, $2 ctx, nb_var "unit" , $5 ctx_l, nb_var "unit" , $9 ctx_r)
+      } 
   | UNIONCASE Expr OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE INR LPAREN ID RPAREN DBLARROW Term RBRACE
       { fun ctx ->
         let ctx_l = extend_var $7.v  ctx in
@@ -301,10 +304,10 @@ AExpr:
       { fun _cx -> TmPrim ($1, PrimTUnit) }
   | ID
       { fun ctx -> TmVar($1.i, existing_var $1.i $1.v ctx) }
-  | INL
-      { fun ctx -> mk_prim_app ctx $1 "p_inl" []  }
-  | INR
-      { fun ctx -> mk_prim_app ctx $1 "p_inr" []  }
+  | INL Term
+      { fun ctx -> TmInl($1, $2 ctx)  }
+  | INR Term
+      { fun ctx -> TmInr($1, $2 ctx)  }
   | LPAREN Term RPAREN
       { $2 }
   | LPAREN PairSeq RPAREN

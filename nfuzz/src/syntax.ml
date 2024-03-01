@@ -208,7 +208,9 @@ type term =
   (*  *)
   | TmTens      of info * term * term
   | TmTensDest  of info * binder_info * binder_info * term * term
-  (* Remove the annotation *)
+
+  | TmInl of info * term
+  | TmInr of info * term
   | TmUnionCase of info * term  * binder_info * term * binder_info * term
   (*                      t  of { inl(x)     => tm1  | inl(y)     => tm2  } *)
 
@@ -257,17 +259,24 @@ let rec map_term_ty_aux n ft fsi tm =
   | TmRnd(i,      tm1)    ->
     TmRnd(i, tf n tm1)
 
+  (*  *)
   | TmTens(i,      tm1,      tm2)    ->
     TmTens(i, tf n tm1, tf n tm2)
 
   | TmTensDest(i, bi_x, bi_y,      tm,      tm_i) ->
     TmTensDest(i, bi_x, bi_y, tf n tm, tf n tm_i)
 
+  (*  *)
+  | TmInl(i,      tm_l)  ->
+    TmInl(i, tf n tm_l)
+
+  | TmInr(i,      tm_r)  ->
+    TmInr(i, tf n tm_r)
 
   | TmUnionCase(i,      tm, bi_l,      tm_l, bi_r,      tm_r)  ->
     TmUnionCase(i, tf n tm, bi_l, tf n tm_l, bi_r, tf n tm_r)
 
-  (* The three fundamental constructs of the language *)
+  (*  *)
   | TmAbs(i, bi,       ty,      tm)           ->
     TmAbs(i, bi,  ft n ty, tf n tm)
 
@@ -324,14 +333,19 @@ let tmInfo t = match t with
 
   | TmRnd(fi, _)              -> fi
 
-  (* Will die soon *)
+  (* *)
   | TmTens(fi, _, _)           -> fi
   | TmTensDest(fi,_,_,_,_)   -> fi
+
+  (* *)
+  | TmInl(fi,_)        -> fi
+  | TmInr(fi,_)        -> fi
   | TmUnionCase(fi,_,_,_,_,_)-> fi
 
-  (* The three fundamental constructs of the language *)
+  (* *)
   | TmAbs(fi,_,_,_)          -> fi
   | TmApp(fi, _, _)            -> fi
+
   (* *)
   | TmAmpersand(fi,_,_)        -> fi
   | TmAmp1(fi,_)        -> fi

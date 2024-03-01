@@ -310,10 +310,7 @@ let rec pp_term ppf t =
   | TmBox (_,_s,tm1)                -> fprintf ppf "\n[%a\n]" pp_term tm1
   | TmBoxDest (_, x, tm, term)      -> fprintf ppf "@[<v>let \n[%a\n] : = @[%a@];@,@[%a@]@]" pp_binfo x pp_term tm pp_term term
 
-
-  (* Data type manipulation *)
-
-  (* Regular Abstraction and Application *)
+  (* Abstraction and Application *)
   | TmAbs(_, a_n, ty_a, tm) ->
     fprintf ppf "@<1>%s (%a%a) {@\n@[<hov 1> %a@]@\n}"
       (u_sym Symbols.Lambda) pp_binfo a_n pp_type ty_a pp_term tm
@@ -327,6 +324,8 @@ let rec pp_term ppf t =
     fprintf ppf "@[<v>let %a : = @[%a@];@,@[%a@]@]" pp_binfo x pp_term tm1 pp_term tm2
 
   (* Case expressions *)
+  | TmInl(_, tm_l) -> fprintf ppf "inl @[%a@]" pp_term tm_l 
+  | TmInr(_, tm_r) -> fprintf ppf "inr @[%a@]" pp_term tm_r
   | TmUnionCase(_, tm, ln, ltm, rn, rtm) ->
     (* Alternative using vertical boxes *)
     fprintf ppf "case @[%a@] of {@\n   inl(%a) @<1>%s @[%a@]@\n | inr(%a) @<1>%s @[%a@]@\n}"

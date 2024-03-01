@@ -14,9 +14,7 @@ open Support.FileInfo
 module Opt = Support.Options
 module P   = Print
 
-(* Type checking and synthesis engine for Fuzz.
-
-*)
+(* Type checking and synthesis engine for Fuzz. *)
 
 (* Errors *)
 type ty_error_elem =
@@ -610,6 +608,16 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
       let theta = (lub_sens sis_l sis_r) in
 
       return (tyr, add_sens theta (scale_sens (Some si_x) sis_v))
+
+  | TmInl(_i, tm_l)      ->
+
+      type_of tm_l >>= fun (ty, sis) ->
+      return (TyUnion(ty, TyPrim PrimUnit), sis)
+
+  | TmInr(_i, tm_r)      ->
+
+      type_of tm_r >>= fun (ty, sis) ->
+      return (TyUnion(TyPrim PrimUnit, ty), sis)
 
   (* Ops *)
   | TmOp(i, fop, v) ->

@@ -65,6 +65,8 @@ let rec gen_term ppf t =
       fprintf ppf "(let (%s,%s) =  %a in@\n@[%a@])"
         (ml_b b_x) (ml_b b_y) gen_term tm_e1 gen_term tm_e2
 
+    | TmInl (_i, e1) -> fprintf ppf "inl %a" gen_term e1
+    | TmInr (_i, e1) -> fprintf ppf "inr %a" gen_term e1
     | TmUnionCase (_, tm_e, bi_l, tm_l, bi_r, tm_r) ->
       fprintf ppf "(match %a with @[<v>| Left %s -> %a @,| Right %s -> %a@])"
         gen_term tm_e (ml_b bi_l) gen_term tm_l (ml_b bi_r) gen_term tm_r
