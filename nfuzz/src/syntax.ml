@@ -52,7 +52,7 @@ let var_shift o n v = { v with
 (* All of the fields are debug information *)
 type binder_info = {
   b_name : string;
-  b_size : int;          (* How many outside binders we had when this binded was found *)
+  b_size : int;          (* How many outside binders we had when this binder was found *)
   b_type : fuzz_binding;
   b_prim : bool;
 }

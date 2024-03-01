@@ -588,7 +588,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return(ty_e, add_sens sis_e (scale_sens (Some t) sis_v))
 
   (* Case analysis *)
-  (* case v of inl(x) => e_l | inr(y) f_r *)
+  (* case v of inl(x) => e_l | inr(y) => f_r *)
   | TmUnionCase(i, v, b_x, e_l, b_y, f_r)      ->
 
     type_of v >>= fun (ty_v, sis_v) ->

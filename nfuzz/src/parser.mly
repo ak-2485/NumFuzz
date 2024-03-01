@@ -9,8 +9,6 @@ open Syntax
 open Support.FileInfo
 
 let parser_error   fi = Support.Error.error_msg   Support.Options.Parser fi
-(* let parser_warning fi = Support.Error.message   1 Support.Options.Parser fi *)
-(* let parser_info    fi = Support.Error.message   2 Support.Options.Parser fi *)
 
   let dummy_ty  = TyPrim PrimUnit
 
@@ -51,7 +49,7 @@ let mk_prim_app ctx info prim arglist =
   match Ctx.lookup_var prim ctx with
     None      -> parser_error info "Primitive %s is not in scope" prim
   | Some(v,_) -> mk_prim_app_args info (TmVar(info, v)) (List.rev arglist)
-
+(*
 let mk_prim_app_ty_args _ v arglist = match arglist with
   | []        -> v
   | _ -> v
@@ -62,7 +60,7 @@ let mk_prim_ty_app ctx info prim arglist =
   | Some(v,_) -> mk_prim_app_ty_args info (TmVar(info, v)) (List.rev arglist)
 
 let mk_lambda info bi ty term = TmAbs(info, bi, ty, term)
-
+*)
 
 let rec list_to_term l body = match l with
     []                    -> body
@@ -270,14 +268,9 @@ FTerm :
       { $1 }
 
 STerm :
-    IF Expr THEN LBRACK Type RBRACK LBRACE Term RBRACE ELSE LBRACE Term RBRACE
+    IF Expr THEN LBRACE Term RBRACE ELSE LBRACE Term RBRACE
       { fun ctx ->
-        let if_then_spec = mk_prim_ty_app ctx $1 "if_then_else" [$5 ctx] in
-        let arg_list    = [$2 ctx;
-                           TmAmpersand($6,
-                                       mk_lambda $7  (nb_var "thunk") (TyPrim PrimUnit) ($8  (extend_var "_" ctx)),
-                                       mk_lambda $11 (nb_var "thunk") (TyPrim PrimUnit) ($12 (extend_var "_" ctx)));] in
-        mk_prim_app_args $1 if_then_spec (List.rev arg_list)
+        TmUnionCase($1, $2 ctx, nb_var "unit" , $5 ctx, nb_var "unit" , $9 ctx)
       }
   | UNIONCASE Expr OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE INR LPAREN ID RPAREN DBLARROW Term RBRACE
       { fun ctx ->

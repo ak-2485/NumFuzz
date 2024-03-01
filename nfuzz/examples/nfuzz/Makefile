@@ -5,4 +5,6 @@ files:= add_mul_test.fz Horner2_with_er.fz pow4.fz\
 	one_by_sqrtxx.fz
 
 all: 
-	@for f in $(files); do echo $${f}; dune exec --no-print-directory -- nfuzz $${f}; echo "\n"; done &> tests.txt 
+	@for f in $(files); do echo $${f}; \
+	dune exec --no-print-directory -- nfuzz $${f}; echo "\n";\
+	done > tests.txt 2>&1
