@@ -1,56 +1,52 @@
 hypot.fz
 I  [General] : Type of the program: ((![0.5] ℝ) ⊸ ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ)))
-Execution time: 0.000667s
+Execution time: 0.000595s
 
 
 x_by_xy.fz
 I  [General] : Type of the program: ((![2.] ℝ) ⊸ (ℝ ⊸ (M[4.4408920985e-16] ℝ)))
-Execution time: 0.000678s
+Execution time: 0.000586s
 
 
 one_by_sqrtxx.fz
-Fatal error: exception Parser.MenhirBasics.Error
+I  [General] : Type of the program: ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ))
+Execution time: 0.000553s
 
 
 sqrt_add.fz
-Fatal error: exception Parser.MenhirBasics.Error
+I  [General] : Type of the program: ((![0.5] ℝ) ⊸ (M[9.99200722163e-16] ℝ))
+Execution time: 0.000667s
 
 
 test02_sum8.fz
-Fatal error: exception Parser.MenhirBasics.Error
+I  [General] : Type of the program: (ℝ ⊸ (ℝ ⊸ (ℝ ⊸ (ℝ ⊸ (ℝ ⊸ (ℝ ⊸ (ℝ ⊸ (ℝ ⊸ (M[1.55431223448e-15] ℝ)))))))))
+Execution time: 0.000739s
 
 
 nonlin1.fz
 I  [General] : Type of the program: ((![2.] ℝ) ⊸ (M[4.4408920985e-16] ℝ))
-Execution time: 0.000589s
+Execution time: 0.000594s
 
 
 test05_nonlin1.fz
-cpp: error: test05_nonlin1.fz: No such file or directory
-cpp: warning: ‘-x c’ after last input file has no effect
-cpp: fatal error: no input files
-compilation terminated.
-Fatal error: exception Parser.MenhirBasics.Error
+I  [General] : Type of the program: (ℝ ⊸ (M[4.4408920985e-16] ℝ))
+Execution time: 0.000576s
 
 
 Horner2.fz
 I  [General] : Type of the program: (ℝ ⊸ (ℝ ⊸ (ℝ ⊸ ((![2.] ℝ) ⊸ (M[4.4408920985e-16] ℝ)))))
-Execution time: 0.000614s
+Execution time: 0.000554s
 
 
-Horner2_with_error.fz
-cpp: error: Horner2_with_error.fz: No such file or directory
-cpp: warning: ‘-x c’ after last input file has no effect
-cpp: fatal error: no input files
-compilation terminated.
-Fatal error: exception Parser.MenhirBasics.Error
+Horner2_with_er.fz
+I  [General] : Type of the program: ((M[2.22044604925e-16] ℝ) ⊸
+                                     ((M[2.22044604925e-16] ℝ) ⊸
+                                      ((M[2.22044604925e-16] ℝ) ⊸ ((![2.] (M[2.22044604925e-16] ℝ)) ⊸ (M[1.55431223448e-15] ℝ)))))
+Execution time: 0.000650s
 
 
 Horner5.fz
-cpp: error: Horner5.fz: No such file or directory
-cpp: warning: ‘-x c’ after last input file has no effect
-cpp: fatal error: no input files
-compilation terminated.
-Fatal error: exception Parser.MenhirBasics.Error
+I  [General] : Type of the program: ((ℝ ⊗ (ℝ ⊗ (ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))))) ⊸ (ℝ ⊸ (M[1.11022302463e-15] ℝ)))
+Execution time: 0.000747s
 
 
