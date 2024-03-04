@@ -1,11 +1,12 @@
 #include "nlibrary.fz"
 
-function x_by_xy 
-  (x : ![2.0]num) (y : num) : M[4.441e-16]num { 
+function x_by_xy
+  (x : ![2.0]num) (y : num) : M[4.441e-16]num {
   let [x'] = x;
   let [x1] = [x'{1.0}];
-  let z = addfp(|x1,y|);
-  divfp(x1,z)
+  s = addfp(|x1,y|);
+  let z = s;
+  divfp (x1,z)
 }
 
 x_by_xy

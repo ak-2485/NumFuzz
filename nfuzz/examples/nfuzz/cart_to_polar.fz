@@ -1,11 +1,13 @@
 #include "nlibrary.fz"
 
-function CartesianToPolarRadius 
-   (x : ![2.0]num) (y : ![2.0]num) : M[6.662e-16]num { 
+function CartesianToPolarRadius
+   (x : ![2.0]num) (y : ![2.0]num) : M[6.662e-16]num {
   let [x'] = x;
   let [y'] = y;
-  let x2 = mulfp(x',x');
-  let y2 = mulfp(y',y');
+  sx2 = mulfp(x',x');
+  let x2 = sx2;
+  sy2 = mulfp(y',y');
+  let y2 = sy2;
   addfp(|x2,y2|)
 }
 

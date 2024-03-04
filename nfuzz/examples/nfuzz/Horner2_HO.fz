@@ -4,9 +4,9 @@ function list3 (as : (num,(num,num)))
 {
   let (a0,a12) = as; let (a1,a2) = a12;
     fun (c : num -o (num -o M[eps64_up]num))
-                  { let z1 = (c a1) a2;
-                    (c a0) z1
-                  }
+                  { let z1 = (c a1) a2 ; 
+		   (c a0) z1 
+		  }
 }
 
 function Horner2_HO (as : (num,(num,num))) (x : num) {

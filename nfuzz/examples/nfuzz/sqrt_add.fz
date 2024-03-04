@@ -2,11 +2,15 @@
 
 function sqrt_add (x : ![0.5]num) : M[9.993e-16]num {
   let [x'] = x;
-  let d1 = sqrtfp(x);
-  let d2 = addfp(|x',1.0|);
-  let d3 = sqrtfp([d2{0.5}]);
-  let d  = addfp(|d3,d1|);
-  divfp(1.0,d)
+  sd1 = sqrtfp x;
+  let d1 = sd1;
+  sd2 = addfp (|x',1.0|);
+  let d2 = sd2;
+  sd3 = sqrtfp ([d2{0.5}]);
+  let d3 = sd3;
+  sd = addfp (|d3,d1|);
+  let d  = sd;
+  divfp (1.0,d)
 }
 
 sqrt_add
