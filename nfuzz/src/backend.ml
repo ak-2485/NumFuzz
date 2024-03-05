@@ -77,6 +77,9 @@ let rec gen_term ppf t =
     (* Round *)
     | TmRnd (_, v) -> fprintf ppf "rnd(%a)" gen_term v
 
+    (* Ret *)
+    | TmRet (_, v) -> fprintf ppf "ret(%a)" gen_term v
+
     | TmApp (_, f, e)  ->
       (* Some (hacky) optimizations for the OCaml translation *)
       begin

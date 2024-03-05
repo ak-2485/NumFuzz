@@ -220,6 +220,9 @@ type term =
   (* Rounding *)
   | TmRnd of info * term
 
+  (* Ret *)
+  | TmRet of info * term
+
   (* Regular Abstraction and Applicacion *)
   | TmApp of info * term * term
   | TmAbs of info * binder_info * ty * term
@@ -258,6 +261,9 @@ let rec map_term_ty_aux n ft fsi tm =
 
   | TmRnd(i,      tm1)    ->
     TmRnd(i, tf n tm1)
+
+  | TmRet(i,      tm1)    ->
+    TmRet(i, tf n tm1)
 
   (*  *)
   | TmTens(i,      tm1,      tm2)    ->
@@ -332,6 +338,8 @@ let tmInfo t = match t with
   | TmPrim(fi, _)              -> fi
 
   | TmRnd(fi, _)              -> fi
+
+  | TmRet(fi, _)              -> fi
 
   (* *)
   | TmTens(fi, _, _)           -> fi

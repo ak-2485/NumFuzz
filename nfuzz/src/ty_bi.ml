@@ -452,6 +452,12 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     let eps = SiConst ( (2.220446049250313e-16)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
+  (* Ret *)
+  | TmRet(_i, v) ->
+    type_of v    >>= fun (ty_v, sis_v)  ->
+
+    return (TyMonad(si_zero, ty_v), sis_v)
+
   (* Abstraction and Application *)
 
   (* λ (x : tya_x) { tm }        *)

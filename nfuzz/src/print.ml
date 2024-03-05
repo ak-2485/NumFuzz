@@ -295,6 +295,9 @@ let rec pp_term ppf t =
   (* Rounding *)
   | TmRnd(_, tm1)           -> fprintf ppf "rnd(%a)" pp_term tm1
 
+  (* Ret *)
+  | TmRet(_, tm1)           -> fprintf ppf "ret(%a)" pp_term tm1
+
   (* Tensor and & *)
   | TmTens(_, tm1, tm2)     -> fprintf ppf "(@[%a@], @[%a@])" pp_term tm1 pp_term tm2
   | TmTensDest(_, x, y, tm, term) -> fprintf ppf "@[<v>let (%a,%a) : = @[%a@];@,@[%a@]@]" pp_binfo x pp_binfo y pp_term tm pp_term term
@@ -324,7 +327,7 @@ let rec pp_term ppf t =
     fprintf ppf "@[<v>let %a : = @[%a@];@,@[%a@]@]" pp_binfo x pp_term tm1 pp_term tm2
 
   (* Case expressions *)
-  | TmInl(_, tm_l) -> fprintf ppf "inl @[%a@]" pp_term tm_l 
+  | TmInl(_, tm_l) -> fprintf ppf "inl @[%a@]" pp_term tm_l
   | TmInr(_, tm_r) -> fprintf ppf "inr @[%a@]" pp_term tm_r
   | TmUnionCase(_, tm, ln, ltm, rn, rtm) ->
     (* Alternative using vertical boxes *)

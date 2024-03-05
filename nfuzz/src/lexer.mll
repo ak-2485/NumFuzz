@@ -49,7 +49,6 @@ let reservedWords = [
   ("true", fun i -> Parser.TRUE i);
   ("false", fun i -> Parser.FALSE i);
   ("inf", fun i -> Parser.INF i);
-  ("fuzzy", fun i -> Parser.FUZZY i);
   ("fun", fun i -> Parser.FUN i);
   ("rnd", fun i -> Parser.RND i);
   ("add", fun i -> Parser.ADDOP i);
@@ -57,7 +56,6 @@ let reservedWords = [
   ("div", fun i -> Parser.MULOP i);
   ("sqrt", fun i -> Parser.SQRTOP i);
   ("case", fun i -> Parser.UNIONCASE i);
-  ("listcase", fun i -> Parser.LISTCASE i);
   ("inl", fun i -> Parser.INL i);
   ("inr", fun i -> Parser.INR i);
   ("pi1", fun i -> Parser.PROJ1 i);
@@ -70,22 +68,16 @@ let reservedWords = [
   ("let", fun i -> Parser.LET i);
   ("typedef", fun i -> Parser.TYPEDEF i);
   ("sample", fun i -> Parser.SAMPLE i);
-  ("fuzz", fun i -> Parser.FUZZ i);
-  ("fuzze", fun i -> Parser.FUZZB i);
   ("primiter", fun i -> Parser.PRIMITER i);
   ("function", fun i -> Parser.FUNCTION i);
   ("primitive", fun i -> Parser.PRIMITIVE i);
-  ("clipped", fun i -> Parser.CLIPPED i);
   ("set", fun i -> Parser.SET i);
-  ("bag", fun i -> Parser.BAG i);
   ("if", fun i -> Parser.IF i);
   ("then", fun i -> Parser.THEN i);
   ("else", fun i -> Parser.ELSE i);
   ("print", fun i -> Parser.PRINT i);
   ("num", fun i -> Parser.NUM i);
   ("string", fun i -> Parser.STRING i);
-  ("db_source", fun i -> Parser.DBSOURCE i);
-  ("list", fun i -> Parser.LIST i);
   ("sens", fun i -> Parser.SENS i);
   ("size", fun i -> Parser.SIZE i);
   ("type", fun i -> Parser.TYPE i);

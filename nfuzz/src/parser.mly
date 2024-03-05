@@ -30,44 +30,13 @@ let extend_var id ctx =
 
 
 (* Create a new binder *)
-let nb_var   n = {b_name = n; b_type = BiVar;   b_size = -1; b_prim = false;}
-
-
-(*
-let mk_infix ctx info op t1 t2 =
-  match Ctx.lookup_var op ctx with
-      None      -> parser_error info "The primitive infix operator %s is not in scope" op
-    | Some(v,_) -> TmApp(info, TmApp(info, TmVar(info, v), t1), t2)
-*)
-
-(* This takes a *reversed* list of arguments *)
-(*
-let rec mk_prim_app_args info v arglist = match arglist with
-  | []        -> v
-  | (o :: op) -> TmApp(info, (mk_prim_app_args info v op), o)
-
-let mk_prim_app ctx info prim arglist =
-  match Ctx.lookup_var prim ctx with
-    None      -> parser_error info "Primitive %s is not in scope" prim
-  | Some(v,_) -> mk_prim_app_args info (TmVar(info, v)) (List.rev arglist)
-
-let mk_prim_app_ty_args _ v arglist = match arglist with
-  | []        -> v
-  | _ -> v
-
-let mk_prim_ty_app ctx info prim arglist =
-  match Ctx.lookup_var prim ctx with
-    None      -> parser_error info "Primitive %s is not in scope" prim
-  | Some(v,_) -> mk_prim_app_ty_args info (TmVar(info, v)) (List.rev arglist)
-
-let mk_lambda info bi ty term = TmAbs(info, bi, ty, term)
-*)
+let nb_var   n = {b_name = n; b_type = BiVar;  b_size = -1; b_prim = false;}
 
 let rec list_to_term l body = match l with
     []                    -> body
   | (ty, n, i) :: tml -> TmAbs (i, nb_var n, ty, list_to_term tml body)
 
-let from_args_to_term arg_list body = (list_to_term arg_list body)
+let from_args_to_term arg_list body = list_to_term arg_list body
 
 let rec list_to_type l ret_ty = match l with
     []                        -> TyLollipop (TyPrim PrimUnit, ret_ty) (* Not yet allowed constant function *)
@@ -122,10 +91,8 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> INF
 %token <Support.FileInfo.info> INL
 %token <Support.FileInfo.info> INR
-%token <Support.FileInfo.info> FUZZY
 %token <Support.FileInfo.info> FUN
 %token <Support.FileInfo.info> UNIONCASE
-%token <Support.FileInfo.info> LISTCASE
 %token <Support.FileInfo.info> NUMCASE
 %token <Support.FileInfo.info> OF
 %token <Support.FileInfo.info> FOLD
@@ -137,7 +104,6 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> FUNCTION
 %token <Support.FileInfo.info> PRIMITIVE
 %token <Support.FileInfo.info> SET
-%token <Support.FileInfo.info> BAG
 %token <Support.FileInfo.info> IF
 %token <Support.FileInfo.info> THEN
 %token <Support.FileInfo.info> ELSE
@@ -153,22 +119,19 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> IN
 %token <Support.FileInfo.info> FOR
 %token <Support.FileInfo.info> UNPACK
-%token <Support.FileInfo.info> FUZZ
-%token <Support.FileInfo.info> FUZZB
 %token <Support.FileInfo.info> PRIMITER
 %token <Support.FileInfo.info> FORALL
 %token <Support.FileInfo.info> EXISTS
 %token <Support.FileInfo.info> LIST
 %token <Support.FileInfo.info> DBLCOLON
 %token <Support.FileInfo.info> NAT
-%token <Support.FileInfo.info> CLIPPED
-%token <Support.FileInfo.info> DBSOURCE
 %token <Support.FileInfo.info> INT
 %token <Support.FileInfo.info> DOT
 %token <Support.FileInfo.info> SUCC
 %token <Support.FileInfo.info> PROJ1
 %token <Support.FileInfo.info> PROJ2
 %token <Support.FileInfo.info> RND
+%token <Support.FileInfo.info> RET
 %token <Support.FileInfo.info> OP
 %token <Support.FileInfo.info> ADDOP
 %token <Support.FileInfo.info> MULOP
@@ -203,30 +166,60 @@ PrimSpec :
       { $1 }
 
 Term :
-    ID MaybeType EQUAL Expr SEMI Term
-      {
-        fun ctx ->
-          let ctx' = extend_var $1.v ctx in
-          TmLet($1.i, (nb_var $1.v), $2 ctx, $4 ctx, $6 ctx')
-      }
-  | LET ID EQUAL Term SEMI Term
+  (* values *)
+    Val
+      { $1 }
+  (* application *)
+  | Val Val
       { fun ctx ->
-          let ctx' = extend_var $2.v ctx in
-          TmLetBind($2.i, (nb_var $2.v), $4 ctx, $6 ctx')
+        let e1 = $1 ctx in
+        let e2 = $2 ctx in
+        TmApp(tmInfo e1, e1, e2)
       }
-  | LET LPAREN ID COMMA ID RPAREN EQUAL Expr SEMI Term
+  (* projections; Cartesian prod. elimination *)
+  | PROJ1 Val
+      { fun ctx -> TmAmp1($1, $2 ctx)}
+  | PROJ2 Val
+      { fun ctx -> TmAmp2($1, $2 ctx)}
+  (* tensor product elimination *)
+  | LET LPAREN ID COMMA ID RPAREN EQUAL Val SEMI Term
       { fun ctx ->
         let ctx_x  = extend_var $3.v ctx   in
         let ctx_xy = extend_var $5.v ctx_x in
         TmTensDest($1, (nb_var $3.v), (nb_var $5.v), $8 ctx, $10 ctx_xy)
       }
-  | LET LBRACK ID RBRACK EQUAL Expr SEMI Term
+  (* case analysis *)
+  | UNIONCASE Val OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE INR LPAREN ID RPAREN DBLARROW Term RBRACE
+      { fun ctx ->
+        let ctx_l = extend_var $7.v  ctx in
+        let ctx_r = extend_var $14.v ctx in
+        TmUnionCase($1, $2 ctx, nb_var $7.v, $10 ctx_l, nb_var  $14.v, $17 ctx_r) }
+  (* sugar for conditionals *)
+  | IF Val THEN LBRACE Term RBRACE ELSE LBRACE Term RBRACE
+      { fun ctx ->
+        let ctx_l = extend_var "unit" ctx in
+        let ctx_r = extend_var "unit" ctx in
+        TmUnionCase($1, $2 ctx, nb_var "unit" , $5 ctx_l, nb_var "unit" , $9 ctx_r)
+      }
+  (* co-monadic let-binder *)
+  | LET LBRACK ID RBRACK EQUAL Val SEMI Term
       { fun ctx ->
         let ctx_x  = extend_var $3.v ctx   in
         TmBoxDest($1, (nb_var $3.v), $6 ctx, $8 ctx_x)
       }
-  | AExpr AExpr
-      { fun ctx -> let e1 = $1 ctx in let e2 = $2 ctx in TmApp(tmInfo e1, e1, e2) }
+  (* monadic let-binder *)
+  | LET ID EQUAL Val SEMI Term
+      { fun ctx ->
+        let ctx' = extend_var $2.v ctx in
+        TmLetBind($2.i, (nb_var $2.v), $4 ctx, $6 ctx')
+      }
+  (* pure let-binder *)
+  | ID MaybeType EQUAL Term SEMI Term
+      { fun ctx ->
+        let ctx' = extend_var $1.v ctx in
+        TmLet($1.i, nb_var $1.v, $2 ctx, $4 ctx, $6 ctx')
+      }
+  (* sugar for top level functions : pure let-binders with abstraction *)
   | FUNCTION ID Arguments MaybeType LBRACE Term RBRACE Term
       { fun ctx ->
         let (args, ctx_args) = $3 ctx                 in
@@ -235,21 +228,31 @@ Term :
         let f_type           = from_args_to_type args ($4 ctx_args) in
         TmLet($2.i, nb_var $2.v, f_type , f_term, $8 ctx_let)
       }
-  | PROJ1 Term
-      { fun ctx -> TmAmp1($1, $2 ctx)}
-  | PROJ2 Term
-      { fun ctx -> TmAmp1($1, $2 ctx)}
-  | Expr
-      { $1 }
+  (* primitive ops *)
+  | ADDOP Val
+      { fun ctx -> TmOp($1, AddOp, $2 ctx) }
+  | MULOP Val
+      { fun ctx -> TmOp($1, MulOp, $2 ctx) }
+  | DIVOP Val
+      { fun ctx -> TmOp($1, DivOp, $2 ctx) }
+  | SQRTOP Val
+      { fun ctx -> TmOp($1, SqrtOp, $2 ctx) }
+  (* hacked sugar for n-ary applications; should fix with appropriate let-  binding *)
+  | Term Val
+      { fun ctx ->
+        let e1 = $1 ctx in
+        let e2 = $2 ctx in
+        TmApp(tmInfo e1, e1, e2)
+      }
+  (* extra *)
+  | LPAREN Term RPAREN
+    { $2 }
 
 Argument :
     LPAREN ID COLON Type RPAREN
       { fun ctx -> ([($4 ctx, $2.v, $2.i)], extend_var $2.v ctx) }
 
-/*
-   Arguments returns a tuple of (arg, ctx), where arg is the list of
-   arguments .
-*/
+(* Arguments returns a tuple (arg, ctx), where arg is the list of arguments. *)
 Arguments :
     Argument
       { $1 }
@@ -260,72 +263,32 @@ Arguments :
           (l @ l2, ctx'')
       }
 
-Expr :
-      FTerm
-      { $1 }
-
-FTerm :
-    STerm
-      { $1 }
-
-STerm :
-    IF Expr THEN LBRACE Term RBRACE ELSE LBRACE Term RBRACE
-      { fun ctx ->
-        let ctx_l = extend_var "unit" ctx in
-        let ctx_r = extend_var "unit" ctx in
-        TmUnionCase($1, $2 ctx, nb_var "unit" , $5 ctx_l, nb_var "unit" , $9 ctx_r)
-      } 
-  | UNIONCASE Expr OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE INR LPAREN ID RPAREN DBLARROW Term RBRACE
-      { fun ctx ->
-        let ctx_l = extend_var $7.v  ctx in
-        let ctx_r = extend_var $14.v ctx in
-        TmUnionCase($1, $2 ctx, nb_var $7.v, $10 ctx_l, nb_var  $14.v, $17 ctx_r) }
-  | FExpr
-      { $1 }
-
-FExpr :
-    TFExpr
-      { $1 }
-
-/* Type application */
-TFExpr:
-    AExpr
-      { $1 }
-
-/* Sugar for n-ary tuples */
+(* Sugar for n-ary tuples *)
 PairSeq:
-    Term COMMA Term
+    Val COMMA Val
       { fun ctx -> TmTens($2, $1 ctx, $3 ctx)  }
-  | Term COMMA PairSeq
+  | Val COMMA PairSeq
       { fun ctx -> TmTens($2, $1 ctx, $3 ctx)  }
 
-AExpr:
+Val:
     LPAREN RPAREN
       { fun _cx -> TmPrim ($1, PrimTUnit) }
   | ID
       { fun ctx -> TmVar($1.i, existing_var $1.i $1.v ctx) }
-  | INL Term
+  | INL Val
       { fun ctx -> TmInl($1, $2 ctx)  }
-  | INR Term
+  | INR Val
       { fun ctx -> TmInr($1, $2 ctx)  }
-  | LPAREN Term RPAREN
-      { $2 }
   | LPAREN PairSeq RPAREN
       { fun ctx -> $2 ctx }
-  | LPAREN PIPE Term COMMA Term PIPE RPAREN
+  | LPAREN PIPE Val COMMA Val PIPE RPAREN
       { fun ctx -> TmAmpersand($1, $3 ctx, $5 ctx) }
-  | LBRACK Term SensTerm RBRACK
+  | LBRACK Val SensTerm RBRACK
       { fun ctx -> TmBox($1, $3 ctx, $2 ctx) }
-  | RND Term
+  | RND Val
       { fun ctx -> TmRnd($1, $2 ctx) }
-  | ADDOP Term
-      { fun ctx -> TmOp($1, AddOp, $2 ctx) }
-  | MULOP Term
-      { fun ctx -> TmOp($1, MulOp, $2 ctx) }
-  | DIVOP Term
-      { fun ctx -> TmOp($1, DivOp, $2 ctx) }
-  | SQRTOP Term
-      { fun ctx -> TmOp($1, SqrtOp, $2 ctx) }
+  | RET Val
+      { fun ctx -> TmRnd($1, $2 ctx) }
   | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
       {
         fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $7 (extend_var $3.v ctx ))
@@ -334,6 +297,9 @@ AExpr:
       { fun _cx -> TmPrim($1.i, PrimTString $1.v) }
   | FLOATV
       { fun _cx -> TmPrim($1.i, PrimTNum $1.v) }
+  (* extra *)
+  | LPAREN Val RPAREN
+    { $2 }
 
 
 /* Sensitivities and sizes */
@@ -345,16 +311,14 @@ SensTerm :
 
 SensAtomicTerm :
     ID
-      { fun ctx -> let (v, _k) = existing_tyvar $1.i $1.v ctx in SiVar v
+      { fun ctx ->
+        let (v, _k) = existing_tyvar $1.i $1.v ctx in SiVar v
       }
-  | FLOATV (*
-      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) } *)
+  | FLOATV
       { fun _cx -> SiConst ( $1.v) }
-  | EPS (*
-      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) } *)
+  | EPS
       { fun _cx -> SiConst ( $1.v) }
-  | EPS2 (*
-      { fun _cx -> SiConst (Mlmpfr.make_from_float $1.v) } *)
+  | EPS2
       { fun _cx -> SiConst ( $1.v) }
 ColSens :
   | COLON SensTerm
