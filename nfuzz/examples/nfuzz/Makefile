@@ -7,7 +7,7 @@ files:= hypot.fz          x_by_xy.fz     one_by_sqrtxx.fz \
 all:
 	@for f in $(files); do echo $${f}; \
 	dune exec --no-print-directory -- nfuzz $${f}; echo "\n";\
-	done > tests.txt 2>&1
+	done > numfuzz_tests.txt 2>&1
 
 clean:
 	rm tests.txt
