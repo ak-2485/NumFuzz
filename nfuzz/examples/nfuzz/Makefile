@@ -10,4 +10,4 @@ all:
 	done > numfuzz_tests.txt 2>&1
 
 clean:
-	rm tests.txt
+	rm numfuzz_tests.txt

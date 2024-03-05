@@ -6,8 +6,8 @@ files:= hypot.txt          x_by_xy.txt     one_by_sqrtxx.txt \
 
 all:
 	@for f in $(files); do echo $${f};\
-	../../../FPTaylor-0.9.3/fptaylor -c config.cfg $${f}; echo "\n";\
+	../../FPTaylor-0.9.3/fptaylor -c config.cfg $${f}; echo "\n";\
 	done > fptaylor_tests.txt 2>&1
 
 clean:
-	rm gappa_tests.txt
+	rm fptaylor_tests.txt
