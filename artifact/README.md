@@ -19,9 +19,10 @@ The artifact can be built manually or using the provided docker image; Docker is
 Build the image following these steps:
 
 1. Extract `NumFuzz_source.tar.gz` to the directory `NumFuzz` by running `tar -xzf NumFuzz_source.tar.gz`.
-2. Run `docker build -t NumFuzz .` in the `NumFuzz` directory
+2. Run `docker build -t numfuzz .` in the `NumFuzz` directory
 
-Then, enter a TTY using the command `docker run --rm -it --name numfuzz numfuzz_tty NumFuzz`.
+Now, you can enter a TTY using the command `docker run --rm --name numfuzz_tty -it numfuzz` and follow the directions 
+for [running the benchmarks](#running-the-benchmarks).
 
 ## B. Building manually
 
@@ -55,6 +56,13 @@ $ make install
 This will copy the files mpfr.h and mpf2mpfr.h to the directory /usr/local/include, the library files (libmpfr.a and possibly others) to the directory /usr/local/lib, the file mpfr.info to the directory /usr/local/share/info, and some other documentation files to the directory /usr/local/share/doc/mpfr (or if you passed the ‘--prefix’ option to configure, using the prefix directory given as argument to ‘--prefix’ instead of /usr/local).
   3. [Boost](https://www.boost.org/). Install via `sudo apt-get install libboost-all-dev`.
 
-# Running Examples
+# Running the Benchmarks
 
-In order to verify the error bounds and check the timings listed in Table 3 of Section 6.2 simply run `make` for the tool in the directory `examples/toolname` and view the data in the generated file `toolname_tests.txt`.
+In order to verify the error bounds and check the timings listed in Table 3 of Section 6.2 simply run `make tests` in the top-level `NumFuzz` directory. This will generate the file `NumFuzz/tests.txt`. 
+
+To run all benchmarks for each tool individually, you can run `make tests` in the tool directory `examples/TOOLNAME` (e.g., `examples/numfuzz`). This will generate a file `examples/toolname_tests.txt` (e.g., `examples/numfuzz_tests.txt`).
+
+To run individual benchmarks, use the following commands.
+- FPTaylor: 
+- Gappa: 
+- NumFuzz: 
