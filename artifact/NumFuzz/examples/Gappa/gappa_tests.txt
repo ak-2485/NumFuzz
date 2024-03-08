@@ -3,43 +3,43 @@ hypot.g
 time gappa hypot.g
 Results:
   |(r - z) / r| in [0, 609354566858790905b-97 {3.84557e-12, 2^(-37.9199)}]
-0.037
+0.005
  
 x_by_xy.g
 time gappa x_by_xy.g
 Results:
   z in [7377959833500469b-66 {9.999e-05, 2^(-13.2879)}, 9006298624878505b-53 {0.9999, 2^(-0.000144473)}]
-0.017
+0.003
  
 one_by_sqrtxx.g
 time gappa one_by_sqrtxx.g
 Results:
   |(r - z) / r| in [0, 1055531162664959733b-98 {3.33067e-12, 2^(-38.1273)}]
-0.015
+0.004
  
 sqrt_add.g
 time gappa sqrt_add.g
 Results:
   |(r - z) / r| in [0, 1068566214176657391b-54 {59.3173, 2^(5.89038)}]
-0.014
+0.010
  
 test02_sum8.g
 time gappa test02_sum8.g
 Results:
   |(r - z) / r| in [0, 472877960873902081b-96 {5.96856e-12, 2^(-37.2858)}]
-0.019
+0.015
  
 nonlin1.g
 time gappa nonlin1.g
 Results:
   |(r - z) / r| in [0, 791841692724482655b-108 {2.44005e-15, 2^(-48.542)}]
-0.004
+0.003
  
 test05_nonlin1.g
 time gappa test05_nonlin1.g
 Results:
   |(r - z) / r| in [0, 512284457613393809b-101 {2.02061e-13, 2^(-42.1703)}]
-0.005
+0.003
  
 Horner2.g
 time gappa Horner2.g
@@ -57,4 +57,4 @@ Horner5.g
 time gappa Horner5.g
 Results:
   |(r - z) / r| in [0, 70382953265836155b7 {9.00902e+18, 2^(62.9661)}]
-0.010
+0.008

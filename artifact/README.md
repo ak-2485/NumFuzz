@@ -14,55 +14,97 @@ There is a small error in Table 3 of Section 6.2 that will be revised in the fin
 
 The artifact can be built manually or using the provided docker image; Docker is required in order to use the docker image. The requirements for building manually are listed in the description below.
 
+Both methods require extracting `NumFuzz_source.tar.gz` to the directory `NumFuzz`. This can be done with the command 
+```
+tar -xzf NumFuzz_source.tar.gz
+```
+
 ## A. Building the docker image
 
-Build the image following these steps:
-
-1. Extract `NumFuzz_source.tar.gz` to the directory `NumFuzz` by running `tar -xzf NumFuzz_source.tar.gz`.
-2. Run `docker build -t numfuzz .` in the `NumFuzz` directory
+To build the docker image, first run `docker build -t numfuzz .` in the `NumFuzz` directory
 
 Now, you can enter a TTY using the command `docker run --rm --name numfuzz_tty -it numfuzz` and follow the directions 
-for [running the benchmarks](#running-the-benchmarks).
+for [running the benchmarks](#running-benchmarks).
 
 ## B. Building manually
 
 ### Requirements
-Building manually requires Dune and Ocaml version 4.14.1 with a native compiler. The additional requirements for FPTaylor and Gappa are as follows.
-- For FPTaylor: [OCaml Num library](https://github.com/ocaml/num). This can be insalled via the command `opam install num`.
-- For Gappa:
-  1. [GMP](https://gmplib.org/).  Install via  `sudo apt-get install libgmp3-dev`.
-  2. [MPFR](https://www.mpfr.org/) you can obtain the required version from
-https://www.mpfr.org/mpfr-4.1.1/ and build as follows.
+Building NumFuzz manually requires Dune >= 3.7.0 and Ocaml version 4.14.1 with a native compiler. There are additional requirements for FPTaylor and Gappa.
 
-To build MPFR, you first have to install GNU MP (version 5.0.0 or higher). Then, in the MPFR build directory, type the following commands.
-```
-$ ./configure
-```
-This will prepare the build and set up the options according to your system.
+#### Installing FPTaylor
+
+FPTaylor requires the [OCaml Num library](https://github.com/ocaml/num) which can be installed via opam using the command 
 
 ```
-$ make
+opam install num
 ```
-This will compile MPFR, and create a library archive file libmpfr.a. On most platforms, a dynamic library will be produced too.
+In the `NumFuzz/examples/FPTaylor/FPTaylor-9.3.0` directory run 
+```
+make all
+```
+That's it! 
+
+Further details and instructions for FPTaylor can be found [in the GitHub repository](https://github.com/soarlab/FPTaylor).
+
+#### Installing Gappa 
+
+Gappa requires
+
+- [GMP](https://gmplib.org/)--Install via  `sudo apt-get install libgmp3-dev`.
+- [Boost](https://www.boost.org/)---Install via `sudo apt-get install libboost-all-dev`.
+- [MPFR](https://www.mpfr.org/) version 4.1.1---Install with the steps below.
+
+In the directory `NumFuzz/examples/Gappa` extract `mpfr-4.1.1.tar.gz` to the directory `mpfr-4.1.1` via the command
 
 ```
-$ make check
+tar -xzf mpfr-4.1.1.tar.gz
 ```
-This will make sure that MPFR was built correctly. If any test fails, information about this failure can be found in the tests/test-suite.log file.
-
+Then, in the MPFR directory `mpfr-4.1.1` install MPFR via
 ```
-$ make install
+./configure --prefix=/app/local/ && ./remake && ./remake install
 ```
-This will copy the files mpfr.h and mpf2mpfr.h to the directory /usr/local/include, the library files (libmpfr.a and possibly others) to the directory /usr/local/lib, the file mpfr.info to the directory /usr/local/share/info, and some other documentation files to the directory /usr/local/share/doc/mpfr (or if you passed the ‘--prefix’ option to configure, using the prefix directory given as argument to ‘--prefix’ instead of /usr/local).
-  3. [Boost](https://www.boost.org/). Install via `sudo apt-get install libboost-all-dev`.
 
-# Running the Benchmarks
+You should now be ready to install Gappa: In the directory `NumFuzz/examples/Gappa/gappa-1.4.2`, run
+```
+./configure && ./remake
+```
 
-In order to verify the error bounds and check the timings listed in Table 3 of Section 6.2 simply run `make tests` in the top-level `NumFuzz` directory. This will generate the file `NumFuzz/tests.txt`. 
+That's it!
 
-To run all benchmarks for each tool individually, you can run `make tests` in the tool directory `examples/TOOLNAME` (e.g., `examples/numfuzz`). This will generate a file `examples/toolname_tests.txt` (e.g., `examples/numfuzz_tests.txt`).
+More details about Gappa can be found in the [Gappa GitLab](https://gappa.gitlabpages.inria.fr/).
+
+# Running Benchmarks
+
+To verify the error bounds and check the timings listed in Table 3 of Section 6.2 simply run `make tests` in the top-level `NumFuzz` directory. This will generate the file `tests.txt`. 
+
+To run all benchmarks for each tool individually, you can run `make tests` in the tool directory `examples/TOOLNAME` (e.g., `examples/numfuzz`). This will generate a file `examples/TOOLNAME_tests.txt` (e.g., `examples/numfuzz_tests.txt`).
 
 To run individual benchmarks, use the following commands.
-- FPTaylor: 
-- Gappa: 
-- NumFuzz: 
+- **FPTaylor**: In the directory `NumFuzz/examples/FPTaylor` run `FPTaylor-0.9.3/fptaylor -c config.cfg BENCHMARK.txt`
+- **Gappa**:  In the directory `NumFuzz/examples/Gappa` run `time gappa BENCHMARK.g`
+- **NumFuzz**: 	In the directory `NumFuzz/examples/NumFuzz`	run `dune exec -- nfuzz BENCHMARK.fz`
+
+## Reading the output
+
+When you run benchmarks using the methods described above, you'll get output like the following 
+
+```
+--------
+BENCHMARK: hypot
+--------
+
+TOOL: Gappa
+Results:
+  |(r - z) / r| in [0, 609354566858790905b-97 {3.84557e-12, 2^(-37.9199)}]
+0.024
+ 
+TOOL: NumFuzz
+I  [General] : Type of the program: ((![0.5] ℝ) ⊸
+                                     ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ)))
+Execution time: 0.000637s
+
+TOOL: FPTaylor
+
+```
+
+

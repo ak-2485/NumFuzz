@@ -1,0 +1,18 @@
+--------
+BENCHMARK: hypot
+--------
+TOOL: Gappa
+Results:
+  |(r - z) / r| in [0, 609354566858790905b-97 {3.84557e-12, 2^(-37.9199)}]
+0.024
+ 
+TOOL: NumFuzz
+Warning: 8 states have shift/reduce conflicts.
+Warning: 74 shift/reduce conflicts were arbitrarily resolved.
+I  [General] : Type of the program: ((![0.5] ℝ) ⊸
+                                     ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ)))
+Execution time: 0.000637s
+ 
+TOOL: FPTaylor
+/bin/bash: /home/ariel/FPTaylor-0.9.3/fptaylor: No such file or directory
+make[1]: *** [Makefile:23: hypot] Error 127
