@@ -1,0 +1,29 @@
+#include "nlibrary.fz"
+
+function fold6 (as : (num,(num,(num,(num,(num,num)))))) 
+  (c : num -o num -o M[eps64_up]num)
+{
+  let (a0,as1) = as;
+  let (a1,as2) = as1;
+  let (a2,as3) = as2;
+  let (a3,as4) = as3;
+  let (a4,a5)  = as4;
+  s5 = c a4 a5;
+  let z5 = s5;
+  s4 = c a3 z5;
+  let z4 = s4;
+  s3 = c a2 z4;
+  let z3 = s3;
+  s2 = c a1 z3;
+  let z2 = s2;
+  c a0 z2
+}
+
+function Horner5_HO (as : (num,(num,(num,(num,(num,num))))))
+  (x : num) 
+{
+  g = fun (a: num) {fun (b: num) {FMA b x a}};
+  fold6 as g
+}
+
+Horner5_HO

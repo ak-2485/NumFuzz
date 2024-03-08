@@ -1,0 +1,4 @@
+Variables
+  float64 x in [0.1,1000];
+Expressions
+  test05_nonlin1 rnd64_up= (1/(x+1));

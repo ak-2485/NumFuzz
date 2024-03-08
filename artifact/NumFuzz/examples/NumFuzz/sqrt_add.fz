@@ -1,0 +1,22 @@
+#include "nlibrary.fz"
+
+function sqrt_add1 (x : ![0.5]num) 
+{
+  let [x'] = x;
+  sd2 = addfp (|x',1.0|);
+  let d2 = sd2;
+  sqrtfp [d2{0.5}]
+}
+
+function sqrt_add (x : num) : M[9.993e-16]num 
+{
+  sd1 = sqrt_add1 [x{0.5}];
+  let d1 = sd1;
+  sd2 = sqrtfp [x{0.5}];
+  let d2 = sd2;
+  sd = addfp (|d1,d2|);
+  let d  = sd;
+  divfp (1.0,d)
+}
+
+sqrt_add

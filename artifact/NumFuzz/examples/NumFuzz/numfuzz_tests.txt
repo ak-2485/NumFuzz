@@ -1,0 +1,66 @@
+
+
+hypot.fz
+I  [General] : Type of the program: ((![0.5] ℝ) ⊸
+                                     ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ)))
+Execution time: 0.000983s
+
+
+x_by_xy.fz
+I  [General] : Type of the program: ((![2.] ℝ) ⊸
+                                     (ℝ ⊸ (M[4.4408920985e-16] ℝ)))
+Execution time: 0.000578s
+
+
+one_by_sqrtxx.fz
+I  [General] : Type of the program: ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ))
+Execution time: 0.000623s
+
+
+sqrt_add.fz
+I  [General] : Type of the program: (ℝ ⊸ (M[9.99200722163e-16] ℝ))
+Execution time: 0.000531s
+
+
+test02_sum8.fz
+I  [General] : Type of the program: (ℝ ⊸
+                                     (ℝ ⊸
+                                      (ℝ ⊸
+                                       (ℝ ⊸
+                                        (ℝ ⊸
+                                         (ℝ ⊸
+                                          (ℝ ⊸ (ℝ ⊸ (M[1.55431223448e-15] ℝ)))))))))
+Execution time: 0.000672s
+
+
+nonlin1.fz
+I  [General] : Type of the program: ((![2.] ℝ) ⊸ (M[4.4408920985e-16] ℝ))
+Execution time: 0.000501s
+
+
+test05_nonlin1.fz
+I  [General] : Type of the program: (ℝ ⊸ (M[4.4408920985e-16] ℝ))
+Execution time: 0.000579s
+
+
+Horner2.fz
+I  [General] : Type of the program: (ℝ ⊸
+                                     (ℝ ⊸
+                                      (ℝ ⊸
+                                       ((![2.] ℝ) ⊸ (M[4.4408920985e-16] ℝ)))))
+Execution time: 0.000597s
+
+
+Horner2_with_er.fz
+I  [General] : Type of the program: ((M[2.22044604925e-16] ℝ) ⊸
+                                     ((M[2.22044604925e-16] ℝ) ⊸
+                                      ((M[2.22044604925e-16] ℝ) ⊸
+                                       ((![2.] (M[2.22044604925e-16] ℝ)) ⊸
+                                        (M[1.55431223448e-15] ℝ)))))
+Execution time: 0.000635s
+
+
+Horner5.fz
+I  [General] : Type of the program: ((ℝ ⊗ (ℝ ⊗ (ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))))) ⊸
+                                     (ℝ ⊸ (M[1.11022302463e-15] ℝ)))
+Execution time: 0.000679s

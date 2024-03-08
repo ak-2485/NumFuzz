@@ -1,0 +1,7 @@
+Variables
+	float64 x in [0.1, 1000];
+        float64 y in [0.1, 1000];
+
+Expressions
+	one_by_sqrtxx rnd64_up= (1 / sqrt(x*x));
+
