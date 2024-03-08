@@ -5,10 +5,8 @@ license: "GNU GPL"
 
 depends: [
   "ocaml"                { >= "4.14.1"   }
-  "dune"                 { >= "2.1.3"    }
-  "menhir"               { >= "20181113" }
-  "alt-ergo"             {  = "2.3.0"    }
-  "mlmpfr"               { >= "4.1.1"    }
+  "dune"                 { >= "3.14.0"    }
+  "menhir"               { >= "20220210" }
 ]
 
 build: [ [ "dune" "build" "-p" name "-j" jobs ] ]

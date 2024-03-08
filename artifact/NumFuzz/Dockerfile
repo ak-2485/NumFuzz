@@ -29,5 +29,4 @@ WORKDIR ../
 # NUMFUZZ
 RUN opam install dune.3.7.0 menhir.20220210 utop \
 	&& eval $(opam env) \
-	&& sudo dune build \
-	&& sudo chmod +x examples
+	&& sudo dune build 

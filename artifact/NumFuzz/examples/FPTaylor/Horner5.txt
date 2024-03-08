@@ -14,5 +14,5 @@ Definitions
    z4 =rnd64_up(z3 * x + a1);
 
 Expressions
-	Horner2 =rnd64_up (z4 * x + a0);
+	Horner5 =rnd64_up (z4 * x + a0);
 

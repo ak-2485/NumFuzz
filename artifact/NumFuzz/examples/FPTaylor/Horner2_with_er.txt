@@ -12,5 +12,5 @@ Definitions
    z1 = rnd64_up(a2p * xp + a1p);
 
 Expressions
-   Horner2 = rnd64_up(z1 * xp + a0p);
+   Horner2_with_er = rnd64_up(z1 * xp + a0p);
 
