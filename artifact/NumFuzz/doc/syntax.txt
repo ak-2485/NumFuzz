@@ -16,9 +16,6 @@ T ::=                                           TYPES
       MuT                                       monadic type
       !sT                                       co-monadic type
 
-B ::= forall (A, B)                             type variable
-      forall (A : size, B : sens)               sens variables
-
 e ::=                                           EXPRESSIONS
       ()                                        value of void type
       R                                         numbers

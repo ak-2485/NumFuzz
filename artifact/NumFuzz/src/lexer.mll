@@ -12,25 +12,17 @@ let lex_error fi s = error_msg Support.Options.Lexer fi "%s" s
 
 let reservedWords = [
   (* Symbols *)
-  ("@", fun i -> Parser.AT i);
-  ("$", fun i -> Parser.DOLLAR i);
+  ("+", fun i -> Parser.ADD i);
+  ("&", fun i -> Parser.AMP i);
+  ("!", fun i -> Parser.BANG i);
+  (":", fun i -> Parser.COLON i);
+  (",", fun i -> Parser.COMMA i);
+  ("=>", fun i -> Parser.DBLARROW i);
+  ("M", fun i -> Parser.EM i);
+  ("=", fun i -> Parser.EQUAL i);
   (";", fun i -> Parser.SEMI i);
-  (";M", fun i -> Parser.SEMIM i);
-  ("^", fun i -> Parser.HAT i);
-  ("?", fun i -> Parser.QUESTION i);
   ("{", fun i -> Parser.LBRACE i);
   ("}", fun i -> Parser.RBRACE i);
-  (":", fun i -> Parser.COLON i);
-  ("::", fun i -> Parser.DBLCOLON i);
-  (",", fun i -> Parser.COMMA i);
-  ("=", fun i -> Parser.EQUAL i);
-  ("==", fun i -> Parser.BEQUAL i);
-  ("->", fun i -> Parser.ARROW i);
-  ("=>", fun i -> Parser.DBLARROW i);
-  ("+", fun i -> Parser.ADD i);
-  ("-", fun i -> Parser.SUB i);
-  ("*", fun i -> Parser.MUL i);
-  ("/", fun i -> Parser.DIV i);
   ("(", fun i -> Parser.LPAREN i);
   (")", fun i -> Parser.RPAREN i);
   ("<", fun i -> Parser.LT i);
@@ -38,17 +30,11 @@ let reservedWords = [
   ("[", fun i -> Parser.LBRACK i);
   ("]", fun i -> Parser.RBRACK i);
   ("|", fun i -> Parser.PIPE i);
-  ("&", fun i -> Parser.AMP i);
-  ("||", fun i -> Parser.OR i);
-  ("&&", fun i -> Parser.AND i);
-  ("!", fun i -> Parser.BANG i);
-  ("M", fun i -> Parser.EM i);
-  (".", fun i -> Parser.DOT i);
 
   (* Keywords *)
-  ("true", fun i -> Parser.TRUE i);
-  ("false", fun i -> Parser.FALSE i);
-  ("inf", fun i -> Parser.INF i);
+  (* ("true", fun i -> Parser.TRUE i);
+  ("false", fun i -> Parser.FALSE i); *)
+  (* ("inf", fun i -> Parser.INF i); *)
   ("fun", fun i -> Parser.FUN i);
   ("rnd", fun i -> Parser.RND i);
   ("add", fun i -> Parser.ADDOP i);
@@ -60,37 +46,15 @@ let reservedWords = [
   ("inr", fun i -> Parser.INR i);
   ("pi1", fun i -> Parser.PROJ1 i);
   ("pi2", fun i -> Parser.PROJ2 i);
-  ("numcase", fun i -> Parser.NUMCASE i);
   ("of", fun i -> Parser.OF i);
-  ("fold", fun i -> Parser.FOLD i);
-  ("unfold", fun i -> Parser.UNFOLD i);
-  ("mu", fun i -> Parser.MU i);
   ("let", fun i -> Parser.LET i);
-  ("typedef", fun i -> Parser.TYPEDEF i);
-  ("sample", fun i -> Parser.SAMPLE i);
-  ("primiter", fun i -> Parser.PRIMITER i);
   ("function", fun i -> Parser.FUNCTION i);
-  ("primitive", fun i -> Parser.PRIMITIVE i);
-  ("set", fun i -> Parser.SET i);
   ("if", fun i -> Parser.IF i);
   ("then", fun i -> Parser.THEN i);
   ("else", fun i -> Parser.ELSE i);
-  ("print", fun i -> Parser.PRINT i);
   ("num", fun i -> Parser.NUM i);
   ("string", fun i -> Parser.STRING i);
-  ("sens", fun i -> Parser.SENS i);
-  ("size", fun i -> Parser.SIZE i);
-  ("type", fun i -> Parser.TYPE i);
-  ("pack", fun i -> Parser.PACK i);
-  ("with", fun i -> Parser.WITH i);
-  ("for", fun i -> Parser.FOR i);
-  ("in", fun i -> Parser.IN i);
-  ("unpack", fun i -> Parser.UNPACK i);
-  ("forall", fun i -> Parser.FORALL i);
-  ("exists", fun i -> Parser.EXISTS i);
-  ("nat", fun i -> Parser.NAT i);
-  ("int", fun i -> Parser.INT i);
-  ("S", fun i -> Parser.SUCC i);
+  (* ("sens", fun i -> Parser.SENS i); *)
 ]
 
 (* Support functions *)

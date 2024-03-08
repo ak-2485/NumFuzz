@@ -54,89 +54,51 @@ let from_args_to_type arg_list oty = match oty with
 /* Preliminaries */
 
 /* Keyword tokens */
-%token <Support.FileInfo.info> AT
 %token <Support.FileInfo.info> ADD
+%token <Support.FileInfo.info> ADDOP
 %token <Support.FileInfo.info> AMP
-%token <Support.FileInfo.info> AND
-%token <Support.FileInfo.info> ARROW
-%token <Support.FileInfo.info> COLON
-%token <Support.FileInfo.info> CONS
-%token <Support.FileInfo.info> COMMA
-%token <Support.FileInfo.info> DOLLAR
-%token <Support.FileInfo.info> LBRACE
-%token <Support.FileInfo.info> QUESTION
-%token <Support.FileInfo.info> SEMI
-%token <Support.FileInfo.info> SEMIM
-%token <Support.FileInfo.info> RBRACE
-%token <Support.FileInfo.info> EQUAL
-%token <Support.FileInfo.info> HAT
-%token <Support.FileInfo.info> BEQUAL
-%token <Support.FileInfo.info> DBLARROW
-%token <Support.FileInfo.info> SUB
-%token <Support.FileInfo.info> MUL
-%token <Support.FileInfo.info> DIV
-%token <Support.FileInfo.info> LPAREN
-%token <Support.FileInfo.info> RPAREN
-%token <Support.FileInfo.info> LT
-%token <Support.FileInfo.info> GT
-%token <Support.FileInfo.info> LBRACK
-%token <Support.FileInfo.info> RBRACK
-%token <Support.FileInfo.info> PIPE
-%token <Support.FileInfo.info> OR
 %token <Support.FileInfo.info> BANG
-%token <Support.FileInfo.info> EM
-%token <Support.FileInfo.info> LOLLIPOP
-%token <Support.FileInfo.info> TRUE
-%token <Support.FileInfo.info> FALSE
-%token <Support.FileInfo.info> INF
-%token <Support.FileInfo.info> INL
-%token <Support.FileInfo.info> INR
-%token <Support.FileInfo.info> FUN
-%token <Support.FileInfo.info> UNIONCASE
-%token <Support.FileInfo.info> NUMCASE
-%token <Support.FileInfo.info> OF
-%token <Support.FileInfo.info> FOLD
-%token <Support.FileInfo.info> UNFOLD
-%token <Support.FileInfo.info> MU
-%token <Support.FileInfo.info> LET
-%token <Support.FileInfo.info> TYPEDEF
-%token <Support.FileInfo.info> SAMPLE
-%token <Support.FileInfo.info> FUNCTION
-%token <Support.FileInfo.info> PRIMITIVE
-%token <Support.FileInfo.info> SET
-%token <Support.FileInfo.info> IF
-%token <Support.FileInfo.info> THEN
+%token <Support.FileInfo.info> COLON
+%token <Support.FileInfo.info> COMMA
+%token <Support.FileInfo.info> DBLARROW
+%token <Support.FileInfo.info> DIVOP
 %token <Support.FileInfo.info> ELSE
-%token <Support.FileInfo.info> PRINT
+%token <Support.FileInfo.info> EM
+%token <Support.FileInfo.info> EQUAL
 %token <Support.FileInfo.info> EOF
+(* %token <Support.FileInfo.info> FALSE *)
+%token <Support.FileInfo.info> FUNCTION
+%token <Support.FileInfo.info> FUN
+%token <Support.FileInfo.info> GT
+%token <Support.FileInfo.info> IF
+%token <Support.FileInfo.info> INL
+(* %token <Support.FileInfo.info> INF *)
+%token <Support.FileInfo.info> INR
+%token <Support.FileInfo.info> LBRACE
+%token <Support.FileInfo.info> LBRACK
+%token <Support.FileInfo.info> LET
+%token <Support.FileInfo.info> LOLLIPOP
+%token <Support.FileInfo.info> LPAREN
+%token <Support.FileInfo.info> LT
+%token <Support.FileInfo.info> MULOP
 %token <Support.FileInfo.info> NUM
-%token <Support.FileInfo.info> STRING
-%token <Support.FileInfo.info> SIZE
-%token <Support.FileInfo.info> SENS
-%token <Support.FileInfo.info> TYPE
-%token <Support.FileInfo.info> PACK
-%token <Support.FileInfo.info> WITH
-%token <Support.FileInfo.info> IN
-%token <Support.FileInfo.info> FOR
-%token <Support.FileInfo.info> UNPACK
-%token <Support.FileInfo.info> PRIMITER
-%token <Support.FileInfo.info> FORALL
-%token <Support.FileInfo.info> EXISTS
-%token <Support.FileInfo.info> LIST
-%token <Support.FileInfo.info> DBLCOLON
-%token <Support.FileInfo.info> NAT
-%token <Support.FileInfo.info> INT
-%token <Support.FileInfo.info> DOT
-%token <Support.FileInfo.info> SUCC
+%token <Support.FileInfo.info> OF
+%token <Support.FileInfo.info> PIPE
 %token <Support.FileInfo.info> PROJ1
 %token <Support.FileInfo.info> PROJ2
-%token <Support.FileInfo.info> RND
+%token <Support.FileInfo.info> RBRACE
+%token <Support.FileInfo.info> RBRACK
 %token <Support.FileInfo.info> RET
-%token <Support.FileInfo.info> OP
-%token <Support.FileInfo.info> ADDOP
-%token <Support.FileInfo.info> MULOP
-%token <Support.FileInfo.info> DIVOP
+%token <Support.FileInfo.info> RPAREN
+%token <Support.FileInfo.info> RND
+%token <Support.FileInfo.info> SEMI
+(* %token <Support.FileInfo.info> SENS *)
 %token <Support.FileInfo.info> SQRTOP
+%token <Support.FileInfo.info> STRING
+%token <Support.FileInfo.info> THEN
+(* %token <Support.FileInfo.info> TRUE *)
+%token <Support.FileInfo.info> UNIONCASE
+
 
 /* Identifier and constant value tokens */
 %token <string Support.FileInfo.withinfo> ID
@@ -160,10 +122,6 @@ let from_args_to_type arg_list oty = match oty with
 body :
     Term EOF
       { $1 Ctx.empty_context }
-
-PrimSpec :
-    STRINGV
-      { $1 }
 
 Term :
   (* values *)
@@ -320,19 +278,18 @@ SensAtomicTerm :
       { fun _cx -> SiConst ( $1.v) }
   | EPS2
       { fun _cx -> SiConst ( $1.v) }
-ColSens :
-  | COLON SensTerm
-      { fun ctx -> ($2 ctx) }
 
 MaybeType:
     {fun _ctx -> None}
   | COLON Type
       {fun ctx -> Some ($2 ctx)}
 
+(*
 MaybeSens:
     {fun _ctx -> None}
   | SensTerm
       {fun ctx -> Some ($1 ctx)}
+*)
 
 ColType :
   | COLON Type
