@@ -32,7 +32,8 @@ $(TEST_INPUTS):
 
 tests:
 	@dune build
-	@$(MAKE) TIMEFORMAT='real time (s): %3R' --no-print-directory > tests.txt 2>&1
+	@$(MAKE) TIMEFORMAT='real time (s): %3R' \
+	--no-print-directory > tests.txt 2>&1
 
 clean:
 	rm tests.txt
