@@ -1,15 +1,19 @@
-TEST_INPUTS:= hypot.txt x_by_xy.txt one_by_sqrtxx.txt \
-		sqrt_add.txt test02_sum8.txt nonlin1.txt \
- 		test05_nonlin1.txt Horner2.txt Horner2_with_er.txt \
- 		Horner5.txt
+# Benchmarks
+TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
+		sqrt_add test02_sum8 nonlin1 \
+ 		test05_nonlin1 Horner2 Horner2_with_er \
+ 		Horner5
+
 .PHONY: autotest clean tests $(TEST_INPUTS) 
 
 autotest: $(TEST_INPUTS) 
 
 $(TEST_INPUTS): 
-	@echo " " 
-	@echo $@ 
-	@~/FPTaylor-0.9.3/fptaylor -c config.cfg $@ 
+	@printf "*** BENCHMARK: $@ *** \n"
+	FPTaylor-0.9.3/fptaylor -c config.cfg $@.txt
 
 tests: 
-	@$(MAKE) --no-print-directory > fptaylor_tests.txt 2>&1
+	@$(MAKE) > fptaylor_tests.txt 2>&1
+
+clean : 
+	rm fptaylor_tests.txt 

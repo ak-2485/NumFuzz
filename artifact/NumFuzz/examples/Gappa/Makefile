@@ -1,21 +1,22 @@
 SHELL = /bin/bash
-TIMEFORMAT='%3R' 
 
-TEST_INPUTS:= hypot.g x_by_xy.g one_by_sqrtxx.g \
-		sqrt_add.g test02_sum8.g nonlin1.g \
- 		test05_nonlin1.g Horner2.g Horner2_with_er.g \
- 		Horner5.g
+# Benchmarks
+TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
+		sqrt_add test02_sum8 nonlin1 \
+ 		test05_nonlin1 Horner2 Horner2_with_er \
+ 		Horner5
+
 .PHONY: autotest clean tests $(TEST_INPUTS) 
 
 autotest: $(TEST_INPUTS) 
 
 $(TEST_INPUTS): 
-	@echo " " 
-	@echo $@
-	time gappa $@
+	@printf "*** BENCHMARK: $@ *** \n"
+	time gappa $@.g
 
 tests: 
-	@$(MAKE) TIMEFORMAT='%3R' --no-print-directory > gappa_tests.txt 2>&1
+	@$(MAKE) TIMEFORMAT='real time (s): %3R' \
+	--no-print-directory > gappa_tests.txt 2>&1
 
 clean:
 	rm gappa_tests.txt
