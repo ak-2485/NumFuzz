@@ -66,7 +66,7 @@ Then, in the MPFR directory `mpfr-4.1.1` install MPFR via
 
 You should now be ready to install Gappa: In the directory `NumFuzz/examples/Gappa/gappa-1.4.2`, run
 ```
-./configure && ./remake
+./configure --prefix=/app/local/ && ./remake && ./remake install
 ```
 
 That's it!
