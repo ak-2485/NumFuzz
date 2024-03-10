@@ -29,7 +29,7 @@ for [running the benchmarks](#running-benchmarks).
 ## B. Building manually
 
 ### Requirements
-Building NumFuzz manually requires Dune >= 3.7.0 and Ocaml version 4.14.1 with a native compiler. There are additional requirements for FPTaylor and Gappa.
+Building NumFuzz manually requires Dune 3.14.0, Ocaml version 4.14.1 with a native compiler, and Menhir version 20220210. There are additional requirements for FPTaylor and Gappa.
 
 #### Installing FPTaylor
 
@@ -38,7 +38,11 @@ FPTaylor requires the [OCaml Num library](https://github.com/ocaml/num) which ca
 ```
 opam install num
 ```
-In the `NumFuzz/examples/FPTaylor/FPTaylor-9.3.0` directory run 
+Now, in the directory `NumFuzz/examples/FPTaylor`, extract FPTaylor to the directory `FPTaylor-9.3.0` by running the command  
+```
+tar -xzf v0.9.3.tar.gz
+```
+In the directory `FPTaylor-9.3.0` run
 ```
 make all
 ```
@@ -64,11 +68,14 @@ Then, in the MPFR directory `mpfr-4.1.1` install MPFR via
 ./configure --prefix=/app/local/ && ./remake && ./remake install
 ```
 
-You should now be ready to install Gappa: In the directory `NumFuzz/examples/Gappa/gappa-1.4.2`, run
+You should now be ready to install Gappa. In the directory `NumFuzz/examples/Gappa`, extract Gappa to the directory `gappa-1.4.2` by running the command  
+```
+tar -xzf gappa-1.4.2.tar.gz
+```
+Then, in the directory `gappa-1.4.2` run 
 ```
 ./configure --prefix=/app/local/ && ./remake && ./remake install
 ```
-
 That's it!
 
 More details about Gappa can be found in the [Gappa GitLab](https://gappa.gitlabpages.inria.fr/).
@@ -89,22 +96,41 @@ To run individual benchmarks, use the following commands.
 When you run benchmarks using the methods described above, you'll get output like the following 
 
 ```
---------
-BENCHMARK: hypot
---------
+*** START BENCHMARK: hypot *** 
+*** TOOL: NumFuzz *** 
+I  [General] : Type of the program: ((![0.5] ℝ) ⊸ ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ)))
+Execution time: 0.000508s
+*** END NumFuzz *** 
+ 
+*** BENCHMARK: hypot *** 
+*** TOOL: FPTaylor *** 
+FPTaylor, version 0.9.3+dev
+...
+...
+...
+Processing: hypot
+...
+-------------------------------------------------------------------------------
+Problem: hypot
 
-TOOL: Gappa
+Optimization lower bounds for error models:
+The relative error model (exact): 4.439495e-16 (0x1.ffd6c80e3faep-52) (suboptimality = 14.1%)
+
+Bounds (without rounding): [1.414213e-1, 1.414214e+3]
+
+Relative error (exact): 5.170059e-16 (0x1.2a089914b604dp-51)
+
+Elapsed time: 0.87
+
+
+*** END FPTAYLOR *** 
+ 
+*** BENCHMARK: hypot *** 
+*** TOOL: Gappa *** 
 Results:
   |(r - z) / r| in [0, 609354566858790905b-97 {3.84557e-12, 2^(-37.9199)}]
-0.024
- 
-TOOL: NumFuzz
-I  [General] : Type of the program: ((![0.5] ℝ) ⊸
-                                     ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ)))
-Execution time: 0.000637s
-
-TOOL: FPTaylor
-
+Real time (s): 0.006
+*** END GAPPA *** 
+*** END BENCHMARK: hypot *** 
 ```
-
 
