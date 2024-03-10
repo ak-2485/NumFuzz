@@ -15,7 +15,7 @@ TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
 autotest: $(TEST_INPUTS) 
 
 $(TEST_INPUTS): 
-	@printf "*** BENCHMARK: $@ *** \n"
+	@printf "*** START BENCHMARK: $@ *** \n"
 	@printf "*** TOOL: NumFuzz *** \n"
 	@dune exec --no-print-directory -- nfuzz \
 		$(NUMFUZZ)/$@.fz 
@@ -30,11 +30,13 @@ $(TEST_INPUTS):
 	@printf "*** BENCHMARK: $@ *** \n"
 	@printf "*** TOOL: Gappa *** \n"
 	@time gappa $(GAPPA)/$@.g 
-	@printf "*** END GAPPA *** \n \n" 
+	@printf "*** END GAPPA *** \n" 
+	@printf "*** END BENCHMARK: $@ *** \n \n"
+
 
 tests:
 	@dune build
-	@$(MAKE) TIMEFORMAT='real time (s): %3R' \
+	@$(MAKE) TIMEFORMAT='Real time (s): %3R' \
 	--no-print-directory > tests.txt 2>&1
 
 clean:
