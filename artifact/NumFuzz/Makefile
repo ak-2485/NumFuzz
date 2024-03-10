@@ -16,19 +16,21 @@ autotest: $(TEST_INPUTS)
 
 $(TEST_INPUTS): 
 	@printf "*** BENCHMARK: $@ *** \n"
-	@printf "*** TOOL: Gappa *** \n"
-	@time gappa $(GAPPA)/$@.g 
-	@printf "*** END GAPPA *** \n \n" 
-	@printf "*** BENCHMARK: $@ *** \n"
 	@printf "*** TOOL: NumFuzz *** \n"
 	@dune exec --no-print-directory -- nfuzz \
 		$(NUMFUZZ)/$@.fz 
 	@printf "*** END NumFuzz *** \n \n" 
+
 	@printf "*** BENCHMARK: $@ *** \n"
 	@printf "*** TOOL: FPTaylor *** \n"
 	@$(FPTAYLOR)/FPTaylor-0.9.3/fptaylor  -c \
 		$(FPTAYLOR)/config.cfg $(FPTAYLOR)/$@.txt
 	@printf "*** END FPTAYLOR *** \n \n" 
+
+	@printf "*** BENCHMARK: $@ *** \n"
+	@printf "*** TOOL: Gappa *** \n"
+	@time gappa $(GAPPA)/$@.g 
+	@printf "*** END GAPPA *** \n \n" 
 
 tests:
 	@dune build
