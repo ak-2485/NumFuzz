@@ -1,4 +1,4 @@
-SHELL = /bin/bash
+SHELL:= /bin/bash
 
 # Benchmarks
 TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
@@ -15,7 +15,7 @@ $(TEST_INPUTS):
 	time gappa $@.g
 
 tests: 
-	@$(MAKE) TIMEFORMAT='real time (s): %3R' \
+	@$(MAKE) TIMEFMT='Real time (s): %*U' \
 	--no-print-directory > gappa_tests.txt 2>&1
 
 clean:

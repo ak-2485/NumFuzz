@@ -1,4 +1,4 @@
-SHELL=/bin/bash
+SHELL:=/bin/bash
 TESTDIR:= $(shell pwd)/examples
 FPTAYLOR:=$(TESTDIR)/FPTaylor
 NUMFUZZ:=$(TESTDIR)/NumFuzz
@@ -36,7 +36,7 @@ $(TEST_INPUTS):
 
 tests:
 	@dune build
-	@$(MAKE) TIMEFORMAT='Real time (s): %3R' \
+	@$(MAKE) TIMEFMT='Real time (s): %*U' \
 	--no-print-directory > tests.txt 2>&1
 
 clean:
