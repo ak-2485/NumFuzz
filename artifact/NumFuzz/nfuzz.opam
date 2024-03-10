@@ -1,7 +1,11 @@
+opam-version: "2.0"
+name: "NumFuzz"
+version: "1.0"
 synopsis: "A Type System for Numerical Error Analysis"
 description: """ """
-opam-version: "2.0.9"
-license: "GNU GPL"
+maintainer: "Anonymous"
+authors: "Anonymous"
+license: "MIT"
 
 depends: [
   "ocaml"                { >= "4.14.1"   }
