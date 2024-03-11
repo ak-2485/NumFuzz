@@ -8,6 +8,8 @@ This artifact supports this claim by automatically generating floating-point err
 
 We can't guarantee that this artifact will produce the *exact* timing values reported in Table 3 of Section 6.2 for each of the tools on all of the benchmarks on every machine. However, this artifact should support the claim that **NumFuzz generates floating-point error bounds at least an order of magnitude faster than both FPTaylor and Gappa on all of the benchmarks**.
 
+### Revisions
+
 There are a few small errors in Table 3 of Section 6.2 that will be revised in the final version of the paper. We list them here by benchmark name. **These small errors do not impact the claims made above**.
 - **x_by_xy**: The relative error bound for Gappa should be `1.00e-04`, which is worse than the bound originally reported of `2.22e-12`. Observe the NumFuzz remains the best performer.
 - **sqrt_add**: The relative error bound for NumFuzz should be `9.99e-16`. Observe that FPTaylor still outperforms NumFuzz on this benchmark.
@@ -68,7 +70,9 @@ In the directory `NumFuzz/examples/Gappa` extract `mpfr-4.1.1.tar.gz` to the dir
 
 Then, in the MPFR directory `mpfr-4.1.1` install MPFR via
 
-```./configure --prefix=/app/local/ && ./remake && ./remake install ```
+```
+./configure --prefix=/app/local/ && ./remake && ./remake install 
+```
 
 You should now be ready to install Gappa. In the directory `NumFuzz/examples/Gappa`, extract Gappa to the directory `gappa-1.4.2` by running the command  
 
@@ -84,9 +88,9 @@ More details about Gappa can be found in the [Gappa GitLab](https://gappa.gitlab
 
 # Running Benchmarks
 
-To verify the error bounds and check the timings listed in Table 3 of Section 6.2 simply run `make tests` in the top-level `NumFuzz` directory. This will generate the file `tests.txt`. 
+To verify the reported relative error bounds and check the timings listed in Table 3 of Section 6.2 (subject to the [revisions](#revisions) mentioned at the beginning of this document) simply run `make tests` in the top-level `NumFuzz` directory. This will generate the file `tests.txt`. 
 
-To run all benchmarks for each tool individually, you can run `make tests` in the tool directory `examples/TOOLNAME` (e.g., `examples/numfuzz`). This will generate a file `examples/TOOLNAME_tests.txt` (e.g., `examples/numfuzz_tests.txt`).
+To run all benchmarks for each tool individually, you can run `make tests` in the tool directory `examples/TOOLNAME` (e.g., `examples/numfuzz`). This will generate a file `examples/TOOLNAME/TOOLNAME_tests.txt` (e.g., `examples/NumFuzz/numfuzz_tests.txt`).
 
 To run individual benchmarks, use the following commands.
 - **FPTaylor**: In the directory `NumFuzz/examples/FPTaylor` run `FPTaylor-0.9.3/fptaylor -c config.cfg BENCHMARK.txt`
@@ -149,8 +153,10 @@ In NumFuzz, programs with return type `M[u] ℝ` are guaranteed to have a relati
 
 ``` ((![0.5] ℝ) ⊸ ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ))) ```
 
-and the return type is `M[5.55111512313e-16] ℝ`
-so the error bound is `5.55111512313e-16`. The execution time is printed in seconds as `0.000642s`.
+The return type of the program is `M[5.55111512313e-16] ℝ`, and
+so the relative error bound is `5.55111512313e-16`. 
+
+The execution time is printed in seconds as `0.000642s`.
 
 ### FPTaylor output
 
@@ -162,7 +168,7 @@ The execution time is printed in seconds as `Elapsed time: 0.75`.
 
 ### Gappa output
 
-Gappa's output includes the relative error formula `|(r - z) / r|`  for the benchmark and states the computed interval in which the value of the relative error lies. Above, Gappa produces the output
+Gappa's output includes the relative error formula `|(r - z) / r|`   and states the computed interval in which the value of the relative error lies. Above, Gappa produces the output
 ```
 Results:
   |(r - z) / r| in [0, 609354566858790905b-97 {3.84557e-12, 2^(-37.9199)}]
