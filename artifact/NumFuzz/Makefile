@@ -1,4 +1,3 @@
-SHELL:=/bin/bash
 TESTDIR:= $(shell pwd)/examples
 FPTAYLOR:=$(TESTDIR)/FPTaylor
 NUMFUZZ:=$(TESTDIR)/NumFuzz
@@ -29,15 +28,14 @@ $(TEST_INPUTS):
 
 	@printf "*** BENCHMARK: $@ *** \n"
 	@printf "*** TOOL: Gappa *** \n"
-	@time gappa $(GAPPA)/$@.g 
+	@bash -c "time gappa $(GAPPA)/$@.g"
 	@printf "*** END GAPPA *** \n" 
 	@printf "*** END BENCHMARK: $@ *** \n \n"
 
 
 tests:
 	@dune build
-	@$(MAKE) TIMEFMT='Real time (s): %*U' \
-	--no-print-directory > tests.txt 2>&1
+	@$(MAKE) --no-print-directory > tests.txt 2>&1
 
 clean:
 	rm tests.txt

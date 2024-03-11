@@ -1,5 +1,3 @@
-SHELL:= /bin/bash
-
 # Benchmarks
 TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
 		sqrt_add test02_sum8 nonlin1 \
@@ -12,11 +10,10 @@ autotest: $(TEST_INPUTS)
 
 $(TEST_INPUTS): 
 	@printf "*** BENCHMARK: $@ *** \n"
-	time gappa $@.g
+	@bash -c "time gappa $@.g"
 
 tests: 
-	@$(MAKE) TIMEFMT='Real time (s): %*U' \
-	--no-print-directory > gappa_tests.txt 2>&1
+	@$(MAKE) --no-print-directory > gappa_tests.txt 2>&1
 
 clean:
 	rm gappa_tests.txt
