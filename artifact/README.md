@@ -6,12 +6,12 @@ This artifact supports the following claim made in the Evaluation section (Secti
 
 This artifact supports this claim by automatically generating floating-point error bounds using NumFuzz, FPTaylor, and Gappa for the 10 benchmark problems listed in Table 3 of Section 6.2, and by reporting the timing for each tool on each benchmark.
 
-We can't guarantee that this artifact will produce the *exact* timing values reported in Table 3 of Section 6.2 for each of the tools on all of the benchmarks on every machine. However, this artifact should support the claim that **NumFuzz generates floating-point error bounds at least an order of magnitude faster than both FPTaylor and Gappa on most of the benchmarks**.
+We can't guarantee that this artifact will, on every machine, produce the *exact* timing values reported in Table 3 of Section 6.2 for each of the tools on all of the benchmarks. However, this artifact should support the claim that **NumFuzz generates floating-point error bounds at least an order of magnitude faster than FPTaylor and Gappa on most benchmarks**.
 
 ### Revisions
 
 There are a few revisions that will be made to Table 3 of Section 6.2
-in the final version of the paper. We list them here by benchmark name. **We emphasize that these small errors do not impact the claims made above**.
+in the final version of the paper. We list them here by benchmark name. **We emphasize that these small revisions do not impact the claims made above**.
 - **x_by_xy**: The relative error bound for Gappa should be `1.00e-04`, which is worse than the bound originally reported of `2.22e-12`. Observe the NumFuzz remains the best performer.
 - **sqrt_add**: The relative error bound for NumFuzz should be `9.99e-16`. Observe that FPTaylor still outperforms NumFuzz on this benchmark.
 - **test02_sum8**: The relative error bound for FPTaylor should be `9.32e-14`, which is worse than the bound originally reported of `4.66e-14`. Observe the NumFuzz remains the best performer.
