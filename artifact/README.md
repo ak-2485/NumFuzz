@@ -2,13 +2,17 @@
 
 This is the artifact for NumFuzz ("Numerical Fuzz"), a prototype implementation of the type system and floating-point error analysis tool described in the paper *A Type System for Numerical Error Analysis*.  
 
-This artifact supports the following claim made in the Evaluation section (Section 6.2) of the paper: *compared to state-of-the-art tools that soundly and automatically bound floating-point errors, NumFuzz provides practically useful---and often better---error bounds in significantly less time*.
+This artifact supports the following claim made in the Evaluation section (Section 6.2) of the paper: **compared to state-of-the-art tools that soundly and automatically bound floating-point errors, NumFuzz provides practically useful---and often better---relative error bounds in at least an order of magnitude less time**.
 
 This artifact supports this claim by automatically generating floating-point error bounds using NumFuzz, FPTaylor, and Gappa for the 10 benchmark problems listed in Table 3 of Section 6.2, and by reporting the timing for each tool on each benchmark.
 
-We can't guarantee that this artifact will produce the *exact* timing values reported in Table 3 of Section 6.2 for each of the tools on all of the benchmarks. However, this artifact should support the claim that NumFuzz generates floating-point error bounds in at least an order of magnitude less time than both FPTaylor and Gappa on all of the benchmarks.
+We can't guarantee that this artifact will produce the *exact* timing values reported in Table 3 of Section 6.2 for each of the tools on all of the benchmarks on every machine. However, this artifact should support the claim that **NumFuzz generates floating-point error bounds at least an order of magnitude faster than both FPTaylor and Gappa on all of the benchmarks**.
 
-There is a small error in Table 3 of Section 6.2 that will be revised in the final version of the paper: the error bound on the benchmark `sqrt_add` for NumFuzz should be `9.99200722163e-16`. Observe that FPTaylor still outperforms NumFuzz on this example.
+There are a few small errors in Table 3 of Section 6.2 that will be revised in the final version of the paper. We list them here by benchmark name. **These small errors do not impact the claims made above**.
+- **x_by_xy**: The relative error bound for Gappa should be `1.00e-04`, which is worse than the bound originally reported of `2.22e-12`. Observe the NumFuzz remains the best performer.
+- **sqrt_add**: The relative error bound for NumFuzz should be `9.99e-16`. Observe that FPTaylor still outperforms NumFuzz on this benchmark.
+- **test02_sum8**: The relative error bound for FPTaylor should be `9.32e-14`, which is worse than the bound originally reported of `4.66e-14`. Observe the NumFuzz remains the best performer.
+- **horner5**: The relative error bound for FPTaylor should be `1.61e-01`, which is slightly worse than the bound originally reported of `1.11e-01`. The relative error bound for NumFuzz should be `1.11e-15`, which is slightly *better* than the bound originally reported of `1.33e-01`. Observe the NumFuzz remains the best performer.
 
 # Getting Started
 
@@ -60,19 +64,17 @@ Gappa requires
 
 In the directory `NumFuzz/examples/Gappa` extract `mpfr-4.1.1.tar.gz` to the directory `mpfr-4.1.1` via the command
 
-```
-tar -xzf mpfr-4.1.1.tar.gz
-```
+``` tar -xzf mpfr-4.1.1.tar.gz ```
+
 Then, in the MPFR directory `mpfr-4.1.1` install MPFR via
-```
-./configure --prefix=/app/local/ && ./remake && ./remake install
-```
+
+```./configure --prefix=/app/local/ && ./remake && ./remake install ```
 
 You should now be ready to install Gappa. In the directory `NumFuzz/examples/Gappa`, extract Gappa to the directory `gappa-1.4.2` by running the command  
-```
-tar -xzf gappa-1.4.2.tar.gz
-```
+
+``` tar -xzf gappa-1.4.2.tar.gz ```
 Then, in the directory `gappa-1.4.2` run 
+
 ```
 ./configure --prefix=/app/local/ && ./remake && ./remake install
 ```
@@ -93,23 +95,26 @@ To run individual benchmarks, use the following commands.
 
 ## Reading the output
 
-When you run benchmarks using the methods described above, you'll get output like the following 
+When you run benchmarks using the methods described above, you'll get output like the following.
 
 ```
 *** START BENCHMARK: hypot *** 
 *** TOOL: NumFuzz *** 
-I  [General] : Type of the program: ((![0.5] ℝ) ⊸ ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ)))
-Execution time: 0.000508s
+I  [General] : Type of the program: ((![0.5] ℝ) ⊸
+                                     ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ)))
+Execution time: 0.000642s
 *** END NumFuzz *** 
  
 *** BENCHMARK: hypot *** 
 *** TOOL: FPTaylor *** 
 FPTaylor, version 0.9.3+dev
-...
-...
-...
+Loading configuration file: /home/ak2485/Documents/NumFuzz/artifact/NumFuzz/examples/FPTaylor/FPTaylor-0.9.3/default.cfg
+Loading configuration file: /home/ak2485/Documents/NumFuzz/artifact/NumFuzz/examples/FPTaylor/config.cfg
+
+Loading: /home/ak2485/Documents/NumFuzz/artifact/NumFuzz/examples/FPTaylor/hypot.txt
 Processing: hypot
-...
+**WARNING**: Large second-order error: 6.776264e-17 (first-order = 4.492432e-16)
+**WARNING**: Try intermediate-opt = true or manually split intervals of input variables.
 -------------------------------------------------------------------------------
 Problem: hypot
 
@@ -120,7 +125,7 @@ Bounds (without rounding): [1.414213e-1, 1.414214e+3]
 
 Relative error (exact): 5.170059e-16 (0x1.2a089914b604dp-51)
 
-Elapsed time: 0.87
+Elapsed time: 0.75
 
 
 *** END FPTAYLOR *** 
@@ -129,8 +134,39 @@ Elapsed time: 0.87
 *** TOOL: Gappa *** 
 Results:
   |(r - z) / r| in [0, 609354566858790905b-97 {3.84557e-12, 2^(-37.9199)}]
-Real time (s): 0.006
+
+real	0m0.005s
+user	0m0.005s
+sys	0m0.000s
 *** END GAPPA *** 
-*** END BENCHMARK: hypot *** 
 ```
 
+Above, we see that the benchmark under consideration is named `hypot`.
+
+### NumFuzz output
+
+In NumFuzz, programs with return type `M[u] ℝ` are guaranteed to have a relative error bound of at most `u`. Above, the type of the program is 
+
+``` ((![0.5] ℝ) ⊸ ((![0.5] ℝ) ⊸ (M[5.55111512313e-16] ℝ))) ```
+
+and the return type is `M[5.55111512313e-16] ℝ`
+so the error bound is `5.55111512313e-16`. The execution time is printed in seconds as `0.000642s`.
+
+### FPTaylor output
+
+FPTaylor outputs the computed relative error bounds directly. Above, the relative error is 
+
+``` Relative error (exact): 5.170059e-16 (0x1.2a089914b604dp-51)```
+
+The execution time is printed in seconds as `Elapsed time: 0.75`. 
+
+### Gappa output
+
+Gappa's output includes the relative error formula `|(r - z) / r|`  for the benchmark and states the computed interval in which the value of the relative error lies. Above, Gappa produces the output
+```
+Results:
+  |(r - z) / r| in [0, 609354566858790905b-97 {3.84557e-12, 2^(-37.9199)}]
+```
+which says that the relative error is at most `3.84557e-12`. 
+
+The timing in seconds is `real 0m0.005s` and is produced using the UNIX `time` command.
