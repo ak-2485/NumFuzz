@@ -2,15 +2,16 @@
 
 This is the artifact for NumFuzz ("Numerical Fuzz"), a prototype implementation of the type system and floating-point error analysis tool described in the paper *A Type System for Numerical Error Analysis*.  
 
-This artifact supports the following claim made in the Evaluation section (Section 6.2) of the paper: **compared to state-of-the-art tools that soundly and automatically bound floating-point errors, NumFuzz provides practically useful---and often better---relative error bounds in at least an order of magnitude less time**.
+This artifact supports the following claim made in the Evaluation section (Section 6.2) of the paper: **compared to state-of-the-art tools that soundly and automatically bound floating-point errors, NumFuzz provides practically useful---and usually better---relative error bounds in at least an order of magnitude less time**.
 
 This artifact supports this claim by automatically generating floating-point error bounds using NumFuzz, FPTaylor, and Gappa for the 10 benchmark problems listed in Table 3 of Section 6.2, and by reporting the timing for each tool on each benchmark.
 
-We can't guarantee that this artifact will produce the *exact* timing values reported in Table 3 of Section 6.2 for each of the tools on all of the benchmarks on every machine. However, this artifact should support the claim that **NumFuzz generates floating-point error bounds at least an order of magnitude faster than both FPTaylor and Gappa on all of the benchmarks**.
+We can't guarantee that this artifact will produce the *exact* timing values reported in Table 3 of Section 6.2 for each of the tools on all of the benchmarks on every machine. However, this artifact should support the claim that **NumFuzz generates floating-point error bounds at least an order of magnitude faster than both FPTaylor and Gappa on most of the benchmarks**.
 
 ### Revisions
 
-There are a few small errors in Table 3 of Section 6.2 that will be revised in the final version of the paper. We list them here by benchmark name. **These small errors do not impact the claims made above**.
+There are a few revisions that will be made to Table 3 of Section 6.2
+in the final version of the paper. We list them here by benchmark name. **We emphasize that these small errors do not impact the claims made above**.
 - **x_by_xy**: The relative error bound for Gappa should be `1.00e-04`, which is worse than the bound originally reported of `2.22e-12`. Observe the NumFuzz remains the best performer.
 - **sqrt_add**: The relative error bound for NumFuzz should be `9.99e-16`. Observe that FPTaylor still outperforms NumFuzz on this benchmark.
 - **test02_sum8**: The relative error bound for FPTaylor should be `9.32e-14`, which is worse than the bound originally reported of `4.66e-14`. Observe the NumFuzz remains the best performer.
@@ -18,7 +19,7 @@ There are a few small errors in Table 3 of Section 6.2 that will be revised in t
 
 # Getting Started
 
-The artifact can be built manually or using the provided docker image; Docker is required in order to use the docker image. The requirements for building manually are listed in the description below.
+The artifact can be built manually or using the provided docker image; Docker is required in order to use the docker image. The requirements for building manually are listed in the description below and have been tested on Ubuntu 20.04, Alpine 3.17, and macOS 14.3.
 
 Both methods require extracting `NumFuzz_source.tar.gz` to the directory `NumFuzz`. This can be done with the command 
 ```
@@ -27,10 +28,13 @@ tar -xzf NumFuzz_source.tar.gz
 
 ## A. Building the docker image
 
-To build the docker image, first run `docker build -t numfuzz .` in the `NumFuzz` directory
+To build the docker image, first run `docker build -t numfuzz .` in the `NumFuzz` directory.
 
-Now, you can enter a TTY using the command `docker run --rm --name numfuzz_tty -it numfuzz` and follow the directions 
-for [running the benchmarks](#running-benchmarks).
+After the docker image builds you can enter a TTY using the command 
+```
+docker run --rm --name numfuzz_tty -it numfuzz
+``` 
+and follow the directions for [running the benchmarks](#running-benchmarks) detailed below.
 
 ## B. Building manually
 

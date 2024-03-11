@@ -5,20 +5,25 @@ RUN sudo apk update && sudo apk upgrade
 RUN sudo apk add --no-cache wget
 
 FROM init-opam AS ocaml-base
-COPY . .
+COPY . NumFuzz
 RUN sudo apk add bash bash-doc bash-completion
+WORKDIR NumFuzz
 
 # FPTAYLOR
 RUN opam init --disable-sandboxing 
-WORKDIR ./examples/FPTaylor/FPTaylor-0.9.3
+WORKDIR ./examples/FPTaylor
+RUN sudo tar -xzf v0.9.3.tar.gz
+WORKDIR ./FPTaylor-0.9.3
 RUN opam install num && eval $(opam env) && sudo make all
 WORKDIR ../../../
 
 # GAPPA
 RUN sudo apk add --no-cache boost-dev \
 	&& sudo apk add gmp-dev && sudo apk add mpfr-dev
-WORKDIR ./examples/Gappa/gappa-1.4.2/
-RUN sudo ./configure --prefix=/app/local/ \
+WORKDIR ./examples/Gappa
+RUN sudo tar -xzf gappa-1.4.2.tar.gz
+WORKDIR ./gappa-1.4.2/
+RUN sudo ./configure \
 	&& sudo ./remake && sudo ./remake install
 WORKDIR ../../../
 
