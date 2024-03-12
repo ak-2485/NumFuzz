@@ -1,8 +1,6 @@
 A Type System for Numerical Error Analysis
 =====
-
-This repository implements a type checker for a type system
-that tracks function sensitivity and roundoff error. The type
+This is the artifact for NumFuzz ("Numerical Fuzz"), a prototype implementation of the type system and floating-point error analysis tool described in the paper *A Type System for Numerical Error Analysis*. The type
 checker is based on the implementation due to Arthur Azevedo de Amorim
 and co-authors [1].
 
@@ -10,70 +8,21 @@ and co-authors [1].
 
 ## Install
 
-You need ocaml >= 4.14.1 plus dune, the mlmpfr
-dependencies, and standard gnu tools like gcc and make.
+You need ocaml >= 4.14.1 plus dune and menhir. 
 
-You can obtain everything other than mlmpfr through the
-command :
+You can obtain everything using the command
 ```
-$ opam install --deps-only -d -t .
+opam install --deps-only -d -t .
 ```
 
-### Install mlmpfr
-Building mlmpfr (Ocaml bindings for MPFR) depends on 
-MPFR library version 4.1.1. Your machine might already have the appropriate MPFR version. You can check this by typing the 
-following command.
-
+Build via dune:
 ```
-$ opam install mlmpfr
+dune build
 ```
 
-If the install fails due to the MPFR version, you can obtain 
-the required version from
-https://www.mpfr.org/mpfr-4.1.1/ and build as follows.
-
-
-To build MPFR, you first have to install GNU MP (version 5.0.0 or higher). Then, in the MPFR build directory, type the following commands.
+Type check a benchmark in the examples directory with the following command.
 ```
-$ ./configure
-```
-This will prepare the build and set up the options according to your system. 
-
-``` 
-$ make 
-```
-This will compile MPFR, and create a library archive file libmpfr.a. On most platforms, a dynamic library will be produced too.
-
-```
-$ make check
-```
-This will make sure that MPFR was built correctly. If any test fails, information about this failure can be found in the tests/test-suite.log file. 
-
-```
-$ make install
-```
-This will copy the files mpfr.h and mpf2mpfr.h to the directory /usr/local/include, the library files (libmpfr.a and possibly others) to the directory /usr/local/lib, the file mpfr.info to the directory /usr/local/share/info, and some other documentation files to the directory /usr/local/share/doc/mpfr (or if you passed the ‘--prefix’ option to configure, using the prefix directory given as argument to ‘--prefix’ instead of /usr/local).
-
-Once the correct version of MPFR has been installed, run
-```
-$ opam install mlmpfr
-```
-### Build the type-checker
-
-Once mlmpfr builds, run
-
-```
-$ dune build
-```
-
-to compile the tool
-
-## How to compile and run programs
-
-To typecheck a program type:
-
-```
-$ dune exec -- nfuzz examples/filename.fz
+dune exec -- nfuzz examples/BENCHMARK.fz
 ```
 
 
