@@ -1,0 +1,6 @@
+Script started on 2024-03-09 08:52:44-05:00 [TERM="xterm-256color" TTY="/dev/pts/3" COLUMNS="-1" LINES="-1"]
+]0;ak2485@ak2485Latitude7480: ~/Documents/NumFuzz/artifact/NumFuzz/examples/Gappa[01;32mak2485@ak2485Latitude7480[00m:[01;34m~/Documents/NumFuzz/artifact/NumFuzz/examples/Gappa[00m$ code .
+]0;ak2485@ak2485Latitude7480: ~/Documents/NumFuzz/artifact/NumFuzz/examples/Gappa[01;32mak2485@ak2485Latitude7480[00m:[01;34m~/Documents/NumFuzz/artifact/NumFuzz/examples/Gappa[00m$ ^C
+]0;ak2485@ak2485Latitude7480: ~/Documents/NumFuzz/artifact/NumFuzz/examples/Gappa[01;32mak2485@ak2485Latitude7480[00m:[01;34m~/Documents/NumFuzz/artifact/NumFuzz/examples/Gappa[00m$ exit
+
+Script done on 2024-03-09 08:52:54-05:00 [COMMAND_EXIT_CODE="130"]

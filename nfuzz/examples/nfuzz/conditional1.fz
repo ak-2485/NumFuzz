@@ -1,6 +1,0 @@
-function conditional1 (a : ()) {
-   v = inl a; 
-   if v then {a} else {a}
-}
-
-conditional1
