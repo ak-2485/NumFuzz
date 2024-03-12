@@ -1,8 +1,0 @@
-{
-Variables
-	float64 z in [0.1, 1000];
-
-Expressions
-	nonlin1 rnd64_up= (z / (z + 1));
-}
-

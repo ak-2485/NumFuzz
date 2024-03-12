@@ -1,0 +1,16 @@
+opam-version: "2.0"
+name: "NumFuzz"
+version: "1.0"
+synopsis: "A Type System for Numerical Error Analysis"
+description: """ """
+maintainer: "Anonymous"
+authors: "Anonymous"
+license: "MIT"
+
+depends: [
+  "ocaml"                { >= "4.14.1"   }
+  "dune"                 { >= "3.14.0"    }
+  "menhir"               { >= "20220210" }
+]
+
+build: [ [ "dune" "build" "-p" name "-j" jobs ] ]

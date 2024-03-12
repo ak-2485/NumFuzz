@@ -1,0 +1,17 @@
+#include "nlibrary.fz"
+
+function pow2 (x : ![2.0]num) 
+{
+  let [x'] = x;
+  mulfp(x',x')
+}
+
+function pow4 (x : ![4.0]num) 
+{
+  let [y] = x;
+  s = pow2 [y {2.0}];
+  let xs = s;
+  pow2 [xs {2.0}]
+}
+
+pow4

@@ -1,0 +1,11 @@
+#include "nlibrary.fz"
+
+function test05_nonlin1
+  (x : num) 
+{
+  sy= addfp (|x,1.0|);
+  let y = sy;
+  divfp (1.0,y)
+}
+
+test05_nonlin1

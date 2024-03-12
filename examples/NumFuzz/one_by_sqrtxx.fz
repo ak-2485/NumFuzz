@@ -1,0 +1,14 @@
+#include "nlibrary.fz"
+
+function one_by_sqrtxx
+  (x : ![0.5]num)
+{
+  let [x'] = x;
+  sz = mulfp (x',x');
+  let z = sz;
+  sy = sqrtfp ([z{0.5}]);
+  let y = sy;
+  divfp (1.0,y)
+}
+
+one_by_sqrtxx

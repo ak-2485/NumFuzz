@@ -1,0 +1,11 @@
+#include "nlibrary.fz"
+
+function nonlin1 (t : ![2.0]num) 
+{
+  let [t'] = t;
+  s = addfp (|t',1.0|);
+  let d = s;
+  divfp (t',d)
+}
+
+nonlin1
