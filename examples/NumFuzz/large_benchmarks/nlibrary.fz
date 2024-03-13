@@ -1,19 +1,15 @@
 function mulfp (xy: (num, num)) : M[eps64_up]num {
-  let (x,y) = xy;
-  s = mul (x,y);
+  s = mul xy;
   rnd s
 }
 
 function addfp (xy: <num, num>) : M[eps64_up]num {
-  x = pi1 xy;
-  y = pi2 xy;
-  s = add (|x, y|);
+  s = add xy;
   rnd s
 }
 
 function divfp (xy: (num, num)) : M[eps64_up]num {
-  let (x,y) = xy;
-  s = div (x,y);
+  s = div xy;
   rnd s
 }
 
@@ -33,3 +29,5 @@ function FMA (x : num) (y : num) (z : num) : M[eps64_up]num {
   b = add (|a,z|);
   rnd b
 }
+
+FMA
