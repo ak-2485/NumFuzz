@@ -1,0 +1,13 @@
+#include "nlibrary.fz"
+#include "folds.fz"
+
+function Horner50   
+    (as : (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num , num, (num, (num, (num, (num,
+    (num, num))))))))))))))))))))))))))))))))))))))))))))))))))
+    (x : num) 
+{
+  g = fun (a: num) {fun (b: num) {FMA b x a}};
+  fold51 as g
+}
+
+Horner50

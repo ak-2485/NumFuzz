@@ -1,12 +1,11 @@
 #include "nlibrary.fz"
 
 function Horner2 (a0 : num) (a1 : num) 
-  (a2 : num) (x : ![2.0]num)
+  (a2 : num) (x : num)
 {
-  let [x1] = x ;
-  sz = FMA a2 x1 a1;
-  let z = sz;
-  FMA z x1 a0
+  s1 = FMA a2 x a1;
+  let z = s1;
+  FMA z x a0
 }
 
 Horner2
