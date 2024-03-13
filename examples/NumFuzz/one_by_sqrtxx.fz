@@ -1,10 +1,9 @@
 #include "nlibrary.fz"
 
 function one_by_sqrtxx
-  (x : ![0.5]num)
+  (x : num)
 {
-  let [x'] = x;
-  sz = mulfp (x',x');
+  sz = mulfp (x,x);
   let z = sz;
   sy = sqrtfp ([z{0.5}]);
   let y = sy;

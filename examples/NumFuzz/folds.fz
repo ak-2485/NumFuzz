@@ -1,6 +1,7 @@
 function fold6 (as : (num,(num,(num,(num,(num,num)))))) 
-  (c : num -o num -o M[eps64_up]num)
+  (c' : ![5.0](num -o num -o M[eps64_up]num))
 {
+  let [c] = c';
   let (a0,as1) = as;
   let (a1,as2) = as1;
   let (a2,as3) = as2;

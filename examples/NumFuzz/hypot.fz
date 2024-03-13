@@ -1,13 +1,11 @@
 #include "nlibrary.fz"
 
 function hypot
-   (x : ![0.5]num) (y : ![0.5]num) 
+   (x : num) (y : num) 
 {
-  let [x'] = x;
-  let [y'] = y;
-  s1 = mulfp(x',x');
+  s1 = mulfp(x,x);
   let x2 = s1;
-  s2 = mulfp(y',y');
+  s2 = mulfp(y,y);
   let y2 = s2;
   s3 = addfp(|x2,y2|);
   let y3 = s3;

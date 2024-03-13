@@ -1,11 +1,12 @@
 #include "nlibrary.fz"
 #include "folds.fz"
 
-function Horner5_HO (as : (num,(num,(num,(num,(num,num))))))
-  (x : num) 
+function Horner5 (as : (num,(num,(num,(num,(num,num))))))
+  (x : ![5.0]num) 
 {
-  g = fun (a: num) {fun (b: num) {FMA b x a}};
-  fold6 as g
+  let [x'] = x;
+  g = fun (a: num) {fun (b: num) {FMA b x' a}};
+  fold6 as [g{5.0}]
 }
 
-Horner5_HO
+Horner5
