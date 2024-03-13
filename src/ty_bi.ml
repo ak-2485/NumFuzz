@@ -472,7 +472,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
       let si_x3  = Simpl.si_simpl si_x2 in
       let si_x4  = Simpl.si_simpl_compute si_x3 in
-      check_sens_leq i (si_one) si_x4         >>
+      check_sens_eq i (si_one) si_x4         >>
 
       return (TyLollipop (tya_x, ty_tm), sis)
 
