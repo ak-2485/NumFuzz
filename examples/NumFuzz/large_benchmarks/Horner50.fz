@@ -4,10 +4,11 @@
 function Horner50   
     (as : (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, (num , num, (num, (num, (num, (num,
     (num, num))))))))))))))))))))))))))))))))))))))))))))))))))
-    (x : num) 
+    (x : ![50.0]num) 
 {
-  g = fun (a: num) {fun (b: num) {FMA b x a}};
-  fold51 as g
+  let [x'] = x;
+  g = fun (a: num) {fun (b: num) {FMA b x' a}};
+  fold51 as [g{50.0}]
 }
 
 Horner50
