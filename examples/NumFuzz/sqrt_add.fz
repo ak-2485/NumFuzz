@@ -1,4 +1,6 @@
-#include "nlibrary.fz"
+#include "addfp.fz"
+#include "divfp.fz"
+#include "sqrtfp.fz"
 
 function sqrt_add1 (x : ![0.5]num) 
 {

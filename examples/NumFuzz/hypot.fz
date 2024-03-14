@@ -1,4 +1,7 @@
-#include "nlibrary.fz"
+#include "mulfp.fz"
+#include "addfp.fz"
+#include "sqrtfp.fz"
+
 
 function hypot
    (x : num) (y : num) 

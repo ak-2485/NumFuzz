@@ -1,4 +1,6 @@
-#include "nlibrary.fz"
+#include "mulfp.fz"
+#include "divfp.fz"
+#include "sqrtfp.fz"
 
 function one_by_sqrtxx
   (x : num)

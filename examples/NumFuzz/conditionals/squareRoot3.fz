@@ -1,0 +1,7 @@
+
+function squareRoot3 (x : ![inf]num) {
+   b = gt (x,[1.0{inf}]); 
+   case b of { inl (x1) =>x1 | inr (y) => y }
+}
+
+squareRoot3

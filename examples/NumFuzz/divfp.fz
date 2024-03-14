@@ -1,0 +1,4 @@
+function divfp (xy: (num, num)) : M[eps64_up]num {
+  s = div xy;
+  rnd s
+}

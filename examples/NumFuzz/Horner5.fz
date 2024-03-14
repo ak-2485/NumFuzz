@@ -1,5 +1,5 @@
-#include "nlibrary.fz"
-#include "folds.fz"
+#include "fold6.fz"
+#include "fma.fz"
 
 function Horner5 (as : (num,(num,(num,(num,(num,num))))))
   (x : ![5.0]num) 

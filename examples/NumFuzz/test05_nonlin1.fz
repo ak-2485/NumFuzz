@@ -1,4 +1,5 @@
-#include "nlibrary.fz"
+#include "addfp.fz"
+#include "divfp.fz"
 
 function test05_nonlin1
   (x : num) 

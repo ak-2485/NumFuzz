@@ -1,4 +1,5 @@
-#include "nlibrary.fz"
+#include "addfp.fz"
+#include "divfp.fz"
 
 function x_by_xy
   (x : ![2.0]num) (y : num) 
