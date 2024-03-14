@@ -195,7 +195,7 @@ let pp_type_list = pp_list pp_type
 (**********************************************************************)
 (* Pretty printing for contexts *)
 
-(* let pp_bi_ctx ppf ( *)
+(* let pp_bi_ctx ppf  *)
 
 let pp_var_ctx_elem ppf (v, ty) =
   if !debug_options.full_context then
@@ -240,10 +240,11 @@ let is_binary_op s = List.mem_assoc s binary_op_table
 let string_of_op s = List.assoc s binary_op_table
 
 let string_of_op2 fop = match fop with
-  AddOp -> "add"
-  | MulOp -> "mul"
+    AddOp  -> "add"
+  | MulOp  -> "mul"
   | SqrtOp -> "sqrt"
   | DivOp  -> "div"
+  | GtOp   -> "gt"
 
 let string_of_term_prim t = match t with
     PrimTUnit         -> "()"

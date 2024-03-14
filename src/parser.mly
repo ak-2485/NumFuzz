@@ -70,9 +70,10 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> FUNCTION
 %token <Support.FileInfo.info> FUN
 %token <Support.FileInfo.info> GT
+%token <Support.FileInfo.info> GTOP
 %token <Support.FileInfo.info> IF
 %token <Support.FileInfo.info> INL
-(* %token <Support.FileInfo.info> INF *)
+%token <Support.FileInfo.info> INF 
 %token <Support.FileInfo.info> INR
 %token <Support.FileInfo.info> LBRACE
 %token <Support.FileInfo.info> LBRACK
@@ -177,7 +178,7 @@ Term :
         let ctx' = extend_var $1.v ctx in
         TmLet($1.i, nb_var $1.v, $2 ctx, $4 ctx, $6 ctx')
       }
-  (* sugar for top level functions : pure let-binders with abstraction *)
+  (* sugar for top level functions *)
   | FUNCTION ID Arguments MaybeType LBRACE Term RBRACE Term
       { fun ctx ->
         let (args, ctx_args) = $3 ctx                 in
@@ -195,6 +196,8 @@ Term :
       { fun ctx -> TmOp($1, DivOp, $2 ctx) }
   | SQRTOP Val
       { fun ctx -> TmOp($1, SqrtOp, $2 ctx) }
+  | GTOP Val
+      { fun ctx -> TmOp($1, GtOp, $2 ctx) }
   (* hacked sugar for n-ary applications; should fix with appropriate let-  binding *)
   | Term Val
       { fun ctx ->
@@ -274,6 +277,8 @@ SensAtomicTerm :
       }
   | FLOATV
       { fun _cx -> SiConst ( $1.v) }
+  | INF
+      { fun _cx -> SiInfty  }
   | EPS
       { fun _cx -> SiConst ( $1.v) }
   | EPS2

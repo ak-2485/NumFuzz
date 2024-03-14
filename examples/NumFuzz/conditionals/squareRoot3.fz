@@ -1,7 +1,18 @@
+#include "addfp.fz"
+#include "sqrtfp.fz"
+#include "mulfp.fz"
 
 function squareRoot3 (x : ![inf]num) {
-   b = gt (x,[1.0{inf}]); 
-   case b of { inl (x1) =>x1 | inr (y) => y }
+    let [x'] = x;
+    b = gt ([x'{inf}],[0.00001{inf}]); 
+    if b then 
+        { s = mulfp (0.5,x');
+        let s' = s;
+        addfp (|s',1.0|) }
+    else 
+        { s = addfp (|1.0,x'|);
+        let s' = s;
+        sqrtfp [s'{0.5}]}
 }
 
 squareRoot3

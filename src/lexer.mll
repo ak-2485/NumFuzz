@@ -34,13 +34,14 @@ let reservedWords = [
   (* Keywords *)
   (* ("true", fun i -> Parser.TRUE i);
   ("false", fun i -> Parser.FALSE i); *)
-  (* ("inf", fun i -> Parser.INF i); *)
+  ("inf", fun i -> Parser.INF i); 
   ("fun", fun i -> Parser.FUN i);
   ("rnd", fun i -> Parser.RND i);
   ("add", fun i -> Parser.ADDOP i);
   ("mul", fun i -> Parser.MULOP i);
   ("div", fun i -> Parser.MULOP i);
   ("sqrt", fun i -> Parser.SQRTOP i);
+  ("gt", fun i -> Parser.GTOP i);
   ("case", fun i -> Parser.UNIONCASE i);
   ("inl", fun i -> Parser.INL i);
   ("inr", fun i -> Parser.INR i);
@@ -147,6 +148,8 @@ rule main = parse
     { Parser.EPS2 {i=info lexbuf; v=float_of_string "2.220446049250313e-16"} }
 
 | "-o" { Parser.LOLLIPOP(info lexbuf) }
+
+| "inf" { Parser.INF(info lexbuf) }
 
 | ['A'-'Z' 'a'-'z' '_']
   ['A'-'Z' 'a'-'z' '_' '0'-'9' '\'']*

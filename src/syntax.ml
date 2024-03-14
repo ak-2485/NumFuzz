@@ -201,6 +201,7 @@ type op =
   | MulOp
   | SqrtOp
   | DivOp
+  | GtOp
 
 type term =
     TmVar of info * var_info

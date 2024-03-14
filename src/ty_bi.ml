@@ -18,8 +18,10 @@ module P   = Print
 
 (* Errors *)
 type ty_error_elem =
-| SensError    of si * si
+| SensErrorLe  of si * si
+| SensErrorLt  of si * si
 | SensErrorEq  of si * si
+| SensErrorDiv of si * si
 | MoreGeneral  of ty * ty
 | TypeMismatch of ty * ty
 | TypeInst     of ty * ty
@@ -93,19 +95,19 @@ let check_sens_div i (sil : si) (sir : si) : unit checker =
   if check_sens_div' sil sir then
     return ()
   else
-    fail i @@ SensError(sil, sir)
+    fail i @@ SensErrorDiv(sil, sir)
 
 let check_sens_leq i (sil : si) (sir : si) : unit checker =
   if post_si_leq sil sir then
-    return ()
+    return()
   else
-    fail i @@ SensError(sil, sir)
+    fail i @@ SensErrorLe(sil, sir)
 
 let check_sens_lt i (sil : si) (sir : si) : unit checker =
   if post_si_lt sil sir then
     return ()
   else
-    fail i @@ SensError(sil, sir)
+    fail i @@ SensErrorLt(sil, sir)
 
 let check_sens_eq  i (sil : si) (sir : si) : unit checker =
   if post_si_eq sil sir then
@@ -125,6 +127,12 @@ let si_infty = SiInfty
    later on. *)
 type bsi = si option
 
+(* A list only with one sensitivities *)
+let ones (n : int) : bsi list =
+  let rec aux n l =
+    if n = 0 then l else aux (n - 1) (Some si_one :: l) in
+  aux n []
+
 (* A list only with zero sensitivities *)
 let zeros (n : int) : bsi list =
   let rec aux n l =
@@ -132,7 +140,6 @@ let zeros (n : int) : bsi list =
   aux n []
 
 (* A list with zero sensitivities, except for one variable *)
-
 (* Note that this has to be kept in sync with the actual ctx *)
 let singleton (n : int) (v : var_info) : bsi list =
   let rec aux n l =
@@ -259,6 +266,15 @@ module TypeSub = struct
 
       | _, _ -> fail
 
+  let check_ty_union i sityl sityr =
+    match sityl, sityr with
+    | TyMonad(si_l, ty_l),TyMonad(si_r, ty_r) -> 
+          let si = Simpl.si_simpl_compute (SiLub(si_l, si_r)) in
+          check_type_eq i ty_r ty_l >>
+          return (TyMonad(si, ty_r))
+    | _ , _  -> 
+          check_type_eq i sityl sityr >>
+          return sityl
 
   (* Check whether ty is compatible (modulo subtyping) with annotation
      ann, returning the resulting type. *)
@@ -306,11 +322,13 @@ module TypeSub = struct
 
   let check_op_shape op =
     let num  = (TyPrim PrimNum) in
+    let ty_bool = (TyUnion(TyPrim PrimUnit, TyPrim PrimUnit)) in
     match op with
-    | AddOp  -> return (TyAmpersand(num, num))
-    | MulOp  -> return (TyTensor(num, num))
-    | SqrtOp -> return (TyBang(si_hlf, num))
-    | DivOp  -> return (TyTensor(num, num))
+    | AddOp  -> return (TyLollipop((TyAmpersand(num, num)),num))
+    | MulOp  -> return (TyLollipop((TyTensor(num, num)),num))
+    | SqrtOp -> return (TyLollipop((TyBang(si_hlf, num)),num))
+    | DivOp  -> return (TyLollipop((TyTensor(num, num)),num))
+    | GtOp   -> return (TyLollipop((TyTensor(TyBang(si_infty,num),TyBang(si_infty,num))),ty_bool))
 
 let check_is_num' ty : bool =
   match ty with
@@ -328,6 +346,11 @@ let check_is_num i ty : unit checker =
     | TyUnion(ty1, ty2) -> return (ty1, ty2)
     | _                 -> fail i @@ WrongShape (ty, "union")
 
+  let check_fun_shape i ty =
+    match ty with
+    | TyLollipop(ty1, ty2) -> return (ty1, ty2)
+    | _                 -> fail i @@ WrongShape (ty, "lollipop")
+
   let check_bang_shape i sity =
     match sity with
     | TyBang(si1, ty1) -> return (si1, ty1)
@@ -342,6 +365,11 @@ let check_is_num i ty : unit checker =
     match sity with
     | TyMonad(si, ty) -> return (si, ty)
     | _                 -> fail i @@ WrongShape (sity, "monad")
+
+  let check_monadic_shape_option sity =
+    match sity with
+    | TyMonad(si, ty) -> Some (si, ty)
+    | _               -> None
 
   let check_sized_nat_shape i ty = fail i @@ WrongShape (ty, "nat")
 
@@ -389,6 +417,8 @@ let scale_sens (bsi : bsi) (bsis : bsi list) : bsi list =
 let lub_sens (bsis1 : bsi list) (bsis2 : bsi list) : bsi list =
   List.map2 lub_bsi bsis1 bsis2
 
+let bsi_sens (bsis : bsi list) : si list =
+  List.map si_of_bsi bsis
 
 (**********************************************************************)
 (* Main typing routines                                               *)
@@ -500,6 +530,9 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
 
+    ty_debug i "*** Context let: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_e); 
+    ty_debug i "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo x P.pp_si (si_of_bsi si_x);
+
     let si_x =  (si_of_bsi si_x) in
     check_sens_lt i si_zero si_x >>
     let si_x = Simpl.si_simpl si_x in
@@ -586,10 +619,15 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     with_extended_ctx i x.b_name ty_x (type_of tm_e) >>= fun (ty_e, si_x, sis_e) ->
 
+    ty_debug i "### In box, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo x P.pp_si (si_of_bsi si_x);
+
     let si_x = si_of_bsi si_x in
     let t    = si_div si_x si_v in
 
-    return(ty_e, add_sens sis_e (scale_sens (Some t) sis_v))
+   ty_info2 i "**** Value of sens is %a" Print.pp_si si_x;
+   ty_info2 i "**** Value of scaling is %a" Print.pp_si t;
+
+    return(ty_e, add_sens (scale_sens (Some t) sis_v) sis_e)
 
   (* Case analysis *)
   (* case v of inl(x) => e_l | inr(y) => f_r *)
@@ -603,17 +641,23 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     with_extended_ctx i b_y.b_name ty2 (type_of f_r) >>= fun (tyr, si_y, sis_r) ->
 
-      check_type_eq i tyr tyl >>
+    check_ty_union i tyl tyr >>= fun ty_exp ->
+
+    ty_debug (tmInfo v) "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si (si_of_bsi si_x);
+
+    ty_debug (tmInfo v) "*** Context: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_v); 
 
       let si_x = si_of_bsi si_x in
       let si_y = si_of_bsi si_y in
 
       check_sens_eq i si_x si_y >>
-      check_sens_lt i si_zero si_x >>
 
       let theta = (lub_sens sis_l sis_r) in
 
-      return (tyr, add_sens theta (scale_sens (Some si_x) sis_v))
+      if (post_si_eq si_x si_zero) then
+        return (ty_exp, add_sens theta (scale_sens (Some si_one) sis_v))
+      else
+        return (ty_exp, add_sens theta (scale_sens (Some si_x) sis_v))
 
   | TmInl(_i, tm_l)      ->
 
@@ -631,10 +675,11 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     type_of v >>= fun (ty_v, sis_v) ->
 
     check_op_shape fop >>= fun (ty_op) ->
+    check_fun_shape i ty_op >>= fun(ty_arg,ty_ret) ->
 
-    check_type_eq i ty_v ty_op >>
+    check_type_eq i ty_v ty_arg >>
 
-    return ((TyPrim PrimNum), sis_v)
+    return (ty_ret, sis_v)
 
   ) >>= fun (ty, sis) ->
 
@@ -653,7 +698,9 @@ open Print
 
 let pp_tyerr ppf s = match s with
   | SensErrorEq (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a = %a" !ty_seq pp_si si1 pp_si si2
-  | SensError (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a <= %a" !ty_seq pp_si si1 pp_si si2
+  | SensErrorLe (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a <= %a" !ty_seq pp_si si1 pp_si si2
+  | SensErrorLt (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a < %a" !ty_seq pp_si si1 pp_si si2
+  | SensErrorDiv (_si1, _si2)  -> fprintf ppf "Some sens div error" 
   | MoreGeneral(ty1, ty2) -> fprintf ppf "EEE [%3d] %a is not more general than %a"     !ty_seq pp_type ty1 pp_type ty2
   | TypeInst(ty1, ty2)    -> fprintf ppf "EEE [%3d] Type %a is not instance of %a"      !ty_seq pp_type ty1 pp_type ty2
   | TypeMismatch(ty1, ty2)-> fprintf ppf "EEE [%3d] Cannot unify %a with %a"        !ty_seq pp_type ty1 pp_type ty2

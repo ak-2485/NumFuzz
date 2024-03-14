@@ -123,7 +123,7 @@ module Decide = struct
 
   let decide_lt sil sir =
     if sil = sir then
-      Some false
+      None
     else if is_zero sil then
       Some true
     else if is_infty sir then
@@ -199,9 +199,10 @@ module Simpl = struct
 	 | SiDiv (si1,si2) ->
       let si1' = si_simpl_compute si1 in
       let si2' = si_simpl_compute si2 in
-				begin match si1', si2' with (*
-					| SiConst si1'', SiConst si2'' -> SiConst (M.div si1'' si2'') *)
+				begin match si1', si2' with 
 					| SiConst si1'', SiConst si2'' -> SiConst ( si1'' /. si2'')
+					| SiInfty, SiInfty -> si_one
+					| SiConst _, SiInfty -> si_zero
 					| _, _ -> sis
 				end
 	 | SiLub (si1,si2) ->
