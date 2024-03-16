@@ -160,5 +160,3 @@ function fold51
   let z1 = s1;
   c a0 z1
 }
-
-fold51
