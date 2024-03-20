@@ -1,0 +1,454 @@
+Base path: /home/ak2485/Documents/research/FPTaylor
+Config file: /home/ak2485/Documents/research/FPTaylor/default.cfg
+Config file: ../config.cfg
+default-rnd = rnd64
+nlopt-cc = gcc -std=c99 -O3
+opt-exact = true
+develop = false
+log-append-date = start
+uncertainty = false
+rel-error = true
+opt-approx = false
+proof-record = false
+find-bounds = false
+proof-dir = proofs
+opt-f-abs-tol = 0.01
+fail-on-exception = true
+print-opt-lower-bounds = true
+bb-compile = {base}/b_and_b/compile.sh {base} {input} {out}
+z3-python-lib = 
+opt-x-abs-tol = 0.01
+export-error-bounds = 
+opt-f-rel-tol = 0.01
+export-options = 
+opt-x-rel-tol = 0.0
+rel-error-threshold = 0.0001
+bb-alg = opt0
+log-base-dir = log
+intermediate-opt = false
+z3-interval-bounds = true
+opt-max-iters = 1000000
+abs-error = false
+z3-bin = 
+maxima-simplification = false
+print-hex-floats = true
+debug = true
+print-precision = 7
+export-error-bounds-data = 
+fp-power2-model = true
+opt = auto
+default-var-type = float64
+verbosity = 0
+ulp-error = false
+opt-timeout = 10000
+nlopt-lib = -lnlopt -lm
+tmp-base-dir = tmp
+unique-indices = false
+z3-seed = 0
+tmp-date = false
+z3-python-cmd = python
+const-approx-real-vars = false
+print-second-order-errors = false
+Resetting input_parser_env
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: (1/10)
+result: 1/10
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: 0
+result: 0
+eval_const_expr: 1000
+result: 1000
+eval_const_expr: (1/10)
+result: 1/10
+Resetting input_parser_env
+|tasks| = 1
+Processing: Horner200
+
+*************************************
+Taylor form for: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6)) * x) + a5)) * x) + a4)) * x) + a3)) * x) + a2)) * x) + a1)) * x) + a0))
+
+Conservative bound: [0.111111, 1001001001001010647552619037835256720615308828701723741810327552.000000]
+
+Simplified rounding: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6)) * x) + a5)) * x) + a4)) * x) + a3)) * x) + a2)) * x) + a1)) * x) + a0))
+Building Taylor forms...
+var_form
+var_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+mul_form
+var_form
+add_form
+rounded_form
+Taylor forms cache stats: num_bindings = 82, num_buckets = 1024, max_bucket_length = 2
+Expr cache stats: num_bindings = 383, num_buckets = 65536, max_bucket_length = 1
+Simplifying Taylor forms...
+success
+v0 = ((((((((((((((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) * x) + a6) * x) + a5) * x) + a4) * x) + a3) * x) + a2) * x) + a1) * x) + a0)
+-1: exp = -53: (1436365993462079/3579862989809370150552347991709354811340217396521331566180181212788883000669113019918160533228078546928669938652374965009299607594634172087555628255195572452564109288497401512783350157684872347030630001028968155934491319200842197951919848388309286912)
+1: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((a20 * x) + a19) + 0))))))))))))))))))))))
+2: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((a20 * x) + a19) * x) + a18) + interval(-1.16415321826934827688e-07, 1.16415321826934827688e-07))))))))))))))))))))))
+3: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((a20 * x) + a19) * x) + a18) * x) + a17) + interval(-2.35624611377716091558e-04, 2.35624611377716091558e-04)))))))))))))))))))))
+4: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) + interval(-3.57694923877716119964e-01, 3.57694923877716119964e-01))))))))))))))))))))
+5: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) + interval(-4.82694923877716121297e+02, 4.82694923877716121297e+02)))))))))))))))))))
+6: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) + interval(-6.10694923877716180868e+05, 6.10694923877716180868e+05))))))))))))))))))
+7: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) + interval(-7.41766923877716183662e+08, 7.41766923877716183662e+08)))))))))))))))))
+8: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) + interval(-8.75984651877716186523e+11, 8.75984651877716186523e+11))))))))))))))))
+9: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) + interval(-1.01342360534971612500e+15, 1.01342360534971612500e+15)))))))))))))))
+10: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) + interval(-1.15416109370504422400e+18, 1.15416109370504422400e+18))))))))))))))
+11: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) + interval(-1.29827628178090020045e+21, 1.29827628178090020045e+21)))))))))))))
+12: exp = -53: (x * (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) + interval(-1.44585023437057668048e+24, 1.44585023437057668048e+24))))))))))))
+13: exp = -53: (x * (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) + interval(-1.59696596182240528867e+27, 1.59696596182240528867e+27)))))))))))
+14: exp = -53: (x * (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) * x) + a6) + interval(-1.75170846673307787581e+30, 1.75170846673307787581e+30))))))))))
+15: exp = -53: (x * (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) * x) + a6) * x) + a5) + interval(-1.91016479176160683472e+33, 1.91016479176160683472e+33)))))))))
+16: exp = -53: (x * (x * (x * (x * (2 * floor_power2((((((((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) * x) + a6) * x) + a5) * x) + a4) + interval(-2.07242406859082024192e+36, 2.07242406859082024192e+36))))))))
+17: exp = -53: (x * (x * (x * (2 * floor_power2((((((((((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) * x) + a6) * x) + a5) * x) + a4) * x) + a3) + interval(-2.23857756806393499285e+39, 2.23857756806393499285e+39)))))))
+18: exp = -53: (x * (x * (2 * floor_power2((((((((((((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) * x) + a6) * x) + a5) * x) + a4) * x) + a3) * x) + a2) + interval(-2.40871875152440424634e+42, 2.40871875152440424634e+42))))))
+19: exp = -53: (x * (2 * floor_power2((((((((((((((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) * x) + a6) * x) + a5) * x) + a4) * x) + a3) * x) + a2) * x) + a1) + interval(-2.58294332338792512835e+45, 2.58294332338792512835e+45)))))
+20: exp = -53: (2 * floor_power2((((((((((((((((((((((((((((((((((((((((((a20 * x) + a19) * x) + a18) * x) + a17) * x) + a16) * x) + a15) * x) + a14) * x) + a13) * x) + a12) * x) + a11) * x) + a10) * x) + a9) * x) + a8) * x) + a7) * x) + a6) * x) + a5) * x) + a4) * x) + a3) * x) + a2) * x) + a1) * x) + a0) + interval(-2.76134928497617009066e+48, 2.76134928497617009066e+48))))
+
+Corresponding original subexpressions:
+1: rnd64_up(((a20 * x) + a19))
+2: rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18))
+3: rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17))
+4: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16))
+5: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15))
+6: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14))
+7: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13))
+8: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12))
+9: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11))
+10: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10))
+11: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9))
+12: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8))
+13: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7))
+14: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6))
+15: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6)) * x) + a5))
+16: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6)) * x) + a5)) * x) + a4))
+17: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6)) * x) + a5)) * x) + a4)) * x) + a3))
+18: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6)) * x) + a5)) * x) + a4)) * x) + a3)) * x) + a2))
+19: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6)) * x) + a5)) * x) + a4)) * x) + a3)) * x) + a2)) * x) + a1))
+20: rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((rnd64_up(((a20 * x) + a19)) * x) + a18)) * x) + a17)) * x) + a16)) * x) + a15)) * x) + a14)) * x) + a13)) * x) + a12)) * x) + a11)) * x) + a10)) * x) + a9)) * x) + a8)) * x) + a7)) * x) + a6)) * x) + a5)) * x) + a4)) * x) + a3)) * x) + a2)) * x) + a1)) * x) + a0))
+
+Selected optimization method: bb
+bb_opt: x_abs_tol = 1.000000e-02, f_rel_tol = 1.000000e-02, f_abs_tol = 1.000000e-02, iters = 1000000
+iterations(min = 0, max = 0): 0
+min = 1.111111e-01 (lower_min = 1.111111e-01)
+max = 1.001001e+63 (lower_max = 1.001001e+63)
+subopt = 4.932568e+48 (0.0%)
+bounds: [1.111111e-01, 1.001001e+63]
+
+Computing relative errors
+Selected optimization method: bb-eval
+bb-eval_opt: x_abs_tol = 1.000000e-02, f_rel_tol = 1.000000e-02, f_abs_tol = 1.000000e-02, iters = 1000000
+rmin(result = 4.012349e-235, lower = 4.012349e-235), rmax(result = 4.012349e-235, lower = 4.012349e-235)
+-1: exp = -53: 4.012349e-235 (low = 4.012349e-235, subopt = 0.0%)
+
+Solving the exact optimization problem
+Selected optimization method: bb
+bb_opt: x_abs_tol = 1.000000e-02, f_rel_tol = 1.000000e-02, f_abs_tol = 1.000000e-02, iters = 1000000
+iterations(min = 0, max = 1000000): 1000000
+min = 0.000000e+00 (lower_min = 0.000000e+00)
+max = 2.386578e+65 (lower_max = 2.650426e+01)
+subopt = 2.386578e+65 (100.0%)
+exact bound-rel (exp = -53): 2.386578e+65 (low = 2.650426e+01, subopt = 100.0%)
+total2: 4.009142e-250 (low = 4.450148e-314, subopt = 100.0%)
+exact total-rel: 2.649633e+49 (low = 2.942564e-15, subopt = 100.0%)
+
+Elapsed time: 71.02130
+*************************************
+
+-------------------------------------------------------------------------------
+Problem: Horner200
+
+Optimization lower bounds for error models:
+The relative error (exact) model: 2.942564e-15 (0x1.a811740aaa1efp-49) (suboptimality = 100.0%)
+
+Bounds (without rounding): [1.111111e-1, 1.001002e+63]
+
+Relative error (exact): 2.649634e+49 (0x1.22128a8db9322p+164)
+
+Elapsed time: 71.02
+

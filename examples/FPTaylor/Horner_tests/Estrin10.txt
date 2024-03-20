@@ -1,0 +1,30 @@
+Variables
+	float64 x  in [0.1, 1000];
+	float64 a0 in [0.1, 1000];
+	float64 a1 in [0.1, 1000];
+	float64 a2 in [0.1, 1000];
+    float64 a3 in [0.1, 1000];
+    float64 a4 in [0.1, 1000];
+    float64 a5 in [0.1, 1000];
+	float64 a6 in [0.1, 1000];
+	float64 a7 in [0.1, 1000];
+	float64 a8 in [0.1, 1000];
+    float64 a9 in [0.1, 1000];
+    float64 a10 in [0.1, 1000];
+
+Definitions
+    z0 rnd64_up=(a0 + a1 * x);
+    z1 rnd64_up=(a2 + a3 * x); 
+    z2 rnd64_up=(a4 + a5 * x);
+    z3 rnd64_up=(a6 + a7 * x);
+    z4 rnd64_up=(a8 + a9 * x);
+
+    u0 rnd64_up= z0 + z1*x*x; 
+    u1 rnd64_up= z2 + z3*x*x; 
+    u2 rnd64_up= z4 + a10*x*x; 
+
+    v0 rnd64_up= u0 + u1*x*x*x*x
+    v1 rnd64_up= u2*x*x*x*x*x*x*x*x
+
+Expressions
+	Estrin10 rnd64_up= v0 + v1;
