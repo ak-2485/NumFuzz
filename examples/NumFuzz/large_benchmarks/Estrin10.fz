@@ -1,0 +1,84 @@
+#include "addfp.fz"
+#include "pow4fp.fz"
+#include "pow8fp.fz"
+
+function Estrin10   
+    (as : (num, (num, (num, (num, (num, (num, (num, (num, (num, (num,         num)))))))))))    
+    (x' : ![23.0]num) 
+{
+    let [x] = x';
+
+    let (a0,as1) = as;
+    let (a1,as2) = as1;
+    let (a2,as3) = as2;
+    let (a3,as4) = as3;
+    let (a4,as5) = as4;
+    let (a5,as6) = as5;
+    let (a6,as7) = as6;
+    let (a7,as8) = as7;
+    let (a8,as9) = as8;
+    let (a9,a10) = as9;
+    
+    t1 = mulfp(a1,x);
+    t3 = mulfp(a3,x);
+    t5 = mulfp(a5,x);
+    t7 = mulfp(a7,x);
+    t9 = mulfp(a9,x);
+
+    let t1' = t1;
+    let t3' = t3;
+    let t5' = t5;
+    let t7' = t7;
+    let t9' = t9;
+
+    z0 = addfp(|a0,t1'|);
+    let z0' = z0;
+    z2 = addfp(|a2,t3'|);
+    let z2' = z2;
+    z4 = addfp(|a4,t5'|);
+    let z4' = z4;
+    z6 = addfp(|a6,t7'|);
+    let z6' = z6;
+    z8 = addfp(|a8,t9'|);
+    let z8' = z8;
+
+    p2 =  mulfp(x,x);
+    let p2' = p2;
+    s0 = mulfp(z2',p2');
+    let s0' = s0;
+
+    p6 =  mulfp(x,x);
+    let p6' = p6;
+    s1 = mulfp(z6',p6');
+    let s1' = s1;
+    
+    p10 =  mulfp(x,x);
+    let p10' = p10;
+    s2 = mulfp(a10,p10'); 
+    let s2' = s2;
+
+    u0 = addfp(|z0',s0'|);
+    let u0' = u0;
+    u1 = addfp(|z4',s1'|);
+    let u1' = u1;
+    u2 = addfp(|z8',s2'|);
+    let u2' = u2;
+
+    r4 =  pow4fp [x{4.0}];
+    let r4' = r4;    
+    r8 =  pow8fp [x{8.0}];
+    let r8' = r8;    
+
+    v00 = mulfp(u1',r4');
+    let v00' = v00;
+    v0 = addfp(|u0',v00'|);
+    let v0' = v0;
+
+    v1 = mulfp(u2',r8');
+    let v1' = v1;
+
+    addfp(|v0',v1'|)
+}
+
+Estrin10
+

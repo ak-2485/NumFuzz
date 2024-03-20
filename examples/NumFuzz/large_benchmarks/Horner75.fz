@@ -1,0 +1,21 @@
+#include "fma.fz"
+#include "fold76.fz"
+
+function Horner75
+  (as : (num, (num, (num, (num, (num, (num, (num, (num, (num, 
+  (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, 
+  (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, 
+  (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, 
+  (num, (num, (num, (num, (num , num, (num, (num, (num, (num, 
+  (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, 
+  (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, 
+  (num, (num, (num, (num, (num, (num, num))))))))))))))))))))))))))))
+    )))))))))))))))))))))))))))))))))))))))))))))))
+  (x : ![75.0]num) 
+{
+  let [x'] = x;
+  g = fun (a: num) {fun (b: num) {FMA b x' a}};
+  fold76 as [g{75.0}]
+}
+
+Horner75
