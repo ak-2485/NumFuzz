@@ -1,0 +1,18 @@
+#include "mulfp.fz"
+#include "addfp.fz"
+#include "sqrtfp.fz"
+
+
+function i4
+ (x': ![0.5]num) (y: num)  
+{
+ s1 = mulfp(y,y);
+ let s2 = s1;
+ let [x] = x';
+ s3 = addfp (|x, s2|);
+ let s4 = s3;
+ sqrtfp [s4{0.5}]
+}
+
+i4
+

@@ -1,0 +1,8 @@
+{
+Variables
+	float64 x in [0.1,1000];
+	float64 y in [0.1,1000];
+
+Expressions
+	i4 rnd64_up= sqrt((x + (y * y)));
+}
