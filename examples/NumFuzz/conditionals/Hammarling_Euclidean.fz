@@ -1,0 +1,28 @@
+#include "addfp.fz"
+#include "divfp.fz"
+#include "pow2.fz"
+
+function Hammarling 
+        (x' : ![inf]num) (t' : ![inf]num) (s : num) {
+    let [x] = x';
+    let [t] = t';
+    b = gt ([x{inf}],[t{inf}]); 
+    if b then {
+        s0 = divfp (t,x);
+        let s1 = s0;
+        s2 = pow2 [s1{2.0}];
+        let s3 = s2;
+        s4 = mulfp (s,s3);
+        let s5 = s4;
+        addfp (|1.0,s5|) 
+    }
+    else {
+        s0 = divfp (t,x);
+        let s1 = s0;
+        s2 = pow2 [s1{2.0}];
+        let s3 = s2;
+        addfp (|s,s3|) 
+    }
+}
+
+Hammarling
