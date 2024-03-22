@@ -7,7 +7,7 @@
 
 /* The Pythagorean sum to reduce overflow and underflow.
   Ref: "Numerical Methods in Scientific Computing, VOLUME 1".
-        Dahlquist and Bjorck. Siam. 2008. 
+        Dahlquist and Bjorck. Siam. 2008. page 119.
 */
 
 function pythagorean_sum (a : ![inf]num) (b : ![inf]num) {
