@@ -8,7 +8,7 @@
         Dahlquist and Bjorck. Siam. 2008. 
 */
 
-function Hammarling 
+function hammarling 
         (x' : ![inf]num) (t' : ![inf]num) (s : num) {
     let [x] = x';
     let [t] = t';
@@ -31,4 +31,4 @@ function Hammarling
     }
 }
 
-Hammarling
+hammarling
