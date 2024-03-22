@@ -249,7 +249,7 @@ Val:
   | RND Val
       { fun ctx -> TmRnd($1, $2 ctx) }
   | RET Val
-      { fun ctx -> TmRnd($1, $2 ctx) }
+      { fun ctx -> TmRet($1, $2 ctx) }
   | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
       {
         fun ctx -> TmAbs($1, nb_var $3.v, $4 ctx, $7 (extend_var $3.v ctx ))

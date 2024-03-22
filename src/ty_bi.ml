@@ -328,7 +328,8 @@ module TypeSub = struct
     | MulOp  -> return (TyLollipop((TyTensor(num, num)),num))
     | SqrtOp -> return (TyLollipop((TyBang(si_hlf, num)),num))
     | DivOp  -> return (TyLollipop((TyTensor(num, num)),num))
-    | GtOp   -> return (TyLollipop((TyTensor(TyBang(si_infty,num),TyBang(si_infty,num))),ty_bool))
+    | GtOp   -> 
+        return (TyLollipop((TyTensor(TyBang(si_infty,num),TyBang(si_infty,num))),ty_bool))
 
 let check_is_num' ty : bool =
   match ty with

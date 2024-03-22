@@ -37,6 +37,7 @@ let reservedWords = [
   ("inf", fun i -> Parser.INF i); 
   ("fun", fun i -> Parser.FUN i);
   ("rnd", fun i -> Parser.RND i);
+  ("ret", fun i -> Parser.RET i);
   ("add", fun i -> Parser.ADDOP i);
   ("mul", fun i -> Parser.MULOP i);
   ("div", fun i -> Parser.MULOP i);
