@@ -2,6 +2,12 @@
 #include "divfp.fz"
 #include "pow2.fz"
 
+/*Interior conditional of the Hammarling alg for Euclidean length
+    of a vector.
+  Ref: "Numerical Methods in Scientific Computing, VOLUME 1".
+        Dahlquist and Bjorck. Siam. 2008. 
+*/
+
 function Hammarling 
         (x' : ![inf]num) (t' : ![inf]num) (s : num) {
     let [x] = x';
