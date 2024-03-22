@@ -1,0 +1,6 @@
+function max (a : ![inf]num) (b : ![inf]num) {
+    let [a'] = a;
+    let [b'] = b;
+    b1 = gt ([a'{inf}],[b'{inf}]); 
+    if b1 then {a'} else {b'}    
+}

@@ -1,0 +1,51 @@
+#include "addfp.fz"
+#include "sqrtfp.fz"
+#include "divfp.fz"
+#include "pow2.fz"
+#include "min.fz"
+#include "max.fz"
+
+/* The Pythagorean sum to reduce overflow and underflow.
+  Ref: "Numerical Methods in Scientific Computing, VOLUME 1".
+        Dahlquist and Bjorck. Siam. 2008. 
+*/
+
+function pythagorean_sum (a : ![inf]num) (b : ![inf]num) {
+    let [a'] = a;
+    let [b'] = b;
+    b1 = eq ([a'{inf}],[0.0{inf}]); 
+    b2 = eq ([b'{inf}],[0.0{inf}]); 
+    if b1 then { 
+        if b2 then {
+            ret 0.0
+        }
+        else { 
+            p = max [a'{inf}] [b'{inf}];
+            q = min [a'{inf}] [b'{inf}];
+            rho' = divfp (q,p);
+            let rho = rho';
+            s  = pow2 [rho{2.0}];
+            let s0  = s; 
+            s1 = addfp (|1.0,s0|);
+            let s2 = s1; 
+            s3 = sqrtfp [s2{0.5}];
+            let s4 = s3;             
+            mulfp (p,s4)
+        }
+    } 
+    else { 
+        p = max [a'{inf}] [b'{inf}];
+        q = min [a'{inf}] [b'{inf}];
+        rho' = divfp (q,p);
+        let rho = rho';
+        s  = pow2 [rho{2.0}];
+        let s0  = s; 
+        s1 = addfp (|1.0,s0|);
+        let s2 = s1; 
+        s3 = sqrtfp [s2{0.5}];
+        let s4 = s3;             
+        mulfp (p,s4)
+    }
+}
+
+pythagorean_sum
