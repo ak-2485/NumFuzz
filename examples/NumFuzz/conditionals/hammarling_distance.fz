@@ -5,7 +5,7 @@
 /*Interior conditional of the Hammarling alg for Euclidean length
     of a vector.
   Ref: "Numerical Methods in Scientific Computing, VOLUME 1".
-        Dahlquist and Bjorck. Siam. 2008. 
+        Dahlquist and Bjorck. Siam. 2008. page 119. 
 */
 
 function hammarling 
