@@ -1,0 +1,20 @@
+#include "mulfp.fz"
+#include "addfp.fz"
+#include "divfp.fz"
+
+
+function verhulst
+ (x': ![2.0]num) 
+{
+ let [x] = x';
+ s1 = divfp (x,1.11);
+ let s2 = s1;
+ s3 = addfp (|1.0, s2|);
+ let s4 = s3;
+ s5 = mulfp (4.0,x);
+ let s6 = s5;
+ divfp (s6,s4)
+}
+
+verhulst
+
