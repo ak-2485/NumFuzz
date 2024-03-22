@@ -1,0 +1,24 @@
+#include "mulfp.fz"
+#include "addfp.fz"
+#include "divfp.fz"
+
+
+function predatorPrey
+ (x': ![4.0]num) 
+{
+ let [x] = x';
+ s1 = divfp (x,1.11);
+ let s2 = s1;
+ s3 = mulfp (s2, s2);
+ let s4 = s3;
+ s4 = addfp (|1.0,s4|);
+ let s5 = s4;
+ s6 = mulfp (4.0,x);
+ let s7 = s6;
+ s8 = mulfp (s7,x);
+ let s9 = s8;
+ divfp (s9,s5)
+}
+
+predatorPrey
+
