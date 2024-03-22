@@ -1,0 +1,28 @@
+function fold8
+    (c' : ![7.0](num -o num -o M[eps64_up]num))
+    (as : (num, (num, (num, (num, (num, (num, (num, num))))))))
+{
+  let [c] = c'; 
+
+  let (a0,as1) = as;
+  let (a1,as2) = as1;
+  let (a2,as3) = as2;
+  let (a3,as4) = as3;
+  let (a4,as5) = as4;
+  let (a5,as6) = as5;
+  let (a6,a7)  = as6;
+
+  s6 = c a6 a7; 
+  let z6 = s6;
+  s5 = c a5 z6; 
+  let z5 = s5;
+  s4 = c a4 z5; 
+  let z4 = s4;
+  s3 = c a3 z4; 
+  let z3 = s3;
+  s2 = c a2 z3; 
+  let z2 = s2;
+  s1 = c a1 z2; 
+  let z1 = s1;
+  c a0 z1
+}

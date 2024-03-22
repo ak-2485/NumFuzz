@@ -1,0 +1,128 @@
+
+#include "dotprod8.fz"
+
+
+function mat_mul_8
+  (A : ![8.0]((num, (num, (num, (num, (num, (num, (num, num))))))),
+      (((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      (num, (num, (num, (num, (num, (num, (num, num))))))))))))))))  
+  (B : ![8.0]((num, (num, (num, (num, (num, (num, (num, num))))))),
+      (((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      ((num, (num, (num, (num, (num, (num, (num, num))))))),
+      (num, (num, (num, (num, (num, (num, (num, num))))))))))))))))
+
+{
+/* rows of A */
+  let [A'] = A;
+  let (A0,AS1) = A';
+  let (A1,AS2) = AS1;
+  let (A2,AS3) = AS2;
+  let (A3,AS4) = AS3;
+  let (A4,AS5) = AS4;
+  let (A5,AS6) = AS5;
+  let (A6,A7)  = AS6;
+
+/* columns of B */
+  let [B'] = B;
+  let (B0,BS1) = B';
+  let (B1,BS2) = BS1;
+  let (B2,BS3) = BS2;
+  let (B3,BS4) = BS3;
+  let (B4,BS5) = BS4;
+  let (B5,BS6) = BS5;
+  let (B6,B7)  = BS6;
+
+/* cij is the dot product of the ith row of A and the jth column of B */
+
+  c00 = dotprod8 A0 B0;
+  c01 = dotprod8 A0 B1;
+  c02 = dotprod8 A0 B2;
+  c03 = dotprod8 A0 B3;
+  c04 = dotprod8 A0 B4;
+  c05 = dotprod8 A0 B5;
+  c06 = dotprod8 A0 B6;
+  c07 = dotprod8 A0 B7;
+
+  c10 = dotprod8 A1 B0;
+  c11 = dotprod8 A1 B1;
+  c12 = dotprod8 A1 B2;
+  c13 = dotprod8 A1 B3;
+  c14 = dotprod8 A1 B4;
+  c15 = dotprod8 A1 B5;
+  c16 = dotprod8 A1 B6;
+  c17 = dotprod8 A1 B7;
+
+  c20 = dotprod8 A2 B0;
+  c21 = dotprod8 A2 B1;
+  c22 = dotprod8 A2 B2;
+  c23 = dotprod8 A2 B3;
+  c24 = dotprod8 A2 B4;
+  c25 = dotprod8 A2 B5;
+  c26 = dotprod8 A2 B6;
+  c27 = dotprod8 A2 B7;
+
+  c30 = dotprod8 A3 B0;
+  c31 = dotprod8 A3 B1;
+  c32 = dotprod8 A3 B2;
+  c33 = dotprod8 A3 B3;
+  c34 = dotprod8 A3 B4;
+  c35 = dotprod8 A3 B5;
+  c36 = dotprod8 A3 B6;
+  c37 = dotprod8 A3 B7;
+
+  c40 = dotprod8 A4 B0;
+  c41 = dotprod8 A4 B1;
+  c42 = dotprod8 A4 B2;
+  c43 = dotprod8 A4 B3;
+  c44 = dotprod8 A4 B4;
+  c45 = dotprod8 A4 B5;
+  c46 = dotprod8 A4 B6;
+  c47 = dotprod8 A4 B7;
+
+  c50 = dotprod8 A5 B0;
+  c51 = dotprod8 A5 B1;
+  c52 = dotprod8 A5 B2;
+  c53 = dotprod8 A5 B3;
+  c54 = dotprod8 A5 B4;
+  c55 = dotprod8 A5 B5;
+  c56 = dotprod8 A5 B6;
+  c57 = dotprod8 A5 B7;
+
+  c60 = dotprod8 A6 B0;
+  c61 = dotprod8 A6 B1;
+  c62 = dotprod8 A6 B2;
+  c63 = dotprod8 A6 B3;
+  c64 = dotprod8 A6 B4;
+  c65 = dotprod8 A6 B5;
+  c66 = dotprod8 A6 B6;
+  c67 = dotprod8 A6 B7;
+
+  c70 = dotprod8 A7 B0;
+  c71 = dotprod8 A7 B1;
+  c72 = dotprod8 A7 B2;
+  c73 = dotprod8 A7 B3;
+  c74 = dotprod8 A7 B4;
+  c75 = dotprod8 A7 B5;
+  c76 = dotprod8 A7 B6;
+  c77 = dotprod8 A7 B7;
+
+  ((c00, (c01, (c02, (c03, (c04, (c05, (c06, c07))))))),
+  ((c10, (c11, (c12, (c13, (c14, (c15, (c16, c17))))))),
+  ((c20, (c21, (c22, (c23, (c24, (c25, (c26, c27))))))),
+  ((c30, (c31, (c32, (c33, (c34, (c35, (c36, c37))))))),
+  ((c40, (c41, (c42, (c43, (c44, (c45, (c46, c47))))))),
+  ((c50, (c51, (c52, (c53, (c54, (c55, (c56, c57))))))),
+  ((c60, (c61, (c62, (c63, (c64, (c65, (c66, c67))))))),
+  (c70, (c71, (c72, (c73, (c74, (c75, (c76, c77))))))))))))))
+}
+
+mat_mul_8

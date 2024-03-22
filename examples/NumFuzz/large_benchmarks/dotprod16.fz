@@ -1,0 +1,55 @@
+#include "combine16.fz"
+
+#include "map16_prod.fz"
+#include "mulfp.fz"
+
+#include "addfp.fz"
+#include "fold16.fz" 
+
+function dotprod16 
+ (a: (num, (num, (num, (num, (num, (num, (num, 
+   (num, (num, (num, (num, (num, (num, (num, (num, num))))))))))))))))
+ (b: (num, (num, (num, (num, (num, (num, (num, 
+   (num, (num, (num, (num, (num, (num, (num, (num, num))))))))))))))))
+{
+ v = combine16 a b  ;
+ v' = map16_prod v [mulfp{16.0}];
+
+let (a0', as1) = v';
+let (a1', as2) = as1;
+let (a2', as3) = as2;
+let (a3', as4) = as3;
+let (a4', as5) = as4;
+let (a5', as6) = as5;
+let (a6', as7) = as6;
+let (a7', as8) = as7;
+let (a8', as9) = as8;
+let (a9', as10) = as9;
+let (a10', as11) = as10;
+let (a11', as12) = as11;
+let (a12', as13) = as12;
+let (a13', as14) = as13;
+let (a14', a15') = as14;
+
+let a0 = a0';
+let a1 = a1';
+let a2 = a2';
+let a3 = a3';
+let a4 = a4';
+let a5 = a5';
+let a6 = a6';
+let a7 = a7';
+let a8 = a8';
+let a9 = a9';
+let a10 = a10';
+let a11 = a11';
+let a12 = a12';
+let a13 = a13';
+let a14 = a14';
+let a15 = a15';
+
+ v1 = (a0,(a1,(a2,(a3,(a4,(a5,(a6,(a7,(a8,(a9,(a10,(a11,(a12,(a13,(a14,a15)))))))))))))));
+
+ g = fun (x: num) {fun (y: num) {addfp (|x,y|)}};
+ fold16 [g{15.0}] v1 
+}

@@ -1,0 +1,25 @@
+
+function combine8 
+ (a: (num, (num, (num, (num, (num, (num, (num, num))))))) )
+ (b: (num, (num, (num, (num, (num, (num, (num, num))))))) )
+{
+
+  let (a0,as1) = a;
+  let (a1,as2) = as1;
+  let (a2,as3) = as2;
+  let (a3,as4) = as3;
+  let (a4,as5) = as4;
+  let (a5,as6) = as5;
+  let (a6,a7) = as6;
+
+  let (b0,bs1) = b;
+  let (b1,bs2) = bs1;
+  let (b2,bs3) = bs2;
+  let (b3,bs4) = bs3;
+  let (b4,bs5) = bs4;
+  let (b5,bs6) = bs5;
+  let (b6,b7) = bs6;
+
+  ((a0,b0),((a1,b1),((a2,b2),((a3,b3),((a4,b4),((a5,b5),((a6,b6),(a7,b7))))))))
+
+}
