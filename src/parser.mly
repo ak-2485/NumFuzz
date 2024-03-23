@@ -65,6 +65,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> ELSE
 %token <Support.FileInfo.info> EM
 %token <Support.FileInfo.info> EQUAL
+%token <Support.FileInfo.info> EQOP
 %token <Support.FileInfo.info> EOF
 (* %token <Support.FileInfo.info> FALSE *)
 %token <Support.FileInfo.info> FUNCTION
@@ -198,6 +199,8 @@ Term :
       { fun ctx -> TmOp($1, SqrtOp, $2 ctx) }
   | GTOP Val
       { fun ctx -> TmOp($1, GtOp, $2 ctx) }
+  | EQOP Val
+      { fun ctx -> TmOp($1, EqOp, $2 ctx) }
   (* hacked sugar for n-ary applications; should fix with appropriate let-  binding *)
   | Term Val
       { fun ctx ->

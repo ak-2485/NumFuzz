@@ -43,6 +43,7 @@ let reservedWords = [
   ("div", fun i -> Parser.MULOP i);
   ("sqrt", fun i -> Parser.SQRTOP i);
   ("gt", fun i -> Parser.GTOP i);
+  ("eq", fun i -> Parser.EQOP i);
   ("case", fun i -> Parser.UNIONCASE i);
   ("inl", fun i -> Parser.INL i);
   ("inr", fun i -> Parser.INR i);

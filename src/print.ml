@@ -245,6 +245,8 @@ let string_of_op2 fop = match fop with
   | SqrtOp -> "sqrt"
   | DivOp  -> "div"
   | GtOp   -> "gt"
+  | EqOp   -> "eq"
+
 
 let string_of_term_prim t = match t with
     PrimTUnit         -> "()"

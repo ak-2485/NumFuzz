@@ -41,6 +41,7 @@ let gen_op op =
   | SqrtOp       -> "sqrt"
   | DivOp        -> "div"
   | GtOp         -> "gt"
+  | EqOp         -> "eq"
 
 (* Avoid clashes with ML names *)
 let ml_n n = "_" ^ n
