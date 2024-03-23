@@ -1,0 +1,15 @@
+function map4_prod
+(a :
+((num,num),((num,num),((num,num),(num,num)))))
+(c' : ![4.0]((num,num) -o M[eps64_up]num))
+{
+let [c] = c'; 
+let (a0, as1) = a;
+let (a1, as2)= as1;
+let (a2, a3)= as2;
+s0 = c a0;
+s1 = c a1;
+s2 = c a2;
+s3 = c a3;
+(s0,(s1,(s2,s3)))
+}

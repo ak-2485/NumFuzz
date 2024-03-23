@@ -1,0 +1,24 @@
+#include "combine4.fz"
+#include "map4_prod.fz"
+#include "mulfp.fz"
+#include "addfp.fz"
+#include "fold4.fz"
+function dotprod4
+(a :
+(num,(num,(num,num))))
+(b : 
+(num,(num,(num,num))))
+{
+v = combine4 a b  ;
+v' = map4_prod v [mulfp{4.0}];
+let (a0', as1) = v';
+let (a1', as2)= as1;
+let (a2', a3')= as2;
+let a0 = a0';
+let a1 = a1';
+let a2 = a2';
+let a3 = a3';
+v1 = (a0,(a1,(a2,a3)));
+g = fun (x: num) {fun (y: num) {addfp (|x,y|)}};
+fold4[g{3.0}] v1
+}
