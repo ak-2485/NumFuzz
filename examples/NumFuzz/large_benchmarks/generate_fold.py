@@ -1,13 +1,13 @@
 
-M=128
-N=128
+import sys
+M = int(sys.argv[1])
 
 l1=[]
 l2=[]
 l3=[]
 
 def prodify (a) :
-    args_t = [a]*N
+    args_t = [a]*M
     s= ",(".join(args_t[:M-1])
     s= "(" + s + "," + a
     for i in range(0,M-1) :
@@ -37,9 +37,9 @@ print("let [c] = c'; ")
 
 # pairs let
 print("let (a0, as1) = a;")
-for i in range(1,N-2):
+for i in range(1,M-2):
     print("let (a"+ str(i)+", as" +str(i+1)+")"+ "= as" + str(i)+ ";")
-print("let (a"+ str(N-2)+", a" +str(N-1)+")"+ "= as" + str(N-2)+ ";")
+print("let (a"+ str(M-2)+", a" +str(M-1)+")"+ "= as" + str(M-2)+ ";")
 
 # pure let
 print("s"+ str(M-2)+ " = c"+

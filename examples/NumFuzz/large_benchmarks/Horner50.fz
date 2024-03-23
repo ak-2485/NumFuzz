@@ -8,7 +8,7 @@ function Horner50
 {
   let [x'] = x;
   g = fun (a: num) {fun (b: num) {FMA b x' a}};
-  fold51 as [g{50.0}]
+  fold51 [g{50.0}] as 
 }
 
 Horner50
