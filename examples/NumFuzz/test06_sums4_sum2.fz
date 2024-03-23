@@ -1,0 +1,13 @@
+#include "addfp.fz"
+
+function test06_sums4_sum2
+  (x0 : num) (x1 : num) (x2 : num) (x3 : num)
+{
+  sa = addfp (|x0,x1|);
+  let a = sa;
+  sb = addfp (|x2,x3|);
+  let b = sb;
+  addfp (|a,b|)
+}
+
+test06_sums4_sum2
