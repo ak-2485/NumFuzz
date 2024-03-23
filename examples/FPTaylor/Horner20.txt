@@ -1,0 +1,47 @@
+Variables
+    float64 x   in [0.1, 1000];
+    float64 a0  in [0.1, 1000];
+    float64 a1  in [0.1, 1000];
+    float64 a2  in [0.1, 1000];
+    float64 a3  in [0.1, 1000];
+    float64 a4  in [0.1, 1000];
+    float64 a5  in [0.1, 1000];
+    float64 a6  in [0.1, 1000];
+    float64 a7  in [0.1, 1000];
+    float64 a8  in [0.1, 1000];
+    float64 a9  in [0.1, 1000];
+    float64 a10 in [0.1, 1000];
+    float64 a11 in [0.1, 1000];
+    float64 a12 in [0.1, 1000];
+    float64 a13 in [0.1, 1000];
+    float64 a14 in [0.1, 1000];
+    float64 a15 in [0.1, 1000];
+    float64 a16 in [0.1, 1000];
+    float64 a17 in [0.1, 1000];
+    float64 a18 in [0.1, 1000];
+    float64 a19 in [0.1, 1000];
+    float64 a20 in [0.1, 1000];
+
+Definitions
+   z1  = rnd64_up(a20 * x + a19);
+   z2  = rnd64_up(z1 * x + a18);
+   z3  = rnd64_up(z2 * x + a17);
+   z4  = rnd64_up(z3 * x + a16);
+   z5  = rnd64_up(z4 * x + a15);
+   z6  = rnd64_up(z5 * x + a14);
+   z7  = rnd64_up(z6 * x + a13);
+   z8  = rnd64_up(z7 * x + a12);
+   z9  = rnd64_up(z8 * x + a11);
+   z10 = rnd64_up(z9 * x + a10);
+   z11 = rnd64_up(z10 * x + a9);
+   z12 = rnd64_up(z11 * x + a8);
+   z13 = rnd64_up(z12 * x + a7);
+   z14 = rnd64_up(z13 * x + a6);
+   z15 = rnd64_up(z14 * x + a5);
+   z16 = rnd64_up(z15 * x + a4);
+   z17 = rnd64_up(z16 * x + a3);
+   z18 = rnd64_up(z17 * x + a2);
+   z19 = rnd64_up(z18 * x + a1);
+
+Expressions
+	Horner20 =rnd64_up (z19 * x + a0);
