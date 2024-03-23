@@ -1,0 +1,20 @@
+#include "addfp.fz"
+#include "sqrtfp.fz"
+#include "mulfp.fz"
+
+function squareRoot3Invalid (x : ![inf]num) {
+    let [x'] = x;
+    b = gt ([x'{inf}],[0.00001{inf}]); 
+    if b then { 
+        s = mulfp (0.5,x');
+        let s' = s;
+        addfp (|s',1.0|) 
+    }
+    else { 
+        s = addfp (|1.0,x'|);
+        let s' = s;
+        sqrtfp [s'{0.5}]
+    }
+}
+
+squareRoot3Invalid
