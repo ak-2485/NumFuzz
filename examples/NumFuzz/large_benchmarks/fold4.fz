@@ -1,0 +1,15 @@
+function fold4
+(c' : ![3.0](num -o num -o M[eps64_up]num))
+(a :
+(num,(num,(num,num))))
+{
+let [c] = c'; 
+let (a0, as1) = a;
+let (a1, as2)= as1;
+let (a2, a3)= as2;
+s2 = c a2 a3;
+let z2 = s2;
+s1 = c a1 z2;
+let z1 = s1;
+c a0 z1
+}

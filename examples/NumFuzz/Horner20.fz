@@ -1,0 +1,15 @@
+#include "fma.fz"
+#include "fold21.fz"
+
+function Horner20   
+    (as : (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, 
+          (num, (num, (num, (num, (num, (num, (num, (num, (num, (num,
+           num)))))))))))))))))))))
+    (x : ![20.0]num) 
+{
+  let [x'] = x;
+  g = fun (a: num) {fun (b: num) {FMA b x' a}};
+  fold21 as [g{20.0}]
+}
+
+Horner20
