@@ -1,4 +1,6 @@
-TEST_INPUTS := Horner10.fz Horner20.fz Horner50.fz Horner75.fz Horner100.fz
+TEST_INPUTS := Horner50.fz Horner75.fz Horner100.fz \
+	poly50 serial_sum mat_mul_4 mat_mul_16 mat_mul_64\
+	mat_mul_128
 
 .PHONY: autotest clean tests $(TEST_INPUTS) 
 

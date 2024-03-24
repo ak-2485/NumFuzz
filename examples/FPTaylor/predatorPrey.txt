@@ -3,8 +3,8 @@ Variables
 	float64 x in [0.1,1000];
 
 Definitions
-	r rnd64= 4;
-	K rnd64= 111e-2;
+	r rnd64_up= 4;
+	K rnd64_up= 111e-2;
 
 Expressions
 	predatorPrey rnd64= (((r * x) * x) / (1 + ((x / K) * (x / K))));
