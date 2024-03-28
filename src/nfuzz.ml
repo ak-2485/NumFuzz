@@ -71,10 +71,34 @@ let check_main_type ty =
   | TyLollipop (TyPrim _, _) -> ()
   | _ -> main_error dp "The type of the program must the db_source -o[?] fuzzy string"
 
+let rec check_fun_type1 ty = 
+  match ty with 
+  | TyLollipop (_, ty2) -> check_fun_type1 ty2
+  | _ ->  ty
+
+let relative_error1 ty = 
+  match (check_fun_type1 ty) with 
+  | TyMonad (si, TyPrim PrimNum) -> Some si
+  | _ ->  None
+
+let relative_error2 si = 
+  match si with 
+  | SiConst f -> Some (f /. (1.0 -. f))
+  | _ -> None
+
 let type_check program =
   let ty = Ty_bi.get_type program  in
+    main_info  dp "Type of the program: @[%a@]" Print.pp_type ty;
+  let opsi = relative_error1 ty in 
+  match opsi with 
+  | Some si -> 
+    (match relative_error2 si with 
+    | Some f ->  
+        main_info  dp "Relative error: @[%a@]" Print.pp_si (SiConst f)
+    | _ -> ()
+    )
+  | _ ->  ()
 
-  main_info  dp "Type of the program: @[%a@]" Print.pp_type ty
 
 let gen_caml program outfile =
   let out  = open_out outfile in
