@@ -6,8 +6,10 @@ GAPPA:=$(TESTDIR)/Gappa
 # Benchmarks
 TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
 		sqrt_add test02_sum8 nonlin1 \
- 		test05_nonlin1 Horner2 Horner2_with_er \
- 		Horner5
+ 		test05_nonlin1 verhulst predatorPrey\
+		test06_sums4_sum1 test06_sums4_sum2 i4\
+		Horner2 Horner2_with_er Horner5\
+ 		Horner10 Horner20
 
 .PHONY: autotest clean tests $(TEST_INPUTS) 
 
@@ -23,7 +25,8 @@ $(TEST_INPUTS):
 	@printf "*** BENCHMARK: $@ *** \n"
 	@printf "*** TOOL: FPTaylor *** \n"
 	@$(FPTAYLOR)/FPTaylor-0.9.3/fptaylor  -c \
-		$(FPTAYLOR)/config.cfg $(FPTAYLOR)/$@.txt
+    	$(FPTAYLOR)/config.cfg $(FPTAYLOR)/$@.txt
+
 	@printf "*** END FPTAYLOR *** \n \n" 
 
 	@printf "*** BENCHMARK: $@ *** \n"
@@ -36,6 +39,7 @@ $(TEST_INPUTS):
 tests:
 	@dune build
 	@$(MAKE) --no-print-directory > tests.txt 2>&1
+	@./out_table.sh
 
 clean:
 	rm tests.txt
