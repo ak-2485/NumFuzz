@@ -5,10 +5,9 @@ function x_by_xy
   (x : ![2.0]num) (y : num) 
 {
   let [x'] = x;
-  let [x1] = [x'{1.0}];
-  s = addfp(|x1,y|);
+  s = addfp(|x',y|);
   let z = s;
-  divfp (x1,z)
+  divfp (x',z)
 }
 
 x_by_xy
