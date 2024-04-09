@@ -56,6 +56,7 @@ let reservedWords = [
   ("then", fun i -> Parser.THEN i);
   ("else", fun i -> Parser.ELSE i);
   ("num", fun i -> Parser.NUM i);
+  ("bool", fun i -> Parser.BOOL i);
   ("string", fun i -> Parser.STRING i);
   (* ("sens", fun i -> Parser.SENS i); *)
 ]

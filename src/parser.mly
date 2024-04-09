@@ -84,6 +84,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> LT
 %token <Support.FileInfo.info> MULOP
 %token <Support.FileInfo.info> NUM
+%token <Support.FileInfo.info> BOOL
 %token <Support.FileInfo.info> OF
 %token <Support.FileInfo.info> PIPE
 %token <Support.FileInfo.info> PROJ1
@@ -332,6 +333,8 @@ AType :
       }
   | NUM
       { fun _cx -> TyPrim PrimNum }
+  | BOOL 
+      { fun _cx -> TyUnion(TyPrim PrimUnit, TyPrim PrimUnit) }
   | STRING
       { fun _cx -> TyPrim PrimString }
   | LPAREN RPAREN
