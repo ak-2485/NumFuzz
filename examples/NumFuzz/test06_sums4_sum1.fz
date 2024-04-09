@@ -1,4 +1,4 @@
-#include "addfp.fz"
+#include "float_ops/addfp.fz"
 
 function test06_sums4_sum1
   (x0 : num) (x1 : num) (x2 : num) (x3 : num)

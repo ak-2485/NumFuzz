@@ -1,6 +1,6 @@
-#include "addfp.fz"
-#include "divfp.fz"
-#include "sqrtfp.fz"
+#include "float_ops/sqrtfp.fz"
+#include "float_ops/addfp.fz"
+#include "float_ops/divfp.fz"
 
 function sqrt_add1 (x : ![0.5]num) 
 {

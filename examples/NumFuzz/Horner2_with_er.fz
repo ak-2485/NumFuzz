@@ -1,4 +1,4 @@
-#include "fma.fz"
+#include "float_ops/fma.fz"
 
 function Horner2_with_error
   (a0 : M[eps64_up]num) (a1 : M[eps64_up]num)

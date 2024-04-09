@@ -1,6 +1,6 @@
-#include "mulfp.fz"
-#include "addfp.fz"
-#include "sqrtfp.fz"
+#include "float_ops/mulfp.fz"
+#include "float_ops/addfp.fz"
+#include "float_ops/sqrtfp.fz"
 
 
 function i4

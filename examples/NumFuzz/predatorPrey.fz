@@ -1,6 +1,6 @@
-#include "mulfp.fz"
-#include "addfp.fz"
-#include "divfp.fz"
+#include "float_ops/mulfp.fz"
+#include "float_ops/addfp.fz"
+#include "float_ops/divfp.fz"
 
 
 function predatorPrey

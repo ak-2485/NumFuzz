@@ -1,5 +1,5 @@
-#include "addfp.fz"
-#include "divfp.fz"
+#include "float_ops/addfp.fz"
+#include "float_ops/divfp.fz"
 
 function nonlin1 (t : ![2.0]num) 
 {

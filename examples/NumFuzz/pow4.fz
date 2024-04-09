@@ -1,4 +1,4 @@
-#include "mulfp.fz"
+#include "float_ops/mulfp.fz"
 
 function pow2 (x : ![2.0]num) 
 {

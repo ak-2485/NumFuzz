@@ -1,4 +1,4 @@
-#include "fma.fz"
+#include "float_ops/fma.fz"
 
 function Horner2 (a0 : num) (a1 : num) 
   (a2 : num) (x : ![2.0]num)
