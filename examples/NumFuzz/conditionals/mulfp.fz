@@ -1,4 +1,0 @@
-function mulfp (xy: (num, num)) : M[eps64_up]num {
-  s = mul xy;
-  rnd s
-}

@@ -1,6 +1,6 @@
-#include "addfp.fz"
-#include "divfp.fz"
-#include "pow2.fz"
+#include "../float_ops/addfp.fz"
+#include "../float_ops/divfp.fz"
+#include "../float_ops/pow2.fz"
 
 /*Interior conditional of the Hammarling alg for Euclidean length
     of a vector.

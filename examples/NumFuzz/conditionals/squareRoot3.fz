@@ -1,6 +1,6 @@
-#include "addfp.fz"
-#include "sqrtfp.fz"
-#include "mulfp.fz"
+#include "../float_ops/addfp.fz"
+#include "../float_ops/sqrtfp.fz"
+#include "../float_ops/mulfp.fz"
 
 function squareRoot3 (x : ![inf]num) {
     let [x'] = x;
