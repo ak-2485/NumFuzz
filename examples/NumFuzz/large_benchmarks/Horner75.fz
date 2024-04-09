@@ -1,5 +1,5 @@
-#include "fma.fz"
-#include "fold76.fz"
+#include "float_ops/fma.fz"
+#include "folds/fold76.fz"
 
 function Horner75
   (as : (num, (num, (num, (num, (num, (num, (num, (num, (num, 

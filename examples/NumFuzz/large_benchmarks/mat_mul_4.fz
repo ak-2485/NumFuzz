@@ -1,4 +1,4 @@
-#include "dotprod4.fz"
+#include "dotprods/dotprod4.fz"
 function mat_mul4
 (A : ![4.0]
 ( ((num,(num,(num,num))),((num,(num,(num,num))),((num,(num,(num,num))),(num,(num,(num,num)))))) ))

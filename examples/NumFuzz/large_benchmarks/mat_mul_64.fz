@@ -1,5 +1,5 @@
 
-#include "dotprod64.fz"
+#include "dotprods/dotprod64.fz"
 
 
 function mat_mul_64

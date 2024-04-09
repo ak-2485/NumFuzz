@@ -1,6 +1,6 @@
-#include "addfp.fz"
-#include "pow4fp.fz"
-#include "pow8fp.fz"
+#include "float_ops/addfp.fz"
+#include "float_ops/pow4fp.fz"
+#include "float_ops/pow8fp.fz"
 
 function Estrin10   
     (as : (num, (num, (num, (num, (num, (num, (num, (num, (num, (num,         num)))))))))))    

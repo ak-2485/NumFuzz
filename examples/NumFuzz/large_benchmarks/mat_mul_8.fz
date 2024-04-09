@@ -1,5 +1,5 @@
 
-#include "dotprod8.fz"
+#include "dotprods/dotprod8.fz"
 
 
 function mat_mul_8

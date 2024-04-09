@@ -1,6 +1,6 @@
-#include "mulfp.fz"
-#include "addfp.fz"
-#include "fold51.fz"
+#include "float_ops/mulfp.fz"
+#include "float_ops/addfp.fz"
+#include "folds/fold51.fz"
 function poly50
 (x' : ![1275.0]num)
 (a :
