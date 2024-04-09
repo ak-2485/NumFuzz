@@ -2,8 +2,8 @@
 #include "../float_ops/sqrtfp.fz"
 #include "../float_ops/divfp.fz"
 #include "../float_ops/pow2.fz"
-#include "../float_ops/min.fz"
-#include "../float_ops/max.fz"
+#include "min.fz"
+#include "max.fz"
 #include "band.fz"
 
 /* The Pythagorean sum to reduce overflow and underflow.
