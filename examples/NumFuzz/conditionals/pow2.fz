@@ -1,7 +1,0 @@
-#include "mulfp.fz"
-
-function pow2 (x : ![2.0]num) 
-{
-  let [x'] = x;
-  mulfp(x',x')
-}

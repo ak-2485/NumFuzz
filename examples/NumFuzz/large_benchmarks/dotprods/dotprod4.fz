@@ -1,7 +1,7 @@
 #include "../combines/combine4.fz"
 #include "../maps/map4_prod.fz"
-#include "../float_ops/mulfp.fz"
-#include "../float_ops/addfp.fz"
+#include "../../float_ops/mulfp.fz"
+#include "../../float_ops/addfp.fz"
 #include "../folds/fold4.fz"
 function dotprod4
 (a :

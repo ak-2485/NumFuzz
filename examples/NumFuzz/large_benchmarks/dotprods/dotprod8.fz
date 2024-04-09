@@ -1,7 +1,7 @@
 #include "../combines/combine8.fz"
 #include "../maps/map8_prod.fz"
-#include "../float_ops/mulfp.fz"
-#include "../float_ops/addfp.fz"
+#include "../../float_ops/mulfp.fz"
+#include "../../float_ops/addfp.fz"
 #include "../folds/fold8.fz"
 
 

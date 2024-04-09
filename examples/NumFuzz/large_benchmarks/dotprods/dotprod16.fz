@@ -1,9 +1,9 @@
 #include "../combines/combine16.fz"
 
 #include "../maps/map16_prod.fz"
-#include "../float_ops/mulfp.fz"
+#include "../../float_ops/mulfp.fz"
 
-#include "../float_ops/addfp.fz"
+#include "../../float_ops/addfp.fz"
 #include "../folds/fold16.fz" 
 
 function dotprod16 

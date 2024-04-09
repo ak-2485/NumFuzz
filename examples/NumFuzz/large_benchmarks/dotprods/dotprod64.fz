@@ -1,7 +1,7 @@
 #include "../combines/combine64.fz"
 #include "../maps/map64_prod.fz"
-#include "../float_ops/mulfp.fz"
-#include "../float_ops/addfp.fz"
+#include "../../float_ops/mulfp.fz"
+#include "../../float_ops/addfp.fz"
 #include "../folds/fold64.fz" 
 
 function dotprod64
