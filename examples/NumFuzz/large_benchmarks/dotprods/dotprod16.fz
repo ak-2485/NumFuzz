@@ -1,10 +1,10 @@
-#include "combine16.fz"
+#include "../combines/combine16.fz"
 
-#include "map16_prod.fz"
-#include "mulfp.fz"
+#include "../maps/map16_prod.fz"
+#include "../float_ops/mulfp.fz"
 
-#include "addfp.fz"
-#include "fold16.fz" 
+#include "../float_ops/addfp.fz"
+#include "../folds/fold16.fz" 
 
 function dotprod16 
  (a: (num, (num, (num, (num, (num, (num, (num, 

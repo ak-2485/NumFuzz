@@ -1,8 +1,8 @@
-#include "combine64.fz"
-#include "map64_prod.fz"
-#include "mulfp.fz"
-#include "addfp.fz"
-#include "fold64.fz" 
+#include "../combines/combine64.fz"
+#include "../maps/map64_prod.fz"
+#include "../float_ops/mulfp.fz"
+#include "../float_ops/addfp.fz"
+#include "../folds/fold64.fz" 
 
 function dotprod64
   (a :   (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, 

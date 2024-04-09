@@ -1,8 +1,8 @@
-#include "combine4.fz"
-#include "map4_prod.fz"
-#include "mulfp.fz"
-#include "addfp.fz"
-#include "fold4.fz"
+#include "../combines/combine4.fz"
+#include "../maps/map4_prod.fz"
+#include "../float_ops/mulfp.fz"
+#include "../float_ops/addfp.fz"
+#include "../folds/fold4.fz"
 function dotprod4
 (a :
 (num,(num,(num,num))))

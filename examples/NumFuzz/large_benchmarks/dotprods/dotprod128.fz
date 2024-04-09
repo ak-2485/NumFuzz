@@ -1,8 +1,8 @@
-#include "combine128.fz"
-#include "map128_prod.fz"
-#include "mulfp.fz"
-#include "addfp.fz"
-#include "fold128.fz"
+#include "../combines/combine128.fz"
+#include "../maps/map128_prod.fz"
+#include "../float_ops/mulfp.fz"
+#include "../float_ops/addfp.fz"
+#include "../folds/fold128.fz"
 function dotprod128
 (a :
 (num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,num))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))

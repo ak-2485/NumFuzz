@@ -1,5 +1,5 @@
 TEST_INPUTS := Horner50 Horner75 Horner100 \
-	poly50 serial_sum mat_mul_4 mat_mul_16 mat_mul64\
+	poly50 serial_sum mat_mul_4 mat_mul_16 mat_mul_64\
 	mat_mul_128
 
 .PHONY: autotest clean tests $(TEST_INPUTS) 

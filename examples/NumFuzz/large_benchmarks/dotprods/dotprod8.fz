@@ -1,8 +1,8 @@
-#include "combine8.fz"
-#include "map8_prod.fz"
-#include "mulfp.fz"
-#include "addfp.fz"
-#include "fold8.fz"
+#include "../combines/combine8.fz"
+#include "../maps/map8_prod.fz"
+#include "../float_ops/mulfp.fz"
+#include "../float_ops/addfp.fz"
+#include "../folds/fold8.fz"
 
 
 function dotprod8 
