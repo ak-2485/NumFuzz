@@ -11,7 +11,7 @@ autotest: $(TEST_INPUTS)
 
 $(TEST_INPUTS): 
 	@printf "*** BENCHMARK: $@ *** \n"
-	FPTaylor-0.9.3/fptaylor -c config.cfg $@.txt
+	FPTaylor-0.9.4/fptaylor -c config.cfg $@.txt
 
 tests: 
 	@$(MAKE) > fptaylor_tests.txt 2>&1

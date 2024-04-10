@@ -12,8 +12,9 @@ WORKDIR NumFuzz
 # FPTAYLOR
 RUN opam init --disable-sandboxing 
 WORKDIR ./examples/FPTaylor
-RUN sudo tar -xzf v0.9.3.tar.gz
-WORKDIR ./FPTaylor-0.9.3
+RUN sudo mkdir FPTaylor-0.9.4 \
+	&& sudo tar -xzf v0.9.4.tar.gz -C FPTaylor-0.9.4
+WORKDIR ./FPTaylor
 RUN opam install num && eval $(opam env) && sudo make all
 WORKDIR ../../../
 

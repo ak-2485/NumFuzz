@@ -24,7 +24,7 @@ $(TEST_INPUTS):
 
 	@printf "*** BENCHMARK: $@ *** \n"
 	@printf "*** TOOL: FPTaylor *** \n"
-	@$(FPTAYLOR)/FPTaylor-0.9.3/fptaylor  -c \
+	@$(FPTAYLOR)/FPTaylor-0.9.4/fptaylor  -c \
     	$(FPTAYLOR)/config.cfg $(FPTAYLOR)/$@.txt
 
 	@printf "*** END FPTAYLOR *** \n \n" 
