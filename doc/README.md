@@ -227,7 +227,7 @@ e, f ::=                                        EXPRESSIONS
       fst v                                     cartesian pair destructor
       snd v                                     cartesian pair destructor
       let (x,y) = v; e                          tensor destructor
-      case v {inl(x) => e | inr(x) => f}        case analysis
+      case v {inl x => e | inr x => f}        case analysis
       if v then {e} else {f}			        conditional (case sugar)
       let [x] = v; e                            co-monadic sequencing
       let x = v; e                              monadic sequencing
@@ -262,6 +262,7 @@ write `function ID args {v} e` to denote the let-binding `ID = v ; e`, where `v`
     5. Greater than `gt: ![inf]num ⊗ ![inf]num -o bool`
     6. Equal `eq: ![inf]num ⊗ ![inf]num -o bool`
 
+As usual, the `bool` type is constructed from the sum of units: `bool = () + ()`.
 
 ## Examples
 
@@ -292,7 +293,7 @@ These operations can be used in NumFuzz programs using an include statement; e.g
 ``` 
 where `PATH` is the path relative to the directory of your program.
 
-### A Simple Example
+### A Simple Benchmark
 
 As an example, let us consider the benchmark `one_by_sqrtxx`, where we are tasked with computing a relative error bound for the expression $1/\sqrt{x^2}$. We can use NumFuzz to derive a bound using the following program.
 
@@ -313,15 +314,10 @@ As an example, let us consider the benchmark `one_by_sqrtxx`, where we are taske
 14. one_by_sqrtxx
 ```
 
-Let us first look at the overall structure of the program. On lines 1-3, we include the arithmetic operations that we'll be using in our program. On lines 5-14, we recall from the Sytnax description above that the syntax of top-level programs in NumFuzz is `function ID args {v} e`, which is just sugar for the let-binding `ID = v ; e`, where `v` is a lambda term with arguments `args`. In the above program, `one_by_sqrtxx` is the `ID` and the only argument `args` is `x` (which *must* be given with its type because it is the argument of a lambda term). The body `v` of the lambda term is given on lines 7-11. Finally, the body `e` of the let-binding is given on line 14.
+Let us first look at the overall structure of the program. On lines 1-3, we include the arithmetic operations that we'll be using in our program. On lines 5-14, we recall from the Sytnax description above that the syntax of top-level programs in NumFuzz is `function ID args {v} e`, which is just sugar for the let-binding `ID = v ; e` where `v` is a lambda term with arguments `args`. In the above program, `one_by_sqrtxx` is the `ID` and the only argument `args` is `x` (which *must* be given with its type because it is the argument of a lambda term). The body `v` of the lambda term is given on lines 7-11. Finally, the body `e` of the let-binding is given on line 14.
 
-Now, let us consider the body of the function, given in lines 7-11. First, notice the pattern of sequencing that appears on lines 7 & 8, and then again on lines 9 & 10: the terms `mulfp (x,x)` and `sqrtfp ([z{0.5}])` are *computations* that must be explicitly sequenced using let-bindings on lines 7 & 9. These let-bindings bind the variables `sz` and `sy` to terms of *monadic* type: `mulfp: (num ⊗ num) -o M[eps64_up]num` and `sqrtfp: ![0.5]num -o M[eps64_up]num` perform a single rounding. To use these values in subsequent computations that take pure, non-monadic, numeric types as an argument to `sqrtfp` on line 9 and `divfp` on line 11, we use the monadic destructor on lines 8 & 10.
+Now, let us consider the body of the function, given in lines 7-11. First, notice the pattern of sequencing that appears on lines 7 & 8, and then again on lines 9 & 10: the terms `mulfp (x,x)` and `sqrtfp ([z{0.5}])` are *computations* that must be explicitly sequenced using the let-bindings on lines 7 & 9. These let-bindings bind the variables `sz` and `sy` to terms of *monadic* type: `mulfp: (num ⊗ num) -o M[eps64_up]num` and `sqrtfp: ![0.5]num -o M[eps64_up]num` perform a single rounding. To use these values in subsequent computations that take non-monadic numeric types as arguments to (i.e., in `sqrtfp` on line 9 and `divfp` on line 11), we use the monadic destructor on lines 8 & 10.
 
-Now, 
-
-
-### Conditionals
-
-### Building Larger Benchmarks
+The last detail that needs clarification is the argument to `sqrtfp` on line 9. Recall the type signature of the operation: `sqrtfp: ![0.5]num -o M[eps64_up]num`. To construct a value of type `![0.5]num` from the variable `z` of plain numeric type, we use the metric (box) constructor `[z{0.5}]`. We know that the `sqrtfp` is half-sensitive in its argument, so we annotate the constructor appropriately; the type-checker uses this annotation to ensure that the computation `sqrtfp ([z{0.5}])` has permission to be half-sensitive in `z`, and that the type of the value `[z{0.5}]` matches the type of the argument to `sqrtfp`.  If we use an incorrect annotation, such as `[z{1.0}]`, the type-checker will produce an error message like the following: `Cannot satisfy constraint 1. <= 0.5`.
 
 
