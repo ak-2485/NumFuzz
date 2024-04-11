@@ -14,7 +14,7 @@ RUN opam init --disable-sandboxing
 WORKDIR ./examples/FPTaylor
 RUN sudo mkdir FPTaylor-0.9.4 \
 	&& sudo tar -xzf v0.9.4.tar.gz -C FPTaylor-0.9.4
-WORKDIR ./FPTaylor
+WORKDIR ./FPTaylor-0.9.4
 RUN opam install num && eval $(opam env) && sudo make all
 WORKDIR ../../../
 
