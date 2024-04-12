@@ -4,9 +4,11 @@ This is the artifact for NumFuzz ("Numerical Fuzz"), a prototype implementation 
 
 This artifact supports the following claim made in the Evaluation section (Section 6.2) of the paper: **compared to state-of-the-art tools that soundly and automatically bound floating-point errors, NumFuzz provides practically useful---and usually better---relative error bounds in at least an order of magnitude less time**.
 
-This artifact supports this claim by automatically generating floating-point error bounds using NumFuzz, FPTaylor, and Gappa for the 10 benchmark problems listed in Table 1 of Section 6.2, and by reporting the timing for each tool on each benchmark.
+This artifact supports this claim by automatically generating floating-point error bounds using NumFuzz, FPTaylor, and Gappa for the 17 benchmark problems listed in Table 1 of Section 6.2, and by reporting the timing for each tool on each benchmark.
 
 We can't guarantee that this artifact will, on every machine, produce the *exact* timing values reported in Table 1 of Section 6.2 for each of the tools on all of the benchmarks. However, this artifact should support the claim that **NumFuzz generates floating-point error bounds at least an order of magnitude faster than FPTaylor and Gappa on most benchmarks**.
+
+This artifact can also be used to reproduce the NumFuzz results reported in Tables 2 & 3 of Section 6.2.  
 
 # Getting Started
 
@@ -82,6 +84,8 @@ That's it!
 More details about Gappa can be found in the [Gappa GitLab](https://gappa.gitlabpages.inria.fr/).
 
 # Running Benchmarks
+
+## Small Benchmarks (Table 1)
 
 To verify the reported relative error bounds and check the timings listed in Table 1 of Section 6.2, simply run `make tests` in the top-level `NumFuzz` directory. This will generate the files `tests.txt` and `table.txt`. The file
 `tests.txt` contains all of the output from each tool on each benchmark. The file `table.txt` contains a table generated from the `tests.txt` file; the script for generating the table is `out_table.sh`. The data in the table in `table.txt` should match the data in Table 1 of Section 6.2 of the paper.
@@ -174,6 +178,28 @@ Results:
 which says that the relative error is at most `3.84557e-12`. 
 
 The timing in seconds is `real 0m0.005s` and is produced using the UNIX `time` command.
+
+## Large Benchmarks (Table 2)
+
+To verify the reported error bounds and check the timings listed in Table 2 of Section 6.2, simply run `make tests` in the directory `examples/NumFuzz/arge_benchmarks`. This will generate the file `large_tests.txt`, which contains the NumFuzz output for each large benchmark listed in Table 2 **except** `mat_mul_128`. The benchmark `mat_mul_128` takes approximately 18 minutes on a MacBook with a 1.4 GHz processor and 8 GB of memory. In Linux environments, RAM compression must be enabled using something like zram. The Docker instance does not support this and the process might be killed unless you manually configure it to use an appropriate amount of the host machine's memory.
+
+### Reading the output 
+For matrix multiplication, we report
+the max element-wise relative error bound produced by NumFuzz. For example, we see below that the return type of the `mat_mul_4` benchmark is a tuple of monadic values of type `(M[1.55431223448e-15] ℝ)`; this means that the error of each element of the tuple (matrix) is at most `1.55431223448e-15`.
+
+```
+I  [General] : Type of the program: ((![4.] ((ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))) ⊗ ((ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))) ⊗ ((ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))) ⊗ (ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))))))) ⊸
+                                     ((![4.] ((ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))) ⊗ ((ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))) ⊗ ((ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))) ⊗ (ℝ ⊗ (ℝ ⊗ (ℝ ⊗ ℝ))))))) ⊸
+                                      (((M[1.55431223448e-15] ℝ) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ (M[1.55431223448e-15] ℝ)))) ⊗ (((M[1.55431223448e-15] ℝ) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ (M[1.55431223448e-15] ℝ)))) ⊗ (((M[1.55431223448e-15] ℝ) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ (M[1.55431223448e-15] ℝ)))) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ ((M[1.55431223448e-15] ℝ) ⊗ (M[1.55431223448e-15] ℝ)))))))))
+
+Execution time: 0.001587s
+```
+Large benchmarks other that do not model matrix multiplication follow the same output format as for small benchmarks.
+
+## Conditional Benchmarks (Table 3)
+
+To verify the reported error bounds and check the timings listed in Table 3 of Section 6.2, simply run `make tests` in the directory `examples/NumFuzz/conditionals`. This will generate the file `conditional_tests.txt`, which contains the NumFuzz output for each conditional benchmark listed in Table 3 of Section 6.2.
+
 
 # Writing NumFuzz Programs
 

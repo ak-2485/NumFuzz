@@ -12,9 +12,9 @@ $(TEST_INPUTS):
 	@dune exec --no-print-directory -- nfuzz $@.fz 
 
 tests: 
-	@$(MAKE) --no-print-directory > numfuzz_tests.txt 2>&1
+	@$(MAKE) --no-print-directory > conditional_tests.txt 2>&1
 
 clean : 
-	rm numfuzz_tests.txt 
+	rm conditional_tests.txt 
 
 		
