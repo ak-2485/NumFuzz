@@ -4,15 +4,15 @@ open Syntax
 type symbol = string
 
 type fpcore = FPCore of (symbol * argument list * property list * expr)
-and dimension = Num of int | DSymbol of symbol
+and dimension = int
 and argument = ASymbol of symbol | Array of (symbol * dimension list)
 
 and expr =
   | ENum of float
   | ESymbol of symbol
-  | OP of (op * expr)
-  | If of (expr * expr * expr)
-  | Let of symbol * expr * expr
+  | EOP of (op * expr)
+  | EIf of (expr * expr * expr)
+  | ELet of (symbol * expr) list * expr
   | EArray of expr list
 
 and op = Plus | Times | Divide | Sqrt | Equals | LessThan
@@ -41,8 +41,21 @@ let rec translate (prog : term) : program =
   | _ ->
       failwith "FPCore does not support expressions outside of function bodies"
 
+(** if type is a pair, returns appropiate dimension *)
+and arg_of_typ (typ : ty) =
+  match typ with TyAmpersand _ | TyTensor _ -> Some 2 | _ -> None
+
 (* Assumes that [prog] has outermost TmAbs *)
 and get_arguments (prog : term) : argument list * term =
-  ([], TmPrim (UNKNOWN, PrimTUnit))
+  match prog with
+  | TmAbs (_, b_info, ty, t) ->
+      let dim = arg_of_typ ty in
+      let curr_arg =
+        if dim = None then ASymbol b_info.b_name
+        else Array (b_info.b_name, [ Option.get dim ])
+      in
+      let next_arg, next_t = get_arguments t in
+      (curr_arg :: next_arg, next_t)
+  | _ -> ([], prog)
 
 and translate_body (body : term) : expr = ENum 0.0
