@@ -54,9 +54,22 @@ let rec translate (prog : term) : program =
   | _ ->
       failwith "FPCore does not support expressions outside of function bodies"
 
+(** if type is a pair, returns appropiate dimension *)
+and arg_of_typ (typ : ty) =
+  match typ with TyAmpersand _ | TyTensor _ -> Some 2 | _ -> None
+
 (* Assumes that [prog] has outermost TmAbs *)
 and get_arguments (prog : term) : argument list * term =
-  ([], TmPrim (UNKNOWN, PrimTUnit))
+  match prog with
+  | TmAbs (_, b_info, ty, t) ->
+      let dim = arg_of_typ ty in
+      let curr_arg =
+        if dim = None then ASymbol b_info.b_name
+        else Array (b_info.b_name, [ Option.get dim ])
+      in
+      let next_arg, next_t = get_arguments t in
+      (curr_arg :: next_arg, next_t)
+  | _ -> ([], prog)
 
 and translate_expr (body : term) : expr =
   match body with
