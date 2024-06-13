@@ -3,7 +3,7 @@ open Syntax
 
 type symbol = string
 
-type fpcore = FPCore of (symbol * argument list * property list * expr)
+type fpcore = FPCore of (symbol option * argument list * property list * expr)
 and dimension = int
 and argument = ASymbol of symbol | Array of (symbol * dimension list)
 
@@ -40,19 +40,15 @@ let rec translate (prog : term) : program =
   match prog with
   | TmAbs (inf, bind, typ, t) ->
       let arg_list, body = get_arguments prog in
-      [ FPCore ("", arg_list, [], translate_expr body) ]
+      [ FPCore (None, arg_list, [], translate_expr body) ]
   | TmLet (inf, bind, typ, t1, t2) -> (
       match t1 with
       | TmAbs _ ->
           let arg_list, body = get_arguments prog in
-          FPCore ("", arg_list, [], translate_expr body) :: translate t2
-      | _ ->
-          failwith
-            "FPCore does not support expressions outside of function bodies"
-          (* ([ translate_function (get_name inf) bind.b_name typ t1 ] @ translate t2) *)
-      )
-  | _ ->
-      failwith "FPCore does not support expressions outside of function bodies"
+          FPCore (Some bind.b_name, arg_list, [], translate_expr body)
+          :: translate t2
+      | _ -> [ FPCore (None, [], [], translate_expr prog) ])
+  | _ -> [ FPCore (None, [], [], translate_expr prog) ]
 
 (** if type is a pair, returns appropiate dimension *)
 and arg_of_typ (typ : ty) =
@@ -111,3 +107,22 @@ and translate_expr (body : term) : expr =
   | TmLetBind (_, b_i, t1, t2) ->
       ELet ([ (b_i.b_name, translate_expr t1) ], translate_expr t2)
   | TmOp (_, op, t) -> EOP (translate_op op, translate_expr t)
+
+let rec string_of_dim_list (ds : dimension list) : string =
+  match ds with
+  | [] -> ""
+  | h :: t -> (" " ^ string_of_int h) ^ string_of_dim_list t
+
+let rec string_of_args (args : argument list) : string =
+  match args with
+  | [] -> ""
+  | arg :: tl ->
+      " "
+      ^ (match arg with
+        | ASymbol x -> "(" ^ x ^ ")"
+        | Array (x, ds) -> "(" ^ x ^ string_of_dim_list ds ^ ")")
+      ^ string_of_args tl
+
+let export_fpcore (prog : fpcore) : string =
+  match prog with
+  | FPCore (name, args, props, e) -> "(FPCore" ^ "name" ^ string_of_args args
