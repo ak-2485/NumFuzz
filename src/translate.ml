@@ -38,13 +38,13 @@ let translate_op (op : op) : fpop =
 
 let rec translate (prog : term) : program =
   match prog with
-  | TmAbs (inf, bind, typ, t) ->
+  | TmAbs _ ->
       let arg_list, body = get_arguments prog in
       [ FPCore (None, arg_list, [], translate_expr body) ]
-  | TmLet (inf, bind, typ, t1, t2) -> (
+  | TmLet (_, bind, _, t1, t2) -> (
       match t1 with
       | TmAbs _ ->
-          let arg_list, body = get_arguments prog in
+          let arg_list, body = get_arguments t1 in
           FPCore (Some bind.b_name, arg_list, [], translate_expr body)
           :: translate t2
       | _ -> [ FPCore (None, [], [], translate_expr prog) ])
@@ -92,7 +92,7 @@ and translate_expr (body : term) : expr =
       | PrimTUnit -> ENum (-1.0)
       | PrimTNum n -> ENum n
       | PrimTString str -> ESymbol str
-      | PrimTFun (str, ty) ->
+      | PrimTFun _ ->
           failwith "Reached unreachable PrimTFun clause."
           (* Check with Ariel ^ *))
   | TmRnd (_, t) -> EOP (Round, translate_expr t)
