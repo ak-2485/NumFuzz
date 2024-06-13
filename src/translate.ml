@@ -10,7 +10,7 @@ and argument = ASymbol of symbol | Array of (symbol * dimension list)
 and expr =
   | ENum of float
   | ESymbol of symbol
-  | EOP of (fpop * expr)
+  | EOP of (fpop * expr list)
   | EIf of (expr * expr * expr)
   | ELet of (symbol * expr) list * expr
   | EArray of expr list
@@ -95,7 +95,7 @@ and translate_expr (body : term) : expr =
       | PrimTFun _ ->
           failwith "Reached unreachable PrimTFun clause."
           (* Check with Ariel ^ *))
-  | TmRnd (_, t) -> EOP (Round, translate_expr t)
+  | TmRnd (_, t) -> EOP (Round, [ translate_expr t ])
   | TmRet (_, t) -> translate_expr t
   | TmApp (_, t1, t2) -> EApp (translate_expr t1, translate_expr t2)
   | TmAbs _ -> failwith "FPCore does not support nested functions."
@@ -106,7 +106,13 @@ and translate_expr (body : term) : expr =
   | TmLet (_, b_i, _, t1, t2)
   | TmLetBind (_, b_i, t1, t2) ->
       ELet ([ (b_i.b_name, translate_expr t1) ], translate_expr t2)
-  | TmOp (_, op, t) -> EOP (translate_op op, translate_expr t)
+  | TmOp (_, op, t) -> translate_expr_op (translate_op op) (translate_expr t)
+
+and translate_expr_op op (t : expr) =
+  match op with
+  | Plus | Times | Divide | Equals | GreaterThan ->
+      EOP (op, [ ERef (t, [ 0 ]); ERef (t, [ 1 ]) ])
+  | Sqrt | Round -> EOP (op, [ t ])
 
 let string_of_name (name : symbol option) : string =
   match name with Some s -> s ^ " " | None -> ""
@@ -140,12 +146,15 @@ let rec string_of_expr (e : expr) : string =
   match e with
   | ENum n -> string_of_float n
   | ESymbol str -> str
-  | EOP (op, e) -> "(" ^ string_of_op op ^ " " ^ string_of_expr e ^ ")"
+  | EOP (op, e's) ->
+      "(" ^ string_of_op op ^ " "
+      ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" e's
+      ^ ")"
   | EIf (e1, e2, e3) ->
       "( if " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ " "
       ^ string_of_expr e3 ^ " )"
   | ELet (args, e) ->
-      "(( " ^ string_of_let_args args ^ " ) " ^ string_of_expr e ^ " )"
+      "(let ( " ^ string_of_let_args args ^ " ) " ^ string_of_expr e ^ " )"
   | EArray vals ->
       "( array "
       ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" vals
