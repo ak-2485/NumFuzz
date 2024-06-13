@@ -47,8 +47,8 @@ let rec translate (prog : term) : program =
           let arg_list, body = get_arguments t1 in
           FPCore (Some bind.b_name, arg_list, [], translate_expr body)
           :: translate t2
-      | _ -> [ FPCore (None, [], [], translate_expr prog) ])
-  | _ -> [ FPCore (None, [], [], translate_expr prog) ]
+      | _ -> [])
+  | _ -> []
 
 (** if type is a pair, returns appropiate dimension *)
 and arg_of_typ (typ : ty) =
@@ -126,10 +126,10 @@ let rec string_of_args (args : argument list) : string =
   match args with
   | [] -> ""
   | arg :: tl ->
-      " "
-      ^ (match arg with
-        | ASymbol x -> x
-        | Array (x, ds) -> "(" ^ x ^ string_of_dim_list ds ^ ")")
+      (match arg with
+      | ASymbol x -> x
+      | Array (x, ds) -> "(" ^ x ^ string_of_dim_list ds ^ ")")
+      ^ (if tl == [] then "" else " ")
       ^ string_of_args tl
 
 let string_of_op (op : fpop) : string =
@@ -151,22 +151,22 @@ let rec string_of_expr (e : expr) : string =
       ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" e's
       ^ ")"
   | EIf (e1, e2, e3) ->
-      "( if " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ " "
-      ^ string_of_expr e3 ^ " )"
+      "(if " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ " "
+      ^ string_of_expr e3 ^ ")"
   | ELet (args, e) ->
-      "(let ( " ^ string_of_let_args args ^ " ) " ^ string_of_expr e ^ " )"
+      "(let (" ^ string_of_let_args args ^ ") " ^ string_of_expr e ^ " )"
   | EArray vals ->
-      "( array "
+      "(array "
       ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" vals
-      ^ " )"
-  | ERef (e, ds) -> "( ref " ^ string_of_expr e ^ string_of_dim_list ds ^ " )"
+      ^ ")"
+  | ERef (e, ds) -> "(ref " ^ string_of_expr e ^ string_of_dim_list ds ^ ")"
   | EConstant c -> ( match c with True -> "TRUE" | False -> "FALSE")
-  | EApp (e1, e2) -> "( " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ " )"
+  | EApp (e1, e2) -> "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
 
 and string_of_let_args (args : (symbol * expr) list) : string =
   match args with
   | (s, e) :: tl ->
-      "[ " ^ s ^ " " ^ string_of_expr e ^ " ]" ^ string_of_let_args tl
+      "[" ^ s ^ " " ^ string_of_expr e ^ "]" ^ string_of_let_args tl
   | [] -> ""
 
 let string_of_fpcore (prog : fpcore) : string =
