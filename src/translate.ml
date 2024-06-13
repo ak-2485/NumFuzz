@@ -108,6 +108,9 @@ and translate_expr (body : term) : expr =
       ELet ([ (b_i.b_name, translate_expr t1) ], translate_expr t2)
   | TmOp (_, op, t) -> EOP (translate_op op, translate_expr t)
 
+let string_of_name (name : symbol option) : string =
+  match name with Some s -> s ^ " " | None -> ""
+
 let rec string_of_dim_list (ds : dimension list) : string =
   match ds with
   | [] -> ""
@@ -119,10 +122,57 @@ let rec string_of_args (args : argument list) : string =
   | arg :: tl ->
       " "
       ^ (match arg with
-        | ASymbol x -> "(" ^ x ^ ")"
+        | ASymbol x -> x
         | Array (x, ds) -> "(" ^ x ^ string_of_dim_list ds ^ ")")
       ^ string_of_args tl
 
-let export_fpcore (prog : fpcore) : string =
+let string_of_op (op : fpop) : string =
+  match op with
+  | Plus -> "+"
+  | Times -> "*"
+  | Divide -> "/"
+  | Sqrt -> "sqrt"
+  | Equals -> "=="
+  | GreaterThan -> ">"
+  | Round -> "round"
+
+let rec string_of_expr (e : expr) : string =
+  match e with
+  | ENum n -> string_of_float n
+  | ESymbol str -> str
+  | EOP (op, e) -> "(" ^ string_of_op op ^ " " ^ string_of_expr e ^ ")"
+  | EIf (e1, e2, e3) ->
+      "( if " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ " "
+      ^ string_of_expr e3 ^ " )"
+  | ELet (args, e) ->
+      "(( " ^ string_of_let_args args ^ " ) " ^ string_of_expr e ^ " )"
+  | EArray vals ->
+      "( array "
+      ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" vals
+      ^ " )"
+  | ERef (e, ds) -> "( ref " ^ string_of_expr e ^ string_of_dim_list ds ^ " )"
+  | EConstant c -> ( match c with True -> "TRUE" | False -> "FALSE")
+  | EApp (e1, e2) -> "( " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ " )"
+
+and string_of_let_args (args : (symbol * expr) list) : string =
+  match args with
+  | (s, e) :: tl ->
+      "[ " ^ s ^ " " ^ string_of_expr e ^ " ]" ^ string_of_let_args tl
+  | [] -> ""
+
+let string_of_fpcore (prog : fpcore) : string =
   match prog with
-  | FPCore (name, args, props, e) -> "(FPCore" ^ "name" ^ string_of_args args
+  | FPCore (name, args, _, e) ->
+      "(FPCore " ^ string_of_name name ^ "(" ^ string_of_args args ^ ")\n"
+      ^ string_of_expr e ^ ")"
+
+let rec string_of_program (prog : fpcore list) : string =
+  match prog with
+  | h :: tl -> string_of_fpcore h ^ "\n\n" ^ string_of_program tl
+  | [] -> ""
+
+let export_prog (prog : term) (outfile : string) : unit =
+  let oc = open_out outfile in
+  let data = prog |> translate |> string_of_program in
+  Printf.fprintf oc "%s\n" data;
+  close_out oc
