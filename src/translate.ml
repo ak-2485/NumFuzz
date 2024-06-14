@@ -47,8 +47,8 @@ let rec translate (prog : term) : program =
           let arg_list, body = get_arguments t1 in
           FPCore (Some bind.b_name, arg_list, [], translate_expr body)
           :: translate t2
-      | _ -> [ FPCore (None, [], [], translate_expr prog) ])
-  | _ -> [ FPCore (None, [], [], translate_expr prog) ]
+      | _ -> [])
+  | _ -> []
 
 (** if type is a pair, returns appropiate dimension *)
 and arg_of_typ (typ : ty) =
@@ -154,7 +154,7 @@ let rec string_of_expr (e : expr) : string =
       "( if " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ " "
       ^ string_of_expr e3 ^ " )"
   | ELet (args, e) ->
-      "(let ( " ^ string_of_let_args args ^ " ) " ^ string_of_expr e ^ " )"
+      "(let ( " ^ string_of_let_args args ^ " ) " ^ string_of_expr e ^ ")"
   | EArray vals ->
       "( array "
       ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" vals
@@ -175,10 +175,8 @@ let string_of_fpcore (prog : fpcore) : string =
       "(FPCore " ^ string_of_name name ^ "(" ^ string_of_args args ^ ")\n"
       ^ string_of_expr e ^ ")"
 
-let rec string_of_program (prog : fpcore list) : string =
-  match prog with
-  | h :: tl -> string_of_fpcore h ^ "\n\n" ^ string_of_program tl
-  | [] -> ""
+let string_of_program (prog : fpcore list) =
+  List.fold_left (fun acc x -> acc ^ string_of_fpcore x ^ "\n\n") "" prog
 
 let export_prog (prog : term) (outfile : string) : unit =
   let oc = open_out outfile in
