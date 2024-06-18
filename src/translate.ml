@@ -3,6 +3,7 @@ open Syntax
 
 type symbol = string
 type precision = Binary64 | Binary32 | Real
+type translate_flag = Default | NaiveInline | SmartInline
 
 type fpcore = FPCore of (symbol option * argument list * property list * expr)
 and dimension = int
@@ -21,7 +22,7 @@ and expr =
   | EBang of property list * expr
 
 and data = DSymbol of symbol | DNum of float
-and fpop = Plus | Times | Divide | Sqrt | Equals | GreaterThan | Round
+and fpop = Plus | Times | Divide | Sqrt | Equals | GreaterThan | Cast
 and constant = True | False
 and property = Prec of precision | PRound
 
@@ -126,7 +127,7 @@ and translate_expr (body : term) : expr =
       | PrimTFun _ ->
           failwith "Reached unreachable PrimTFun clause."
           (* Check with Ariel ^ *))
-  | TmRnd (_, t) -> EOP (Round, [ translate_expr t ])
+  | TmRnd (_, t) -> EBang (rnd_and_prec, EOP (Cast, [ translate_expr t ]))
   | TmRet (_, t) -> translate_expr t
   | TmApp (_, t1, t2) -> EApp (translate_expr t1, translate_expr t2)
   | TmAbs _ -> failwith "FPCore does not support nested functions."
@@ -143,7 +144,7 @@ and translate_expr_op op (t : expr) =
   match op with
   | Plus | Times | Divide | Equals | GreaterThan ->
       EOP (op, [ ERef (t, [ 0 ]); ERef (t, [ 1 ]) ])
-  | Sqrt | Round -> EOP (op, [ t ])
+  | Sqrt | Cast -> EOP (op, [ t ])
 
 let string_of_name (name : symbol option) : string =
   match name with Some s -> s ^ " " | None -> ""
@@ -171,7 +172,7 @@ let string_of_op (op : fpop) : string =
   | Sqrt -> "sqrt"
   | Equals -> "=="
   | GreaterThan -> ">"
-  | Round -> "round"
+  | Cast -> "cast"
 
 let check_app e1 e2 =
   match e1 with
