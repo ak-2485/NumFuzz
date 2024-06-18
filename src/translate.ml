@@ -2,6 +2,7 @@ open Support.FileInfo
 open Syntax
 
 type symbol = string
+type precision = Binary64 | Binary32 | Real
 
 type fpcore = FPCore of (symbol option * argument list * property list * expr)
 and dimension = int
@@ -17,12 +18,42 @@ and expr =
   | ERef of expr * dimension list
   | EConstant of constant
   | EApp of expr * expr
+  | EBang of property list * expr
 
+and data = DSymbol of symbol | DNum of float
 and fpop = Plus | Times | Divide | Sqrt | Equals | GreaterThan | Round
 and constant = True | False
-and property
+and property = Prec of precision | PRound
 
 type program = fpcore list
+
+let string_of_prec = function
+  | Binary64 -> "binary64"
+  | Binary32 -> "binary32"
+  | Real -> "real"
+
+let string_of_prop_inline = function
+  | Prec p -> ":precision " ^ string_of_prec p
+  | PRound -> ":round toPositive"
+
+let rec string_of_prop_core = function
+  | [] -> ""
+  | p :: t -> string_of_prop_inline p ^ "\n" ^ string_of_prop_core t
+
+let rec string_of_prop_lst (lst : property list) =
+  match lst with
+  | [] -> ""
+  (* extra space for the last element actually works*)
+  | p :: t -> string_of_prop_inline p ^ " " ^ string_of_prop_lst t
+
+let op_names (s : symbol) =
+  match s with
+  | "addfp" -> Some Plus
+  | "divfp" -> Some Divide
+  | "mulfp" -> Some Times
+  | _ -> None
+
+let rnd_and_prec = [ Prec Binary64; PRound ]
 
 let get_name (inf : info) =
   match inf with FI (sym, _, _) -> sym | UNKNOWN -> ""
@@ -142,6 +173,19 @@ let string_of_op (op : fpop) : string =
   | GreaterThan -> ">"
   | Round -> "round"
 
+let check_app e1 e2 =
+  match e1 with
+  | ESymbol s ->
+      let op = op_names s in
+      if op = None then None
+      else
+        let arr_list =
+          match e2 with EArray l -> l | _ -> failwith "error in check_app"
+        in
+        let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
+        Some (EBang (rnd_and_prec, EOP (Option.get op, [ el1; el2 ])))
+  | _ -> None
+
 let rec string_of_expr (e : expr) : string =
   match e with
   | ENum n -> string_of_float n
@@ -161,7 +205,12 @@ let rec string_of_expr (e : expr) : string =
       ^ ")"
   | ERef (e, ds) -> "(ref " ^ string_of_expr e ^ string_of_dim_list ds ^ ")"
   | EConstant c -> ( match c with True -> "TRUE" | False -> "FALSE")
-  | EApp (e1, e2) -> "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
+  | EApp (e1, e2) ->
+      let e = check_app e1 e2 in
+      if e = None then "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
+      else string_of_expr (Option.get e)
+  | EBang (p_lst, e) ->
+      "(! " ^ string_of_prop_lst p_lst ^ " " ^ string_of_expr e ^ ")"
 
 and string_of_let_args (args : (symbol * expr) list) : string =
   match args with
@@ -171,15 +220,26 @@ and string_of_let_args (args : (symbol * expr) list) : string =
 
 let string_of_fpcore (prog : fpcore) : string =
   match prog with
-  | FPCore (name, args, _, e) ->
+  | FPCore (name, args, p_lst, e) ->
       "(FPCore " ^ string_of_name name ^ "(" ^ string_of_args args ^ ")\n"
-      ^ string_of_expr e ^ ")"
+      ^ string_of_prop_core p_lst ^ string_of_expr e ^ ")"
 
 let string_of_program (prog : fpcore list) =
   List.fold_left (fun acc x -> acc ^ string_of_fpcore x ^ "\n\n") "" prog
 
+let rec get_last = function
+  | _ :: _ :: t -> get_last t
+  | h :: [] -> Some h
+  | [] -> None
+
+let add_prop prop_lst = function
+  | FPCore (s, arg_lst, p_lst, expr) ->
+      FPCore (s, arg_lst, prop_lst @ p_lst, expr)
+
 let export_prog (prog : term) (outfile : string) : unit =
   let oc = open_out outfile in
-  let data = prog |> translate |> string_of_program in
+  let translated = translate prog in
+  let last = add_prop [ Prec Real ] (Option.get (get_last translated)) in
+  let data = string_of_program [ last ] in
   Printf.fprintf oc "%s\n" data;
   close_out oc
