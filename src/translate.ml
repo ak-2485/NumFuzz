@@ -174,18 +174,21 @@ let string_of_op (op : fpop) : string =
   | GreaterThan -> ">"
   | Cast -> "cast"
 
-let check_app e1 e2 =
-  match e1 with
-  | ESymbol s ->
-      let op = op_names s in
-      if op = None then None
-      else
-        let arr_list =
-          match e2 with EArray l -> l | _ -> failwith "error in check_app"
-        in
-        let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
-        Some (EBang (rnd_and_prec, EOP (Option.get op, [ el1; el2 ])))
-  | _ -> None
+let check_app e1 e2 flag =
+  if flag = Default then None
+  else if flag = NaiveInline then None
+  else
+    match e1 with
+    | ESymbol s ->
+        let op = op_names s in
+        if op = None then None
+        else
+          let arr_list =
+            match e2 with EArray l -> l | _ -> failwith "error in check_app"
+          in
+          let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
+          Some (EBang (rnd_and_prec, EOP (Option.get op, [ el1; el2 ])))
+    | _ -> None
 
 let rec string_of_expr (e : expr) : string =
   match e with
@@ -206,10 +209,7 @@ let rec string_of_expr (e : expr) : string =
       ^ ")"
   | ERef (e, ds) -> "(ref " ^ string_of_expr e ^ string_of_dim_list ds ^ ")"
   | EConstant c -> ( match c with True -> "TRUE" | False -> "FALSE")
-  | EApp (e1, e2) ->
-      let e = check_app e1 e2 in
-      if e = None then "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
-      else string_of_expr (Option.get e)
+  | EApp (e1, e2) -> "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
   | EBang (p_lst, e) ->
       "(! " ^ string_of_prop_lst p_lst ^ " " ^ string_of_expr e ^ ")"
 
@@ -237,10 +237,127 @@ let add_prop prop_lst = function
   | FPCore (s, arg_lst, p_lst, expr) ->
       FPCore (s, arg_lst, prop_lst @ p_lst, expr)
 
-let export_prog (prog : term) (outfile : string) : unit =
+(* Takes in a program (list of functions) and inlines all functions into the last function.
+   If multiples functions are defined with the same name, the latest definition is used. *)
+
+let rec unwind_app (e : expr) (args : expr list) : symbol * expr list =
+  match e with
+  | EApp (e1, e2) -> unwind_app e1 (e2 :: args)
+  | ESymbol name -> (name, args)
+  | _ -> failwith "Unable to parse function call while inlining"
+
+let rec build_arg_sub_map (vars : argument list) (args : expr list)
+    (map : (string * expr) list) : (string * expr) list =
+  match (vars, args) with
+  | vh :: vt, ah :: at ->
+      let v_name = match vh with ASymbol s -> s | Array (s, _) -> s in
+      build_arg_sub_map vt at ((v_name, ah) :: map)
+  | [], [] -> map
+  | _ ->
+      failwith "Failed inline: function called with wrong number of arguments."
+
+let rec substitute_args_rec (subst_map : (string * expr) list) (body : expr) :
+    expr =
+  let substitute_args_rec' = substitute_args_rec subst_map in
+  match body with
+  | ENum n -> ENum n
+  | ESymbol s -> (
+      match List.assoc_opt s subst_map with Some e -> e | None -> ESymbol s)
+  | EOP (op, e's) -> EOP (op, List.map (fun e -> substitute_args_rec' e) e's)
+  | EIf (e1, e2, e3) ->
+      EIf
+        ( substitute_args_rec' e1,
+          substitute_args_rec' e2,
+          substitute_args_rec' e3 )
+  | ELet (args, e) ->
+      ELet
+        ( List.map (fun (s, e) -> (s, substitute_args_rec' e)) args,
+          substitute_args_rec' e )
+  | EArray e's -> EArray (List.map (fun e -> substitute_args_rec' e) e's)
+  | ERef (e, d's) -> ERef (substitute_args_rec' e, d's)
+  | EConstant c -> EConstant c
+  | EApp (e1, e2) -> EApp (substitute_args_rec' e1, substitute_args_rec' e2)
+  | EBang _ -> body
+
+let substitute_args (func : fpcore) (args : expr list) : expr =
+  match func with
+  | FPCore (_, vars, _, body) ->
+      let subst_map = build_arg_sub_map vars args [] in
+      substitute_args_rec subst_map body
+
+let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
+  let inline_expr' = inline_expr dict in
+  match e with
+  | ENum n -> ENum n
+  | ESymbol s -> ESymbol s
+  | EOP (op, e's) -> EOP (op, List.map (fun e -> inline_expr' e) e's)
+  | EIf (e1, e2, e3) -> EIf (inline_expr' e1, inline_expr' e2, inline_expr' e3)
+  | ELet (args, e) ->
+      ELet (List.map (fun (s, e) -> (s, inline_expr' e)) args, inline_expr' e)
+  | EArray e's -> EArray (List.map (fun e -> inline_expr' e) e's)
+  | ERef (e, d's) -> ERef (inline_expr' e, d's)
+  | EConstant c -> EConstant c
+  | EApp _ -> (
+      let name, args = unwind_app e [] in
+      match List.assoc_opt name dict with
+      | Some func_def -> substitute_args func_def args
+      | None -> e)
+  | EBang _ -> e
+
+let inline (prog : fpcore list) : fpcore =
+  let prog_rev = List.rev prog in
+  let dict =
+    prog_rev |> List.tl
+    |> List.map (fun x ->
+           match x with
+           | FPCore (name, _, _, _) -> (
+               match name with Some s -> (s, x) | None -> ("", x)))
+  in
+  match List.hd prog_rev with
+  | FPCore (name, args, props, e) ->
+      FPCore (name, args, props, inline_expr dict e)
+
+let rec transform_ast expr =
+  match expr with
+  | ENum _ -> expr
+  | ESymbol _ -> expr
+  | EOP (fpop, e_lst) -> EOP (fpop, List.map (fun x -> transform_ast x) e_lst)
+  | EIf (e1, e2, e3) ->
+      EIf (transform_ast e1, transform_ast e2, transform_ast e3)
+  | ELet (lst, e) ->
+      ELet
+        ( List.map (fun (symbol, exp) -> (symbol, transform_ast exp)) lst,
+          transform_ast e )
+  | EArray lst -> EArray (List.map (fun x -> transform_ast x) lst)
+  | ERef (e, lst) -> ERef (transform_ast e, lst)
+  | EConstant _ -> expr
+  | EBang (p_list, e) -> EBang (p_list, transform_ast e)
+  | EApp (e1, e2) ->
+      let e = check_app e1 e2 SmartInline in
+      if e = None then EApp (transform_ast e1, transform_ast e2)
+      else Option.get e
+
+let handle_flag prog flag =
+  match flag with
+  | Default -> prog
+  | SmartInline ->
+      let last = Option.get (get_last prog) in
+      let s, arg_list, p_list, body =
+        match last with
+        | FPCore (s, arg_list, p_list, b) -> (s, arg_list, p_list, b)
+      in
+      let body = transform_ast body in
+      let new_core =
+        [ add_prop [ Prec Real ] (FPCore (s, arg_list, p_list, body)) ]
+      in
+      [ inline new_core ]
+  | NaiveInline -> [ inline prog ]
+
+let export_prog (prog : term) (outfile : string) (flag : translate_flag) : unit
+    =
   let oc = open_out outfile in
   let translated = translate prog in
-  let last = add_prop [ Prec Real ] (Option.get (get_last translated)) in
-  let data = string_of_program [ last ] in
+  let transformed = handle_flag translated flag in
+  let data = string_of_program transformed in
   Printf.fprintf oc "%s\n" data;
   close_out oc
