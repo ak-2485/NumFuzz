@@ -27,6 +27,7 @@ let op_names (s : symbol) =
   | "addfp" -> Some Plus
   | "divfp" -> Some Divide
   | "mulfp" -> Some Times
+  | "sqrtfp" -> Some Sqrt
   | _ -> None
 
 let rnd_and_prec = [ Prec Binary64; PRound ]
@@ -149,21 +150,21 @@ let string_of_op (op : fpop) : string =
   | GreaterThan -> ">"
   | Cast -> "cast"
 
-let check_app e1 e2 flag =
-  if flag = Default then None
-  else if flag = NaiveInline then None
-  else
-    match e1 with
-    | ESymbol s ->
-        let op = op_names s in
-        if op = None then None
-        else
-          let arr_list =
-            match e2 with EArray l -> l | _ -> failwith "error in check_app"
-          in
-          let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
-          Some (EBang (rnd_and_prec, EOP (Option.get op, [ el1; el2 ])))
-    | _ -> None
+let check_app e1 e2 =
+  match e1 with
+  | ESymbol s -> (
+      let op = op_names s in
+      if op = None then None
+      else
+        match Option.get op with
+        | Sqrt -> Some (EBang (rnd_and_prec, EOP (Sqrt, [ e2 ])))
+        | _ ->
+            let arr_list =
+              match e2 with EArray l -> l | _ -> failwith "error in checkapp"
+            in
+            let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
+            Some (EBang (rnd_and_prec, EOP (Option.get op, [ el1; el2 ]))))
+  | _ -> None
 
 let rec string_of_expr (e : expr) : string =
   match e with
@@ -203,10 +204,7 @@ let string_of_fpcore (prog : fpcore) : string =
 let string_of_program (prog : fpcore list) =
   List.fold_left (fun acc x -> acc ^ string_of_fpcore x ^ "\n\n") "" prog
 
-let rec get_last = function
-  | _ :: _ :: t -> get_last t
-  | h :: [] -> Some h
-  | [] -> None
+let get_last lst = List.rev lst |> List.hd
 
 let add_prop prop_lst = function
   | FPCore (s, arg_lst, p_lst, expr) ->
@@ -216,27 +214,34 @@ let rec transform_ast expr =
   match expr with
   | ENum _ -> expr
   | ESymbol _ -> expr
-  | EOP (fpop, e_lst) -> EOP (fpop, List.map (fun x -> transform_ast x) e_lst)
+  | EOP (fpop, e_lst) -> EOP (fpop, List.map transform_ast e_lst)
   | EIf (e1, e2, e3) ->
       EIf (transform_ast e1, transform_ast e2, transform_ast e3)
   | ELet (lst, e) ->
       ELet
         ( List.map (fun (symbol, exp) -> (symbol, transform_ast exp)) lst,
           transform_ast e )
-  | EArray lst -> EArray (List.map (fun x -> transform_ast x) lst)
+  | EArray lst -> EArray (List.map transform_ast lst)
   | ERef (e, lst) -> ERef (transform_ast e, lst)
   | EConstant _ -> expr
   | EBang (p_list, e) -> EBang (p_list, transform_ast e)
   | EApp (e1, e2) ->
-      let e = check_app e1 e2 SmartInline in
-      if e = None then EApp (transform_ast e1, transform_ast e2)
-      else Option.get e
+      Option.default
+        (EApp (transform_ast e1, transform_ast e2))
+        (check_app e1 e2)
 
+(** [handle_flag prog flag] is [prog] but converted into a program
+whose calls to imported functions have been inlined if [flag] is either [NaiveInline]
+or [SmartInline]. 
+
+In the first case, every call to any of the floating*)
 let handle_flag prog flag =
   match flag with
   | Default -> prog
   | SmartInline ->
-      let last = Option.get (get_last prog) in
+      let length = List.length prog in
+      print_int length;
+      let last = get_last prog in
       let s, arg_list, p_list, body =
         match last with
         | FPCore (s, arg_list, p_list, b) -> (s, arg_list, p_list, b)
