@@ -1,13 +1,17 @@
 open Translate_ast
 
-(* Takes in a program (list of functions) and inlines all functions into the last function.
-   If multiples functions are defined with the same name, the latest definition is used. *)
-
+(* Given an expression of a function application [e], returns the list
+   of arguments being passed into the function.
+   Should be called with [args] as nil [] *)
 let rec unwind_app (e : expr) (args : expr list) : symbol * expr list =
   match e with
   | EApp (e1, e2) -> unwind_app e1 (e2 :: args)
   | ESymbol name -> (name, args)
   | _ -> failwith "Unable to parse function call while inlining"
+
+(* Given a list [vars] and a list [args] creates an association list mapping the nth element of
+   [vars] to the nth element of [lists].
+   Requires: [vars] and [args] are the same length *)
 
 let rec build_arg_sub_map (vars : argument list) (args : expr list)
     (map : (string * expr) list) : (string * expr) list =
@@ -18,6 +22,9 @@ let rec build_arg_sub_map (vars : argument list) (args : expr list)
   | [], [] -> map
   | _ ->
       failwith "Failed inline: function called with wrong number of arguments."
+
+(* Given a map [subst_map] from parameter names to the argument passed in for that parameter,
+   substitutes for all occurences of the parameters in [body] *)
 
 let rec substitute_args_rec (subst_map : (string * expr) list) (body : expr) :
     expr =
@@ -42,12 +49,17 @@ let rec substitute_args_rec (subst_map : (string * expr) list) (body : expr) :
   | EApp (e1, e2) -> EApp (substitute_args_rec' e1, substitute_args_rec' e2)
   | EBang _ -> body
 
+(* Given a function definition [func] and a list of arguments [arg], returns
+   the function body with the arguments substituded in for the corresponding parameter names.*)
+
 let substitute_args (func : fpcore) (args : expr list) : expr =
   match func with
   | FPCore (_, vars, _, body) ->
       let subst_map = build_arg_sub_map vars args [] in
       substitute_args_rec subst_map body
 
+(* Given a mapping [dict] from function names to definitions, inlines all
+   occurences of those functions in [e] *)
 let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
   let inline_expr' = inline_expr dict in
   match e with
@@ -66,6 +78,9 @@ let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
       | Some func_def -> substitute_args func_def args
       | None -> e)
   | EBang _ -> e
+
+(* Takes in a program [prog] (list of fpcore's) and inlines all function definitions into the last function.
+   If multiples functions are defined with the same name, the latest definition is used. *)
 
 let inline (prog : fpcore list) : fpcore =
   let prog_rev = List.rev prog in

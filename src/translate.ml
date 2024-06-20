@@ -237,7 +237,13 @@ or [SmartInline].
 In the first case, every call to any of the floating*)
 let handle_flag prog flag =
   match flag with
-  | Default -> prog
+  | Default ->
+      List.map
+        (fun x ->
+          match x with
+          | FPCore (s, arg_list, p_list, body) ->
+              add_prop [ Prec Real ] (FPCore (s, arg_list, p_list, body)))
+        prog
   | SmartInline ->
       let length = List.length prog in
       print_int length;
