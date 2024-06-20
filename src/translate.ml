@@ -1,5 +1,4 @@
 open Syntax
-open Support.FileInfo
 open Translate_ast
 open Translate_inline
 
@@ -45,9 +44,6 @@ operations translated from NumFuzz, which are assumed to occur with binary 64 pr
 and round towards positive infinity. *)
 let rnd_and_prec = [ Prec Binary64; PRound ]
 
-let get_name (inf : info) =
-  match inf with FI (sym, _, _) -> sym | UNKNOWN -> ""
-
 (** [translate_op] translates a numfuzz operation [op] to its FPcore equivalent. *)
 let translate_op (op : op) : fpop =
   match op with
@@ -58,6 +54,7 @@ let translate_op (op : op) : fpop =
   | GtOp -> GreaterThan
   | EqOp -> Equals
 
+(** [translate] converts a NumFuzz term [prog] into an equivalent FPCore program*)
 let rec translate (prog : term) : program =
   match prog with
   | TmAbs _ ->
@@ -95,6 +92,8 @@ and get_arguments (prog : term) : argument list * term =
       (curr_arg :: next_arg, next_t)
   | _ -> ([], prog)
 
+(** [translate_expr] converts a NumFuzz function body [body] into its equivalent FPCore expression. 
+Requires: [body] has no TMAbs terms, as FPCore does not support nested functions *)
 and translate_expr (body : term) : expr =
   match body with
   | TmVar (_, var_i) -> ESymbol var_i.v_name
@@ -136,20 +135,26 @@ and translate_expr (body : term) : expr =
       ELet ([ (b_i.b_name, translate_expr t1) ], translate_expr t2)
   | TmOp (_, op, t) -> translate_expr_op (translate_op op) (translate_expr t)
 
+(** [translate_expr_op] converts a NumFuzz operator application [op] [t] into its FPCore equivalent*)
 and translate_expr_op op (t : expr) =
   match op with
   | Plus | Times | Divide | Equals | GreaterThan ->
       EOP (op, [ ERef (t, [ 0 ]); ERef (t, [ 1 ]) ])
   | Sqrt | Cast -> EOP (op, [ t ])
 
+(** [string_of_name] takes a string option [name] and returns the string with a trailing space,
+ or an empty string in the None case *)
 let string_of_name (name : symbol option) : string =
   match name with Some s -> s ^ " " | None -> ""
 
+(** [sting_of_dim_list] converts a dimension list [ds] into a space-seperated string*)
 let rec string_of_dim_list (ds : dimension list) : string =
   match ds with
   | [] -> ""
   | h :: t -> (" " ^ string_of_int h) ^ string_of_dim_list t
 
+(** [string_of_args] converts an argument list [args] into a space-seperated string, 
+conforming to the FPCore notation for Array argument names *)
 let rec string_of_args (args : argument list) : string =
   match args with
   | [] -> ""
@@ -191,6 +196,7 @@ let check_app e1 e2 =
             Some (EBang (rnd_and_prec, EOP (Option.get op, [ el1; el2 ]))))
   | _ -> None
 
+(** [string_of_expr] converts an FPCore expression [e] into a string in FPCore syntax *)
 let rec string_of_expr (e : expr) : string =
   match e with
   | ENum n -> string_of_float n
@@ -214,6 +220,7 @@ let rec string_of_expr (e : expr) : string =
   | EBang (p_lst, e) ->
       "(! " ^ string_of_prop_lst p_lst ^ " " ^ string_of_expr e ^ ")"
 
+(** [string_of_let_args] converts the bindings of a let expression into an FPCore string *)
 and string_of_let_args (args : (symbol * expr) list) : string =
   match args with
   | (s, e) :: tl ->
@@ -288,6 +295,8 @@ let handle_flag prog flag =
       [ inline (remove_last prog @ new_core) ]
   | NaiveInline -> [ inline prog ]
 
+(** [export_prog] takes a NumFuzz [prog], converts it into FPCore with inlining/smart 
+substituion as dictated by [flag], and prints the resulting FPCore program to [outfile]*)
 let export_prog (prog : term) (outfile : string) (flag : translate_flag) : unit
     =
   let oc = open_out outfile in

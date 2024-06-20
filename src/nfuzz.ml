@@ -9,6 +9,7 @@
 open Syntax
 open Support.Options
 open Support.Error
+open Translate_ast
 
 let outfile = ref (None : string option)
 let infile = ref ("" : string)
