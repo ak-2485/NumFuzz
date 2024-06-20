@@ -3,25 +3,35 @@ open Support.FileInfo
 open Translate_ast
 open Translate_inline
 
+(** [string_of prec prec] is the string representation of precision [prec].*)
 let string_of_prec = function
   | Binary64 -> "binary64"
   | Binary32 -> "binary32"
   | Real -> "real"
 
+(** [string_of_prop_inline prop] returns the string representation of [prop] according
+to the FPcore syntax. *)
 let string_of_prop_inline = function
   | Prec p -> ":precision " ^ string_of_prec p
   | PRound -> ":round toPositive"
 
+(** [string_of_prop_core] is the same as [string_of_prop_lst] but a newline character
+is inserted after every element in the property list. *)
 let rec string_of_prop_core = function
   | [] -> ""
   | p :: t -> string_of_prop_inline p ^ "\n" ^ string_of_prop_core t
 
+(** This function returns a string representation of a list of properties that occurs
+within an expression. There are no new line character in between each property. *)
 let rec string_of_prop_lst (lst : property list) =
   match lst with
   | [] -> ""
-  (* extra space for the last element actually works*)
   | p :: t -> string_of_prop_inline p ^ " " ^ string_of_prop_lst t
 
+(** [op_names s] returns the operation that a floating-point operation variable name
+represents. In NumFuzz, floating point operations (addfp,divfp,etc) are functions,
+but which we can inline in FPCore by using an appropiate rounding context
+and the equivalent operation.*)
 let op_names (s : symbol) =
   match s with
   | "addfp" -> Some Plus
@@ -30,11 +40,15 @@ let op_names (s : symbol) =
   | "sqrtfp" -> Some Sqrt
   | _ -> None
 
+(** [rnd_and_prec] is the list containing the FPCore properties for floating point
+operations translated from NumFuzz, which are assumed to occur with binary 64 precision
+and round towards positive infinity. *)
 let rnd_and_prec = [ Prec Binary64; PRound ]
 
 let get_name (inf : info) =
   match inf with FI (sym, _, _) -> sym | UNKNOWN -> ""
 
+(** [translate_op] translates a numfuzz operation [op] to its FPcore equivalent. *)
 let translate_op (op : op) : fpop =
   match op with
   | AddOp -> Plus
@@ -58,11 +72,17 @@ let rec translate (prog : term) : program =
       | _ -> [])
   | _ -> []
 
-(** if type is a pair, returns appropiate dimension *)
+(** [arg_of_typ ty] returns [Some 2] if [typ] is either [TyAmpersand] or [TyTensor].
+    Returns [None] otherwise.*)
 and arg_of_typ (typ : ty) =
   match typ with TyAmpersand _ | TyTensor _ -> Some 2 | _ -> None
 
-(* Assumes that [prog] has outermost TmAbs *)
+(** [get_arguments prog] returns a pair of list of arguments and body of [prog],
+provided that [prog] is a "chain" of lambda expressions, which represents a multi-argument
+function. Otherwise, the function returns [(\[\],prog)].
+
+For example, calling [get_arguments] on an expression of the form [lambda x. lambda y. e] 
+returns [(\[x;y\],e)]. *)
 and get_arguments (prog : term) : argument list * term =
   match prog with
   | TmAbs (_, b_info, ty, t) ->
@@ -140,6 +160,7 @@ let rec string_of_args (args : argument list) : string =
       ^ (if tl == [] then "" else " ")
       ^ string_of_args tl
 
+(** [string_of_op op] is the string representation of an FPCore operation [op]. *)
 let string_of_op (op : fpop) : string =
   match op with
   | Plus -> "+"
@@ -150,6 +171,10 @@ let string_of_op (op : fpop) : string =
   | GreaterThan -> ">"
   | Cast -> "cast"
 
+(** [check_app e1 e2] returns an non-empty [Option] value if [e1] is 
+  a variable name that represents one of the basic floating operations (addfp,sqrtfp,divfp,mulfp)
+and returns an equivalent FPCore term that does not call these functions. If [e1] is anything
+else, this function returns [None].*)
 let check_app e1 e2 =
   match e1 with
   | ESymbol s -> (
@@ -195,21 +220,36 @@ and string_of_let_args (args : (symbol * expr) list) : string =
       "[" ^ s ^ " " ^ string_of_expr e ^ "]" ^ string_of_let_args tl
   | [] -> ""
 
+(** [string_of_fpcore] is the string representation a single FPCore.*)
 let string_of_fpcore (prog : fpcore) : string =
   match prog with
   | FPCore (name, args, p_lst, e) ->
       "(FPCore " ^ string_of_name name ^ "(" ^ string_of_args args ^ ")\n"
       ^ string_of_prop_core p_lst ^ string_of_expr e ^ ")"
 
+(** [string_of_program prog] is the string representation of a list of FPCores.*)
 let string_of_program (prog : fpcore list) =
   List.fold_left (fun acc x -> acc ^ string_of_fpcore x ^ "\n\n") "" prog
 
+(** [get_last lst] is the last element of [lst]. If [lst] is empty, this function
+raises [Failure]. *)
 let get_last lst = List.rev lst |> List.hd
 
+(** [remove_last lst] is [lst] with its last element removed. *)
+let rec remove_last lst =
+  match lst with [] | [ _ ] -> [] | h :: t -> h :: remove_last t
+
+(** [add_prop prop_lst core] appends [prop_lst] to the list of properties in
+[core]. *)
 let add_prop prop_lst = function
   | FPCore (s, arg_lst, p_lst, expr) ->
       FPCore (s, arg_lst, prop_lst @ p_lst, expr)
 
+(** [transform_ast expr] is [expr] but with every instance one of the floating operations 
+  (addfp, sqrtfp, mulfp, divfp)
+  inlined away with an equivalent operation. 
+  For instance, [mulfp (x,y)] is translated as a multiplying x and y in FPCore but in a
+  context with binary 64 precision and rounding towards positive infinity. *)
 let rec transform_ast expr =
   match expr with
   | ENum _ -> expr
@@ -232,31 +272,20 @@ let rec transform_ast expr =
 
 (** [handle_flag prog flag] is [prog] but converted into a program
 whose calls to imported functions have been inlined if [flag] is either [NaiveInline]
-or [SmartInline]. 
-
-In the first case, every call to any of the floating*)
+or [SmartInline]. *)
 let handle_flag prog flag =
   match flag with
-  | Default ->
-      List.map
-        (fun x ->
-          match x with
-          | FPCore (s, arg_list, p_list, body) ->
-              add_prop [ Prec Real ] (FPCore (s, arg_list, p_list, body)))
-        prog
+  | Default -> List.map (add_prop [ Prec Real ]) prog
   | SmartInline ->
       let length = List.length prog in
       print_int length;
       let last = get_last prog in
-      let s, arg_list, p_list, body =
-        match last with
-        | FPCore (s, arg_list, p_list, b) -> (s, arg_list, p_list, b)
-      in
+      let s, arg_list, p_list, body = match last with FPCore s -> s in
       let body = transform_ast body in
       let new_core =
         [ add_prop [ Prec Real ] (FPCore (s, arg_list, p_list, body)) ]
       in
-      [ inline new_core ]
+      [ inline (remove_last prog @ new_core) ]
   | NaiveInline -> [ inline prog ]
 
 let export_prog (prog : term) (outfile : string) (flag : translate_flag) : unit
