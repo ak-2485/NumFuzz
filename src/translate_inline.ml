@@ -1,4 +1,4 @@
-open Translate
+open Translate_ast
 
 (* Takes in a program (list of functions) and inlines all functions into the last function.
    If multiples functions are defined with the same name, the latest definition is used. *)
