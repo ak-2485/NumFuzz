@@ -234,7 +234,13 @@ let rec transform_ast expr =
 
 let handle_flag prog flag =
   match flag with
-  | Default -> prog
+  | Default ->
+      List.map
+        (fun x ->
+          match x with
+          | FPCore (s, arg_list, p_list, body) ->
+              add_prop [ Prec Real ] (FPCore (s, arg_list, p_list, body)))
+        prog
   | SmartInline ->
       let last = Option.get (get_last prog) in
       let s, arg_list, p_list, body =
