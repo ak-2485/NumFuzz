@@ -210,6 +210,24 @@ let check_app e1 e2 =
             Some (EBang (rnd_and_prec, EOP (Option.get op, [ el1; el2 ]))))
   | _ -> None
 
+(** [check_app_elem] is the same as [check_app] but it doesn't add precision or
+rounding annotations. *)
+let check_app_elem e1 e2 =
+  match e1 with
+  | ESymbol s -> (
+      let op = op_names s in
+      if op = None then None
+      else
+        match Option.get op with
+        | Sqrt -> Some (EOP (Sqrt, [ e2 ]))
+        | _ ->
+            let arr_list =
+              match e2 with EArray l -> l | _ -> failwith "error in checkapp"
+            in
+            let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
+            Some (EOP (Option.get op, [ el1; el2 ])))
+  | _ -> None
+
 (** [string_of_expr] converts an FPCore expression [e] into a string in FPCore syntax *)
 let rec string_of_expr (e : expr) : string =
   match e with
@@ -260,36 +278,90 @@ let get_last lst = List.rev lst |> List.hd
 let rec remove_last lst =
   match lst with [] | [ _ ] -> [] | h :: t -> h :: remove_last t
 
+(** [transform_body core f] applies [f] to the body of [core]. *)
+let transform_body f (core : fpcore) =
+  match core with FPCore (s, a, p, b) -> FPCore (s, a, p, f b)
+
 (** [add_prop prop_lst core] appends [prop_lst] to the list of properties in
 [core]. *)
 let add_prop prop_lst = function
   | FPCore (s, arg_lst, p_lst, expr) ->
       FPCore (s, arg_lst, prop_lst @ p_lst, expr)
 
-(** [transform_ast expr] is [expr] but with every instance one of the floating operations 
+(** [transform_ast expr check] is [expr] but with every instance one of the floating operations 
   (addfp, sqrtfp, mulfp, divfp)
-  inlined away with an equivalent operation. 
-  For instance, [mulfp (x,y)] is translated as a multiplying x and y in FPCore but in a
-  context with binary 64 precision and rounding towards positive infinity. *)
-let rec transform_ast expr =
+  inlined away with an equivalent operation. How this is done is specified by [check],
+  which is applied to [e1 e2] when [expr] matches [EApp (e1,e2)]. *)
+let rec transform_ast expr check =
   match expr with
   | ENum _ -> expr
   | ESymbol _ -> expr
-  | EOP (fpop, e_lst) -> EOP (fpop, List.map transform_ast e_lst)
+  | EOP (fpop, e_lst) ->
+      EOP (fpop, List.map (fun x -> transform_ast x check) e_lst)
   | EIf (e1, e2, e3) ->
-      EIf (transform_ast e1, transform_ast e2, transform_ast e3)
+      EIf
+        (transform_ast e1 check, transform_ast e2 check, transform_ast e3 check)
   | ELet (lst, e) ->
       ELet
-        ( List.map (fun (symbol, exp) -> (symbol, transform_ast exp)) lst,
-          transform_ast e )
-  | EArray lst -> EArray (List.map transform_ast lst)
-  | ERef (e, lst) -> ERef (transform_ast e, lst)
+        ( List.map (fun (symbol, exp) -> (symbol, transform_ast exp check)) lst,
+          transform_ast e check )
+  | EArray lst -> EArray (List.map (fun x -> transform_ast x check) lst)
+  | ERef (e, lst) -> ERef (transform_ast e check, lst)
   | EConstant _ -> expr
-  | EBang (p_list, e) -> EBang (p_list, transform_ast e)
+  | EBang (p_list, e) -> EBang (p_list, transform_ast e check)
   | EApp (e1, e2) ->
       Option.default
-        (EApp (transform_ast e1, transform_ast e2))
-        (check_app e1 e2)
+        (EApp (transform_ast e1 check, transform_ast e2 check))
+        (check e1 e2)
+
+(** [check_elementary core] is [()] if any of its subexpressions contains
+  an expression of the form [EOP (op , exp)] where [op] is either [Plus],[Times],[Sqrt],
+   or [Divide]. Raises [ElementaryOperation] otherwise.  *)
+let check_elementary (core : fpcore) =
+  let rec check_elem_helper (e : expr) =
+    match e with
+    | ENum _ | ESymbol _ | EConstant _ -> false
+    | EIf (e1, e2, e3) ->
+        check_elem_helper e1 || check_elem_helper e2 || check_elem_helper e3
+    | ELet (lst, exp) ->
+        List.exists (fun (_, expr) -> check_elem_helper expr) lst
+        || check_elem_helper exp
+    | EApp (e1, e2) -> check_elem_helper e1 || check_elem_helper e2
+    | EBang (_, expr) -> check_elem_helper expr
+    | EArray lst -> List.exists check_elem_helper lst
+    | EOP (op, lst) ->
+        (match op with
+        | Plus | Times | Sqrt | Divide -> true
+        | Equals | GreaterThan | Cast -> false)
+        || List.exists check_elem_helper lst
+    | ERef (expr, _) -> check_elem_helper expr
+  in
+  let body = match core with FPCore (_, _, _, b) -> b in
+  if check_elem_helper body then
+    raise (ElementaryOperation "FPCore uses elementary operation")
+
+(** [get_core_name (FPCore (s,_,_,_))] is [s].*)
+let get_core_name = function FPCore (s, _, _, _) -> s
+
+(** [elem_names s] is [true] if [s] is [addfp,mulfp,sqrt], or [divfp]. 
+   [false] otherwise. *)
+let elem_names (s : string) =
+  match s with "addfp" | "mulfp" | "sqrtfp" | "divfp" -> true | _ -> false
+
+(** [check_prog prog] applies [check_elementary] to every [FPCore] in prog
+whose name is [None] or not one of the floating point operations in [elem_names].
+
+Hence, if any of the elements in [prog] contains an elementary operation and is
+not a floating point operation, this function raises an exception. *)
+let rec check_prog (prog : program) =
+  match prog with
+  | [] -> ()
+  | core :: t ->
+      let name = get_core_name core in
+      if name = None || not (elem_names (Option.get name)) then (
+        check_elementary core;
+        check_prog t)
+      else check_prog t
 
 (** [handle_flag prog flag] is [prog] but converted into a program
 whose calls to imported functions have been inlined if [flag] is either [NaiveInline]
@@ -298,25 +370,21 @@ let handle_flag prog flag =
   match flag with
   | Default -> List.map (add_prop [ Prec Real ]) prog
   | SmartInline ->
-      let length = List.length prog in
-      print_int length;
       let last = get_last prog in
-      let s, arg_list, p_list, body = match last with FPCore s -> s in
-      let body = transform_ast body in
       let new_core =
-        [ add_prop [ Prec Real ] (FPCore (s, arg_list, p_list, body)) ]
+        [
+          add_prop [ Prec Real ]
+            (transform_body (fun x -> transform_ast x check_app) last);
+        ]
       in
       [ inline (remove_last prog @ new_core) ]
   | NaiveInline -> [ inline prog ]
   | Decimal ->
-      let open Translate_real in
+      check_prog prog;
       let new_prog =
-        List.map
-          (fun core ->
-            add_prop rnd_and_prec (transform_body core transform_ast_elem))
-          prog
+        List.map (transform_body (fun x -> transform_ast x check_app_elem)) prog
       in
-      [ Translate_inline.inline new_prog ]
+      [ inline new_prog |> add_prop rnd_and_prec ]
 
 (** [export_prog] takes a NumFuzz [prog], converts it into FPCore with inlining/smart 
 substituion as dictated by [flag], and prints the resulting FPCore program to [outfile]*)

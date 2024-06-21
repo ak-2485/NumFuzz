@@ -1,3 +1,5 @@
+exception ElementaryOperation of string
+
 type symbol = string
 type precision = Binary64 | Binary32 | Real
 type translate_flag = Default | NaiveInline | SmartInline | Decimal
