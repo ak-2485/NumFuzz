@@ -95,45 +95,59 @@ and get_arguments (prog : term) : argument list * term =
 (** [translate_expr] converts a NumFuzz function body [body] into its equivalent FPCore expression. 
 Requires: [body] has no TMAbs terms, as FPCore does not support nested functions *)
 and translate_expr (body : term) : expr =
-  match body with
-  | TmVar (_, var_i) -> ESymbol var_i.v_name
-  | TmTens (_, t1, t2) | TmAmpersand (_, t1, t2) ->
-      EArray [ translate_expr t1; translate_expr t2 ]
-  | TmTensDest (_, b_i1, b_i2, t1, t2) ->
-      let tens = translate_expr t1 in
-      ELet
-        ( [
-            (b_i1.b_name, ERef (tens, [ 0 ])); (b_i2.b_name, ERef (tens, [ 1 ]));
-          ],
-          translate_expr t2 )
-  | TmInl (_, t) -> EArray [ EConstant True; translate_expr t ]
-  | TmInr (_, t) -> EArray [ EConstant False; translate_expr t ]
-  | TmUnionCase (_, t1, b_i2, t2, b_i3, t3) ->
-      let v1 = ERef (translate_expr t1, [ 1 ]) in
-      EIf
-        ( ERef (translate_expr t1, [ 0 ]),
-          ELet ([ (b_i2.b_name, v1) ], translate_expr t2),
-          ELet ([ (b_i3.b_name, v1) ], translate_expr t3) )
-  | TmPrim (_, tprim) -> (
-      match tprim with
-      | PrimTUnit -> ENum (-1.0)
-      | PrimTNum n -> ENum n
-      | PrimTString str -> ESymbol str
-      | PrimTFun _ ->
-          failwith "Reached unreachable PrimTFun clause."
-          (* Check with Ariel ^ *))
-  | TmRnd (_, t) -> EBang (rnd_and_prec, EOP (Cast, [ translate_expr t ]))
-  | TmRet (_, t) -> translate_expr t
-  | TmApp (_, t1, t2) -> EApp (translate_expr t1, translate_expr t2)
-  | TmAbs _ -> failwith "FPCore does not support nested functions."
-  | TmAmp1 (_, t) -> ERef (translate_expr t, [ 0 ])
-  | TmAmp2 (_, t) -> ERef (translate_expr t, [ 1 ])
-  | TmBox (_, _, t) -> translate_expr t
-  | TmBoxDest (_, b_i, t1, t2)
-  | TmLet (_, b_i, _, t1, t2)
-  | TmLetBind (_, b_i, t1, t2) ->
-      ELet ([ (b_i.b_name, translate_expr t1) ], translate_expr t2)
-  | TmOp (_, op, t) -> translate_expr_op (translate_op op) (translate_expr t)
+  let rec translate_expr' subst_map body =
+    match body with
+    | TmVar (_, var_i) -> (
+        match List.assoc_opt var_i.v_name subst_map with
+        | Some e -> e
+        | None -> ESymbol var_i.v_name)
+    | TmTens (_, t1, t2) | TmAmpersand (_, t1, t2) ->
+        EArray [ translate_expr' subst_map t1; translate_expr' subst_map t2 ]
+    | TmTensDest (_, b_i1, b_i2, t1, t2) ->
+        let tens = translate_expr' subst_map t1 in
+        ELet
+          ( [
+              (b_i1.b_name, ERef (tens, [ 0 ]));
+              (b_i2.b_name, ERef (tens, [ 1 ]));
+            ],
+            translate_expr' subst_map t2 )
+    | TmInl (_, t) -> EArray [ EConstant True; translate_expr' subst_map t ]
+    | TmInr (_, t) -> EArray [ EConstant False; translate_expr' subst_map t ]
+    | TmUnionCase (_, t1, b_i2, t2, b_i3, t3) ->
+        let v1 = ERef (translate_expr' subst_map t1, [ 1 ]) in
+        EIf
+          ( ERef (translate_expr' subst_map t1, [ 0 ]),
+            ELet ([ (b_i2.b_name, v1) ], translate_expr' subst_map t2),
+            ELet ([ (b_i3.b_name, v1) ], translate_expr' subst_map t3) )
+    | TmPrim (_, tprim) -> (
+        match tprim with
+        | PrimTUnit -> ENum (-1.0)
+        | PrimTNum n -> ENum n
+        | PrimTString str -> ESymbol str
+        | PrimTFun _ ->
+            failwith "Reached unreachable PrimTFun clause."
+            (* Check with Ariel ^ *))
+    | TmRnd (_, t) ->
+        EBang (rnd_and_prec, EOP (Cast, [ translate_expr' subst_map t ]))
+    | TmRet (_, t) -> translate_expr' subst_map t
+    | TmApp (_, t1, t2) ->
+        EApp (translate_expr' subst_map t1, translate_expr' subst_map t2)
+    | TmAbs _ -> failwith "FPCore does not support nested functions."
+    | TmAmp1 (_, t) -> ERef (translate_expr' subst_map t, [ 0 ])
+    | TmAmp2 (_, t) -> ERef (translate_expr' subst_map t, [ 1 ])
+    | TmBox (_, _, t) -> translate_expr' subst_map t
+    | TmLet (_, b_i, _, t1, t2) ->
+        ELet
+          ( [ (b_i.b_name, translate_expr' subst_map t1) ],
+            translate_expr' subst_map t2 )
+    | TmLetBind (_, b_i, t1, t2) | TmBoxDest (_, b_i, t1, t2) ->
+        translate_expr'
+          ((b_i.b_name, translate_expr' subst_map t1) :: subst_map)
+          t2
+    | TmOp (_, op, t) ->
+        translate_expr_op (translate_op op) (translate_expr' subst_map t)
+  in
+  translate_expr' [] body
 
 (** [translate_expr_op] converts a NumFuzz operator application [op] [t] into its FPCore equivalent*)
 and translate_expr_op op (t : expr) =
