@@ -1,6 +1,6 @@
 type symbol = string
 type precision = Binary64 | Binary32 | Real
-type translate_flag = Default | NaiveInline | SmartInline
+type translate_flag = Default | NaiveInline | SmartInline | Decimal
 
 type fpcore = FPCore of (symbol option * argument list * property list * expr)
 and dimension = int

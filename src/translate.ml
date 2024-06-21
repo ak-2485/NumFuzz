@@ -216,7 +216,7 @@ let rec string_of_expr (e : expr) : string =
   | ENum n -> string_of_float n
   | ESymbol str -> str
   | EOP (op, e's) ->
-      "(" ^ string_of_op op ^ " "
+      "(" ^ string_of_op op
       ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" e's
       ^ ")"
   | EIf (e1, e2, e3) ->
@@ -308,6 +308,15 @@ let handle_flag prog flag =
       in
       [ inline (remove_last prog @ new_core) ]
   | NaiveInline -> [ inline prog ]
+  | Decimal ->
+      let open Translate_real in
+      let new_prog =
+        List.map
+          (fun core ->
+            add_prop rnd_and_prec (transform_body core transform_ast_elem))
+          prog
+      in
+      [ Translate_inline.inline new_prog ]
 
 (** [export_prog] takes a NumFuzz [prog], converts it into FPCore with inlining/smart 
 substituion as dictated by [flag], and prints the resulting FPCore program to [outfile]*)
