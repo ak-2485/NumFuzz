@@ -70,6 +70,14 @@ let argDefs =
           translate_outfile := Some s),
       "Translates NumFuzz code into FPCore with concise implementations of \
        common functions and other functions inlined" );
+    ( "--translate-binary64",
+      Arg.String
+        (fun s ->
+          translate := Some Decimal;
+          translate_outfile := Some s),
+      "Translates NumFuzz code into FPCore with all operations using binary64 \
+       precision. Does not allow use of NumFuzz's real precision computations."
+    );
   ]
 
 let dp = Support.FileInfo.dummyinfo
