@@ -33,10 +33,14 @@ but which we can inline in FPCore by using an appropiate rounding context
 and the equivalent operation.*)
 let op_names (s : symbol) =
   match s with
-  | "addfp" -> Some Plus
-  | "divfp" -> Some Divide
-  | "mulfp" -> Some Times
-  | "sqrtfp" -> Some Sqrt
+  | "addfp" | "addfp_64" -> Some (Plus, Binary64)
+  | "divfp" | "divfp_64" -> Some (Divide, Binary64)
+  | "mulfp" | "mulfp_64" -> Some (Times, Binary64)
+  | "sqrtfp" | "sqrtfp_64" -> Some (Sqrt, Binary64)
+  | "addfp_32" -> Some (Plus, Binary32)
+  | "divfp_32" -> Some (Divide, Binary32)
+  | "mulfp_32" -> Some (Times, Binary32)
+  | "sqrtfp_32" -> Some (Sqrt, Binary32)
   | _ -> None
 
 (** [rnd_and_prec] is the list containing the FPCore properties for floating point
@@ -201,13 +205,14 @@ let check_app e1 e2 =
       if op = None then None
       else
         match Option.get op with
-        | Sqrt -> Some (EBang (rnd_and_prec, EOP (Sqrt, [ e2 ])))
+        | Sqrt, prec -> Some (EBang ([ Prec prec; PRound ], EOP (Sqrt, [ e2 ])))
         | _ ->
             let arr_list =
               match e2 with EArray l -> l | _ -> failwith "error in checkapp"
             in
             let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
-            Some (EBang (rnd_and_prec, EOP (Option.get op, [ el1; el2 ]))))
+            let actual_op, prec = Option.get op in
+            Some (EBang ([ Prec prec; PRound ], EOP (actual_op, [ el1; el2 ]))))
   | _ -> None
 
 (** [check_app_elem] is the same as [check_app] but it doesn't add precision or
@@ -219,13 +224,13 @@ let check_app_elem e1 e2 =
       if op = None then None
       else
         match Option.get op with
-        | Sqrt -> Some (EOP (Sqrt, [ e2 ]))
+        | Sqrt, _ -> Some (EOP (Sqrt, [ e2 ]))
         | _ ->
             let arr_list =
               match e2 with EArray l -> l | _ -> failwith "error in checkapp"
             in
             let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
-            Some (EOP (Option.get op, [ el1; el2 ])))
+            Some (EOP (Option.get op |> fst, [ el1; el2 ])))
   | _ -> None
 
 (** [string_of_expr] converts an FPCore expression [e] into a string in FPCore syntax *)
