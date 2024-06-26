@@ -296,7 +296,7 @@ let rec pp_term ppf t =
   | TmPrim(_, pt)           -> fprintf ppf "%s" (string_of_term_prim pt)
 
   (* Rounding *)
-  | TmRnd(_, tm1)           -> fprintf ppf "rnd(%a)" pp_term tm1
+  | TmRnd(_, _, tm1)           -> fprintf ppf "rnd(%a)" pp_term tm1 (* CHECK WITH ARIEL / CHANGE EVENTUALLY *)
 
   (* Ret *)
   | TmRet(_, tm1)           -> fprintf ppf "ret(%a)" pp_term tm1

@@ -220,7 +220,7 @@ type term =
   | TmPrim     of info * term_prim
 
   (* Rounding *)
-  | TmRnd of info * term
+  | TmRnd of info * int * term (* CHECK WITH ARIEL *)
 
   (* Ret *)
   | TmRet of info * term
@@ -261,8 +261,8 @@ let rec map_term_ty_aux n ft fsi tm =
     TmVar(i, v)                -> TmVar (i, v)
   | TmPrim(i, p)               -> TmPrim(i, map_prim_ty n ft p)
 
-  | TmRnd(i,      tm1)    ->
-    TmRnd(i, tf n tm1)
+  | TmRnd(i,   prec,   tm1)    ->
+    TmRnd(i, prec, tf n tm1) (* CHECK WITH ARIEL *)
 
   | TmRet(i,      tm1)    ->
     TmRet(i, tf n tm1)
@@ -339,7 +339,7 @@ let tmInfo t = match t with
     TmVar(fi, _)               -> fi
   | TmPrim(fi, _)              -> fi
 
-  | TmRnd(fi, _)              -> fi
+  | TmRnd(fi, _, _)              -> fi (* CHECK WITH ARIEL *)
 
   | TmRet(fi, _)              -> fi
 

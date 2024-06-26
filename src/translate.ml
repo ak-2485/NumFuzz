@@ -131,8 +131,8 @@ and translate_expr (body : term) : expr =
         | PrimTFun _ ->
             failwith "Reached unreachable PrimTFun clause."
             (* Check with Ariel ^ *))
-    | TmRnd (_, t) ->
-        EBang (rnd_and_prec, EOP (Cast, [ translate_expr' subst_map t ]))
+    | TmRnd (_, prec_int, t) -> let prec = (if (prec_int == 32) then Binary32 else Binary64) in
+        EBang ([ Prec prec; PRound ], EOP (Cast, [ translate_expr' subst_map t ]))
     | TmRet (_, t) -> translate_expr' subst_map t
     | TmApp (_, t1, t2) ->
         EApp (translate_expr' subst_map t1, translate_expr' subst_map t2)
