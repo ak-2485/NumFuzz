@@ -251,7 +251,7 @@ Val:
   | LBRACK Val SensTerm RBRACK
       { fun ctx -> TmBox($1, $3 ctx, $2 ctx) }
   | RND Val
-      { fun ctx -> TmRnd($1, $2 ctx) }
+      { fun ctx -> TmRnd($1, 64, $2 ctx) } (* CHECK WITH ARIEL / CHANGE EVENTUALLY *)
   | RET Val
       { fun ctx -> TmRet($1, $2 ctx) }
   | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
