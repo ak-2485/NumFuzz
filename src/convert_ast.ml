@@ -25,6 +25,7 @@ let rec convert (tree : term) (ctx : Ctx.context) : term =
   | TmPrim _ -> tree
   | TmRnd64 (i, t) -> TmRnd64 (i, convert t ctx)
   | TmRnd32 (i, t) -> TmRnd32 (i, convert t ctx)
+  | TmRnd16 (i, t) -> TmRnd16 (i, convert t ctx)
   | TmRet (i, t) -> TmRet (i, convert t ctx)
   | TmApp (i, t1, t2) -> TmApp (i, convert t1 ctx, convert t2 ctx)
   | TmAbs (i, b_i, ty, t) -> TmAbs (i, b_i, ty, convert t ctx)

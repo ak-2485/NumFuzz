@@ -6,6 +6,7 @@ open Translate_inline
 let string_of_prec = function
   | Binary64 -> "binary64"
   | Binary32 -> "binary32"
+  | Binary16 -> "binary16"
   | Real -> "real"
 
 (** [string_of_prop_inline prop] returns the string representation of [prop] according
@@ -167,6 +168,10 @@ and translate_expr (body : term) : expr =
         EBang
           ( [ Prec Binary32; PRound ],
             EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
+    | TmRnd16 (_, t) ->
+      EBang
+        ( [ Prec Binary16; PRound ],
+          EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
     | TmRet (_, t) -> translate_expr' subst_map anon_func_map t
     | TmApp (_, t1, t2) ->
         (* Check for map/fold application here *)
