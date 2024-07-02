@@ -169,9 +169,9 @@ and translate_expr (body : term) : expr =
           ( [ Prec Binary32; PRound ],
             EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
     | TmRnd16 (_, t) ->
-      EBang
-        ( [ Prec Binary16; PRound ],
-          EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
+        EBang
+          ( [ Prec Binary16; PRound ],
+            EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
     | TmRet (_, t) -> translate_expr' subst_map anon_func_map t
     | TmApp (_, t1, t2) ->
         (* Check for map/fold application here *)
@@ -382,8 +382,15 @@ let rec transform_ast expr check =
       Option.default
         (EApp (transform_ast e1 check, transform_ast e2 check))
         (check e1 e2)
-  | EFor ((s, e1), e2) ->
-      EFor ((s, transform_ast e1 check), transform_ast e2 check)
+  | EFor (s, e1, l, e2) ->
+      EFor
+        ( s,
+          transform_ast e1 check,
+          List.map
+            (fun (s, e1, e2) ->
+              (s, transform_ast e1 check, transform_ast e2 check))
+            l,
+          transform_ast e2 check )
 
 (** [check_elementary core] is [()] if any of its subexpressions contains
   an expression of the form [EOP (op , exp)] where [op] is either [Plus],[Times],[Sqrt],
@@ -406,7 +413,12 @@ let check_elementary (core : fpcore) =
         | Equals | GreaterThan | Cast -> false)
         || List.exists check_elem_helper lst
     | ERef (expr, _) -> check_elem_helper expr
-    | EFor ((_, e1), e2) -> check_elem_helper e1 || check_elem_helper e2
+    | EFor (_, e1, lst, e2) ->
+        check_elem_helper e1
+        || List.exists
+             (fun (_, e1, e2) -> check_elem_helper e1 || check_elem_helper e2)
+             lst
+        || check_elem_helper e2
   in
   let body = match core with FPCore (_, _, _, b) -> b in
   if check_elem_helper body then
