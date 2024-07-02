@@ -58,6 +58,25 @@ let translate_op (op : op) : fpop =
   | GtOp -> GreaterThan
   | EqOp -> Equals
 
+(** [unwind_abs] takes a term [t] and 
+  returns the list of parameters and the body of the function.
+  Should be called with [args] as nil [] *)
+let rec unwind_abs (t : term) (args : symbol list) : symbol list * term =
+  match t with
+  | TmAbs (_, b_i, _, t') -> unwind_abs t' (b_i.b_name :: args)
+  | _ -> (args, t)
+
+(** [unwind_app_tm] takes a term [t] and 
+    returns the list of arguments being passed into the function & the function name.
+    If it does not parse as a normal function application, returns no name.
+    Should be called with [args] as nil [] *)
+let rec unwind_app_tm (t : term) (args : term list) : symbol * term list =
+  match t with
+  | TmApp (_, t1, t2) -> unwind_app_tm t1 (t2 :: args)
+  | TmPrim (_, tprim) -> (
+      match tprim with PrimTString str -> (str, args) | _ -> ("", args))
+  | _ -> ("", args)
+
 (** [translate] converts a NumFuzz term [prog] into an equivalent FPCore program*)
 let rec translate (prog : term) : program =
   match prog with
@@ -99,30 +118,39 @@ and get_arguments (prog : term) : argument list * term =
 (** [translate_expr] converts a NumFuzz function body [body] into its equivalent FPCore expression. 
 Requires: [body] has no TMAbs terms, as FPCore does not support nested functions *)
 and translate_expr (body : term) : expr =
-  let rec translate_expr' subst_map body =
+  let rec translate_expr' subst_map anon_func_map body =
     match body with
     | TmVar (_, var_i) -> (
         match List.assoc_opt var_i.v_name subst_map with
         | Some e -> e
         | None -> ESymbol var_i.v_name)
     | TmTens (_, t1, t2) | TmAmpersand (_, t1, t2) ->
-        EArray [ translate_expr' subst_map t1; translate_expr' subst_map t2 ]
+        EArray
+          [
+            translate_expr' subst_map anon_func_map t1;
+            translate_expr' subst_map anon_func_map t2;
+          ]
     | TmTensDest (_, b_i1, b_i2, t1, t2) ->
-        let tens = translate_expr' subst_map t1 in
+        let tens = translate_expr' subst_map anon_func_map t1 in
         ELet
           ( [
               (b_i1.b_name, ERef (tens, [ 0 ]));
               (b_i2.b_name, ERef (tens, [ 1 ]));
             ],
-            translate_expr' subst_map t2 )
-    | TmInl (_, t) -> EArray [ EConstant True; translate_expr' subst_map t ]
-    | TmInr (_, t) -> EArray [ EConstant False; translate_expr' subst_map t ]
+            translate_expr' subst_map anon_func_map t2 )
+    | TmInl (_, t) ->
+        EArray [ EConstant True; translate_expr' subst_map anon_func_map t ]
+    | TmInr (_, t) ->
+        EArray [ EConstant False; translate_expr' subst_map anon_func_map t ]
     | TmUnionCase (_, t1, b_i2, t2, b_i3, t3) ->
-        let v1 = ERef (translate_expr' subst_map t1, [ 1 ]) in
+        let v1 = ERef (translate_expr' subst_map anon_func_map t1, [ 1 ]) in
         EIf
-          ( ERef (translate_expr' subst_map t1, [ 0 ]),
-            ELet ([ (b_i2.b_name, v1) ], translate_expr' subst_map t2),
-            ELet ([ (b_i3.b_name, v1) ], translate_expr' subst_map t3) )
+          ( ERef (translate_expr' subst_map anon_func_map t1, [ 0 ]),
+            ELet
+              ([ (b_i2.b_name, v1) ], translate_expr' subst_map anon_func_map t2),
+            ELet
+              ([ (b_i3.b_name, v1) ], translate_expr' subst_map anon_func_map t3)
+          )
     | TmPrim (_, tprim) -> (
         match tprim with
         | PrimTUnit -> ENum (-1.0)
@@ -131,27 +159,57 @@ and translate_expr (body : term) : expr =
         | PrimTFun _ ->
             failwith "Reached unreachable PrimTFun clause."
             (* Check with Ariel ^ *))
-    | TmRnd (_, prec_int, t) -> let prec = (if (prec_int == 32) then Binary32 else Binary64) in
-        EBang ([ Prec prec; PRound ], EOP (Cast, [ translate_expr' subst_map t ]))
-    | TmRet (_, t) -> translate_expr' subst_map t
+    | TmRnd64 (_, t) ->
+        EBang
+          ( [ Prec Binary64; PRound ],
+            EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
+    | TmRnd32 (_, t) ->
+        EBang
+          ( [ Prec Binary32; PRound ],
+            EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
+    | TmRet (_, t) -> translate_expr' subst_map anon_func_map t
     | TmApp (_, t1, t2) ->
-        EApp (translate_expr' subst_map t1, translate_expr' subst_map t2)
+        (* Check for map/fold application here *)
+        (* let name, args = unwind_app_tm body [] in
+           if Str.(string_match (regexp "map[0-9]+") name 0) then
+             let size =
+               int_of_string (String.sub name 3 (String.length name - 3))
+             in
+             replace_map
+             size
+               (List.map (translate_expr' subst_map anon_func_map) args)
+               anon_func_map
+           else *)
+        EApp
+          ( translate_expr' subst_map anon_func_map t1,
+            translate_expr' subst_map anon_func_map t2 )
     | TmAbs _ -> failwith "FPCore does not support nested functions."
-    | TmAmp1 (_, t) -> ERef (translate_expr' subst_map t, [ 0 ])
-    | TmAmp2 (_, t) -> ERef (translate_expr' subst_map t, [ 1 ])
-    | TmBox (_, _, t) -> translate_expr' subst_map t
-    | TmLet (_, b_i, _, t1, t2) ->
-        ELet
-          ( [ (b_i.b_name, translate_expr' subst_map t1) ],
-            translate_expr' subst_map t2 )
+    | TmAmp1 (_, t) -> ERef (translate_expr' subst_map anon_func_map t, [ 0 ])
+    | TmAmp2 (_, t) -> ERef (translate_expr' subst_map anon_func_map t, [ 1 ])
+    | TmBox (_, _, t) -> translate_expr' subst_map anon_func_map t
+    | TmLet (_, b_i, _, t1, t2) -> (
+        (* Check if t1 is a normal expression or an anonymous function *)
+        match t1 with
+        | TmAbs _ ->
+            let args, func_body = unwind_abs t1 [] in
+            let new_mapping =
+              ( b_i.b_name,
+                (args, translate_expr' subst_map anon_func_map func_body) )
+            in
+            translate_expr' subst_map (new_mapping :: anon_func_map) t2
+        | _ ->
+            ELet
+              ( [ (b_i.b_name, translate_expr' subst_map anon_func_map t1) ],
+                translate_expr' subst_map anon_func_map t2 ))
     | TmLetBind (_, b_i, t1, t2) | TmBoxDest (_, b_i, t1, t2) ->
         translate_expr'
-          ((b_i.b_name, translate_expr' subst_map t1) :: subst_map)
-          t2
+          ((b_i.b_name, translate_expr' subst_map anon_func_map t1) :: subst_map)
+          anon_func_map t2
     | TmOp (_, op, t) ->
-        translate_expr_op (translate_op op) (translate_expr' subst_map t)
+        translate_expr_op (translate_op op)
+          (translate_expr' subst_map anon_func_map t)
   in
-  translate_expr' [] body
+  translate_expr' [] [] body
 
 (** [translate_expr_op] converts a NumFuzz operator application [op] [t] into its FPCore equivalent*)
 and translate_expr_op op (t : expr) =
@@ -197,7 +255,7 @@ let string_of_op (op : fpop) : string =
 (** [check_app e1 e2] returns an non-empty [Option] value if [e1] is 
   a variable name that represents one of the basic floating operations (addfp,sqrtfp,divfp,mulfp)
 and returns an equivalent FPCore term that does not call these functions. If [e1] is anything
-else, this function returns [None].*)
+else, this function returns [None]. *)
 let check_app e1 e2 =
   match e1 with
   | ESymbol s -> (
@@ -256,6 +314,7 @@ let rec string_of_expr (e : expr) : string =
   | EApp (e1, e2) -> "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
   | EBang (p_lst, e) ->
       "(! " ^ string_of_prop_lst p_lst ^ " " ^ string_of_expr e ^ ")"
+  | EFor _ -> "IF LOOP" (* TODO *)
 
 (** [string_of_let_args] converts the bindings of a let expression into an FPCore string *)
 and string_of_let_args (args : (symbol * expr) list) : string =
@@ -318,6 +377,8 @@ let rec transform_ast expr check =
       Option.default
         (EApp (transform_ast e1 check, transform_ast e2 check))
         (check e1 e2)
+  | EFor ((s, e1), e2) ->
+      EFor ((s, transform_ast e1 check), transform_ast e2 check)
 
 (** [check_elementary core] is [()] if any of its subexpressions contains
   an expression of the form [EOP (op , exp)] where [op] is either [Plus],[Times],[Sqrt],
@@ -340,6 +401,7 @@ let check_elementary (core : fpcore) =
         | Equals | GreaterThan | Cast -> false)
         || List.exists check_elem_helper lst
     | ERef (expr, _) -> check_elem_helper expr
+    | EFor ((_, e1), e2) -> check_elem_helper e1 || check_elem_helper e2
   in
   let body = match core with FPCore (_, _, _, b) -> b in
   if check_elem_helper body then

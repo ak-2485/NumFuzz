@@ -23,7 +23,8 @@ let rec convert (tree : term) (ctx : Ctx.context) : term =
   | TmUnionCase (i, t1, b_i1, t2, b_i2, t3) ->
       TmUnionCase (i, convert t1 ctx, b_i1, convert t2 ctx, b_i2, convert t3 ctx)
   | TmPrim _ -> tree
-  | TmRnd (i, prec, t) -> TmRnd (i, prec, convert t ctx)
+  | TmRnd64 (i, t) -> TmRnd64 (i, convert t ctx)
+  | TmRnd32 (i, t) -> TmRnd32 (i, convert t ctx)
   | TmRet (i, t) -> TmRet (i, convert t ctx)
   | TmApp (i, t1, t2) -> TmApp (i, convert t1 ctx, convert t2 ctx)
   | TmAbs (i, b_i, ty, t) -> TmAbs (i, b_i, ty, convert t ctx)

@@ -76,7 +76,8 @@ let rec gen_term ppf t =
     | TmPrim (_, prim) -> fprintf ppf "%s" (gen_primitive prim)
 
     (* Round *)
-    | TmRnd (_, _, v) -> fprintf ppf "rnd(%a)" gen_term v (* [CHECK WITH ARIEL] *)
+    | TmRnd64 (_, v) -> fprintf ppf "rnd64(%a)" gen_term v 
+    | TmRnd32 (_, v) -> fprintf ppf "rnd32(%a)" gen_term v 
 
     (* Ret *)
     | TmRet (_, v) -> fprintf ppf "ret(%a)" gen_term v

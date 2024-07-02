@@ -49,6 +49,9 @@ let rec substitute_args_rec (subst_map : (string * expr) list) (body : expr) :
   | EConstant c -> EConstant c
   | EApp (e1, e2) -> EApp (substitute_args_rec' e1, substitute_args_rec' e2)
   | EBang _ -> body
+  | EFor ((s, e1), e2) ->
+      EFor ((s, substitute_args_rec' e1), substitute_args_rec' e2)
+(* CHECK THIS? *)
 
 (** [substitute_args] takes a function definition [func] and a list of 
   arguments [arg] and returns the function body with the arguments substituded 
@@ -80,6 +83,7 @@ let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
       | Some func_def -> substitute_args func_def args
       | None -> e)
   | EBang _ -> e
+  | EFor ((s, e1), e2) -> EFor ((s, inline_expr' e1), inline_expr' e2)
 
 (** [inline] takes in a program [prog] (list of fpcore's) and inlines all function 
   definitions into the last function. If multiples functions are defined with 
@@ -97,3 +101,12 @@ let inline (prog : fpcore list) : fpcore =
   match List.hd prog_rev with
   | FPCore (name, args, props, e) ->
       FPCore (name, args, props, inline_expr dict e)
+
+let next_var =
+  let counter = ref 0 in
+  fun () ->
+    counter := !counter + 1;
+    "$" ^ string_of_int !counter
+
+(* let replace_map args size anon_func_map =
+   let ctr = next_var () in EFor (ctr, ENum (float_of_int max), ) *)
