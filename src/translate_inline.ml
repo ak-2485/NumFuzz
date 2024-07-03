@@ -31,7 +31,7 @@ let rec substitute_args_rec (subst_map : (string * expr) list) (body : expr) :
     expr =
   let substitute_args_rec' = substitute_args_rec subst_map in
   match body with
-  | ENum n -> ENum n
+  | EFloat _ | EInt _ -> body
   | ESymbol s -> (
       match List.assoc_opt s subst_map with Some e -> e | None -> ESymbol s)
   | EOP (op, e's) -> EOP (op, List.map (fun e -> substitute_args_rec' e) e's)
@@ -84,13 +84,12 @@ inlines all occurences of those functions in [e] *)
 let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
   let inline_expr' = inline_expr dict in
   match e with
-  | ENum n -> ENum n
-  | ESymbol s -> ESymbol s
-  | EOP (op, e's) -> EOP (op, List.map (fun e -> inline_expr' e) e's)
+  | EInt _ | EFloat _ | ESymbol  _ -> e
+  | EOP (op, e's) -> EOP (op, List.map inline_expr' e's)
   | EIf (e1, e2, e3) -> EIf (inline_expr' e1, inline_expr' e2, inline_expr' e3)
   | ELet (args, e) ->
       ELet (List.map (fun (s, e) -> (s, inline_expr' e)) args, inline_expr' e)
-  | EArray e's -> EArray (List.map (fun e -> inline_expr' e) e's)
+  | EArray e's -> EArray (List.map inline_expr' e's)
   | ERef (e, d's) -> ERef (inline_expr' e, d's)
   | EConstant c -> EConstant c
   | EApp _ -> (
@@ -150,27 +149,27 @@ let replace_map args size anon_func_map =
         ( lst,
           ETensor
             ( ctr,
-              ENum (float_of_int size),
-              [ (destruct, arr, ERef (ESymbol destruct, [ ENum 1.0 ])) ],
+              EInt size,
+              [ (destruct, arr, ERef (ESymbol destruct, [ EFloat 1.0 ])) ],
               EIf
                 ( EOP
                     ( Equals,
                       [
-                        EOP (Plus, [ ESymbol ctr; ENum 1.0 ]);
-                        ENum (float_of_int size);
+                        EOP (Plus, [ ESymbol ctr; EFloat 1.0 ]);
+                        EFloat (float_of_int size);
                       ] ),
-                  EApp (map_func, ERef (ESymbol destruct, [ ENum 1.0 ])),
-                  EApp (map_func, ERef (ESymbol destruct, [ ENum 0.0 ])) ) ) );
+                  EApp (map_func, ERef (ESymbol destruct, [ EFloat 1.0 ])),
+                  EApp (map_func, ERef (ESymbol destruct, [ EFloat 0.0 ])) ) ) );
       ],
       ETensor
         ( ctr,
-          ENum (float_of_int size),
+          EInt size,
           [
             ( construct,
-              ERef (ESymbol lst, [ ENum (float_of_int (size - 1)) ]),
+              ERef (ESymbol lst, [ EInt (size - 1) ]),
               EArray [ ERef (ESymbol lst, [ ESymbol ctr ]) ] );
           ],
           EIf
-            ( EOP (Equals, [ ESymbol ctr; ENum 0.0 ]),
-              ERef (ESymbol destruct, [ ENum 1.0 ]),
-              ERef (ESymbol destruct, [ ENum 0.0 ]) ) ) )
+            ( EOP (Equals, [ ESymbol ctr; EInt 0 ]),
+              ERef (ESymbol destruct, [ EInt 1 ]),
+              ERef (ESymbol destruct, [ EInt 0 ]) ) ) )

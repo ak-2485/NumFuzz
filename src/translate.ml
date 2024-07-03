@@ -135,8 +135,8 @@ and translate_expr (body : term) : expr =
         let tens = translate_expr' subst_map anon_func_map t1 in
         ELet
           ( [
-              (b_i1.b_name, ERef (tens, [ ENum 0.0 ]));
-              (b_i2.b_name, ERef (tens, [ ENum 1.0 ]));
+              (b_i1.b_name, ERef (tens, [ EInt 0 ]));
+              (b_i2.b_name, ERef (tens, [ EInt 1 ]));
             ],
             translate_expr' subst_map anon_func_map t2 )
     | TmInl (_, t) ->
@@ -145,10 +145,10 @@ and translate_expr (body : term) : expr =
         EArray [ EConstant False; translate_expr' subst_map anon_func_map t ]
     | TmUnionCase (_, t1, b_i2, t2, b_i3, t3) ->
         let v1 =
-          ERef (translate_expr' subst_map anon_func_map t1, [ ENum 1.0 ])
+          ERef (translate_expr' subst_map anon_func_map t1, [ EInt 1 ])
         in
         EIf
-          ( ERef (translate_expr' subst_map anon_func_map t1, [ ENum 0.0 ]),
+          ( ERef (translate_expr' subst_map anon_func_map t1, [ EInt 0 ]),
             ELet
               ([ (b_i2.b_name, v1) ], translate_expr' subst_map anon_func_map t2),
             ELet
@@ -156,8 +156,8 @@ and translate_expr (body : term) : expr =
           )
     | TmPrim (_, tprim) -> (
         match tprim with
-        | PrimTUnit -> ENum (-1.0)
-        | PrimTNum n -> ENum n
+        | PrimTUnit -> EFloat (-1.0)
+        | PrimTNum n -> EFloat n
         | PrimTString str -> ESymbol str
         | PrimTFun _ ->
             failwith "Reached unreachable PrimTFun clause."
@@ -192,9 +192,9 @@ and translate_expr (body : term) : expr =
             translate_expr' subst_map anon_func_map t2 )
     | TmAbs _ -> failwith "FPCore does not support nested functions."
     | TmAmp1 (_, t) ->
-        ERef (translate_expr' subst_map anon_func_map t, [ ENum 0.0 ])
+        ERef (translate_expr' subst_map anon_func_map t, [ EInt 0 ])
     | TmAmp2 (_, t) ->
-        ERef (translate_expr' subst_map anon_func_map t, [ ENum 1.0 ])
+        ERef (translate_expr' subst_map anon_func_map t, [ EInt 0 ])
     | TmBox (_, _, t) -> translate_expr' subst_map anon_func_map t
     | TmLet (_, b_i, _, t1, t2) -> (
         (* Check if t1 is a normal expression or an anonymous function *)
@@ -224,7 +224,7 @@ and translate_expr (body : term) : expr =
 and translate_expr_op op (t : expr) =
   match op with
   | Plus | Times | Divide | Equals | GreaterThan ->
-      EOP (op, [ ERef (t, [ ENum 0.0 ]); ERef (t, [ ENum 1.0 ]) ])
+      EOP (op, [ ERef (t, [ EInt 0 ]); ERef (t, [ EInt 0 ]) ])
   | Sqrt | Cast -> EOP (op, [ t ])
 
 (** [string_of_name] takes a string option [name] and returns the string with a trailing space,
@@ -303,7 +303,8 @@ let check_app_elem e1 e2 =
 (** [string_of_expr] converts an FPCore expression [e] into a string in FPCore syntax *)
 let rec string_of_expr (e : expr) : string =
   match e with
-  | ENum n -> string_of_float n
+  | EFloat n -> string_of_float n
+  | EInt n -> string_of_int n
   | ESymbol str -> str
   | EOP (op, e's) ->
       "(" ^ string_of_op op
@@ -371,7 +372,7 @@ let add_prop prop_lst = function
   which is applied to [e1 e2] when [expr] matches [EApp (e1,e2)]. *)
 let rec transform_ast expr check =
   match expr with
-  | ENum _ -> expr
+  | EFloat _ | EInt _ -> expr
   | ESymbol _ -> expr
   | EOP (fpop, e_lst) ->
       EOP (fpop, List.map (fun x -> transform_ast x check) e_lst)
@@ -415,7 +416,7 @@ let rec transform_ast expr check =
 let check_elementary (core : fpcore) =
   let rec check_elem_helper (e : expr) =
     match e with
-    | ENum _ | ESymbol _ | EConstant _ -> false
+    | EFloat _ | EInt _ | ESymbol _ | EConstant _ -> false
     | EIf (e1, e2, e3) ->
         check_elem_helper e1 || check_elem_helper e2 || check_elem_helper e3
     | ELet (lst, exp) ->

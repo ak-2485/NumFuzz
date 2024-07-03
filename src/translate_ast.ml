@@ -9,7 +9,8 @@ and dimension = int
 and argument = ASymbol of symbol | Array of (symbol * dimension list)
 
 and expr =
-  | ENum of float
+  | EFloat of float
+  | EInt of int
   | ESymbol of symbol
   | EOP of (fpop * expr list)
   | EIf of (expr * expr * expr)
