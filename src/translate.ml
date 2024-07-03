@@ -277,13 +277,14 @@ let check_app e1 e2 =
       else
         match Option.get op with
         | Sqrt, prec -> Some (EBang ([ Prec prec; PRound ], EOP (Sqrt, [ e2 ])))
-        | _ ->
-            let arr_list =
-              match e2 with EArray l -> l | _ -> failwith "error in checkapp"
-            in
-            let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
-            let actual_op, prec = Option.get op in
-            Some (EBang ([ Prec prec; PRound ], EOP (actual_op, [ el1; el2 ]))))
+        | _ -> (
+            match e2 with
+            | EArray arr_list ->
+                let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
+                let actual_op, prec = Option.get op in
+                Some
+                  (EBang ([ Prec prec; PRound ], EOP (actual_op, [ el1; el2 ])))
+            | _ -> None))
   | _ -> None
 
 (** [check_app_elem] is the same as [check_app] but it doesn't add precision or
