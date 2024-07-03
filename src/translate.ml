@@ -135,8 +135,8 @@ and translate_expr (body : term) : expr =
         let tens = translate_expr' subst_map anon_func_map t1 in
         ELet
           ( [
-              (b_i1.b_name, ERef (tens, [ 0 ]));
-              (b_i2.b_name, ERef (tens, [ 1 ]));
+              (b_i1.b_name, ERef (tens, [ ENum 0.0 ]));
+              (b_i2.b_name, ERef (tens, [ ENum 1.0 ]));
             ],
             translate_expr' subst_map anon_func_map t2 )
     | TmInl (_, t) ->
@@ -144,9 +144,11 @@ and translate_expr (body : term) : expr =
     | TmInr (_, t) ->
         EArray [ EConstant False; translate_expr' subst_map anon_func_map t ]
     | TmUnionCase (_, t1, b_i2, t2, b_i3, t3) ->
-        let v1 = ERef (translate_expr' subst_map anon_func_map t1, [ 1 ]) in
+        let v1 =
+          ERef (translate_expr' subst_map anon_func_map t1, [ ENum 1.0 ])
+        in
         EIf
-          ( ERef (translate_expr' subst_map anon_func_map t1, [ 0 ]),
+          ( ERef (translate_expr' subst_map anon_func_map t1, [ ENum 0.0 ]),
             ELet
               ([ (b_i2.b_name, v1) ], translate_expr' subst_map anon_func_map t2),
             ELet
@@ -189,8 +191,10 @@ and translate_expr (body : term) : expr =
           ( translate_expr' subst_map anon_func_map t1,
             translate_expr' subst_map anon_func_map t2 )
     | TmAbs _ -> failwith "FPCore does not support nested functions."
-    | TmAmp1 (_, t) -> ERef (translate_expr' subst_map anon_func_map t, [ 0 ])
-    | TmAmp2 (_, t) -> ERef (translate_expr' subst_map anon_func_map t, [ 1 ])
+    | TmAmp1 (_, t) ->
+        ERef (translate_expr' subst_map anon_func_map t, [ ENum 0.0 ])
+    | TmAmp2 (_, t) ->
+        ERef (translate_expr' subst_map anon_func_map t, [ ENum 1.0 ])
     | TmBox (_, _, t) -> translate_expr' subst_map anon_func_map t
     | TmLet (_, b_i, _, t1, t2) -> (
         (* Check if t1 is a normal expression or an anonymous function *)
@@ -220,7 +224,7 @@ and translate_expr (body : term) : expr =
 and translate_expr_op op (t : expr) =
   match op with
   | Plus | Times | Divide | Equals | GreaterThan ->
-      EOP (op, [ ERef (t, [ 0 ]); ERef (t, [ 1 ]) ])
+      EOP (op, [ ERef (t, [ ENum 0.0 ]); ERef (t, [ ENum 1.0 ]) ])
   | Sqrt | Cast -> EOP (op, [ t ])
 
 (** [string_of_name] takes a string option [name] and returns the string with a trailing space,
@@ -314,12 +318,16 @@ let rec string_of_expr (e : expr) : string =
       "(array "
       ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" vals
       ^ ")"
-  | ERef (e, ds) -> "(ref " ^ string_of_expr e ^ string_of_dim_list ds ^ ")"
+  | ERef (e, ds) ->
+      "(ref " ^ string_of_expr e
+      ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" ds
+      ^ ")"
   | EConstant c -> ( match c with True -> "TRUE" | False -> "FALSE")
   | EApp (e1, e2) -> "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
   | EBang (p_lst, e) ->
       "(! " ^ string_of_prop_lst p_lst ^ " " ^ string_of_expr e ^ ")"
-  | ETensor _ -> "IF LOOP" (* TODO *)
+  | ETensor _ -> "TENSOR LOOP" (* TODO *)
+  | EFor _ -> "FOR LOOP" (* TODO *)
 
 (** [string_of_let_args] converts the bindings of a let expression into an FPCore string *)
 and string_of_let_args (args : (symbol * expr) list) : string =
@@ -391,6 +399,15 @@ let rec transform_ast expr check =
               (s, transform_ast e1 check, transform_ast e2 check))
             l,
           transform_ast e2 check )
+  | EFor (s, e1, l, e2) ->
+      EFor
+        ( s,
+          transform_ast e1 check,
+          List.map
+            (fun (s, e1, e2) ->
+              (s, transform_ast e1 check, transform_ast e2 check))
+            l,
+          transform_ast e2 check )
 
 (** [check_elementary core] is [()] if any of its subexpressions contains
   an expression of the form [EOP (op , exp)] where [op] is either [Plus],[Times],[Sqrt],
@@ -413,7 +430,7 @@ let check_elementary (core : fpcore) =
         | Equals | GreaterThan | Cast -> false)
         || List.exists check_elem_helper lst
     | ERef (expr, _) -> check_elem_helper expr
-    | ETensor (_, e1, lst, e2) ->
+    | ETensor (_, e1, lst, e2) | EFor (_, e1, lst, e2) ->
         check_elem_helper e1
         || List.exists
              (fun (_, e1, e2) -> check_elem_helper e1 || check_elem_helper e2)

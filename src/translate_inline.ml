@@ -58,6 +58,15 @@ let rec substitute_args_rec (subst_map : (string * expr) list) (body : expr) :
               (s, substitute_args_rec' e1, substitute_args_rec' e2))
             l,
           substitute_args_rec' e2 )
+  | EFor (s, e1, l, e2) ->
+      EFor
+        ( s,
+          substitute_args_rec' e1,
+          List.map
+            (fun (s, e1, e2) ->
+              (s, substitute_args_rec' e1, substitute_args_rec' e2))
+            l,
+          substitute_args_rec' e2 )
 (* CHECK THIS? *)
 
 (** [substitute_args] takes a function definition [func] and a list of 
@@ -96,6 +105,12 @@ let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
           inline_expr' e1,
           List.map (fun (s, e1, e2) -> (s, inline_expr' e1, inline_expr' e2)) l,
           inline_expr' e2 )
+  | EFor (s, e1, l, e2) ->
+      EFor
+        ( s,
+          inline_expr' e1,
+          List.map (fun (s, e1, e2) -> (s, inline_expr' e1, inline_expr' e2)) l,
+          inline_expr' e2 )
 
 (** [inline] takes in a program [prog] (list of fpcore's) and inlines all function 
   definitions into the last function. If multiples functions are defined with 
@@ -129,14 +144,14 @@ let replace_map args size anon_func_map =
   let ctr = next_var () in
   let destruct = next_var () in
   let lst = next_var () in
-  let first_loop = [ (destruct, arr, ERef (ESymbol destruct, [ 1 ])) ] in
+  let construct = next_var () in
   ELet
     ( [
         ( lst,
           ETensor
             ( ctr,
               ENum (float_of_int size),
-              first_loop,
+              [ (destruct, arr, ERef (ESymbol destruct, [ ENum 1.0 ])) ],
               EIf
                 ( EOP
                     ( Equals,
@@ -144,7 +159,18 @@ let replace_map args size anon_func_map =
                         EOP (Plus, [ ESymbol ctr; ENum 1.0 ]);
                         ENum (float_of_int size);
                       ] ),
-                  EApp (map_func, ERef (ESymbol destruct, [ 1 ])),
-                  EApp (map_func, ERef (ESymbol destruct, [ 0 ])) ) ) );
+                  EApp (map_func, ERef (ESymbol destruct, [ ENum 1.0 ])),
+                  EApp (map_func, ERef (ESymbol destruct, [ ENum 0.0 ])) ) ) );
       ],
-      ESymbol "next loop" )
+      ETensor
+        ( ctr,
+          ENum (float_of_int size),
+          [
+            ( construct,
+              ERef (ESymbol lst, [ ENum (float_of_int (size - 1)) ]),
+              EArray [ ERef (ESymbol lst, [ ESymbol ctr ]) ] );
+          ],
+          EIf
+            ( EOP (Equals, [ ESymbol ctr; ENum 0.0 ]),
+              ERef (ESymbol destruct, [ ENum 1.0 ]),
+              ERef (ESymbol destruct, [ ENum 0.0 ]) ) ) )
