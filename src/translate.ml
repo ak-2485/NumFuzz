@@ -327,8 +327,20 @@ let rec string_of_expr (e : expr) : string =
   | EApp (e1, e2) -> "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
   | EBang (p_lst, e) ->
       "(! " ^ string_of_prop_lst p_lst ^ " " ^ string_of_expr e ^ ")"
-  | ETensor _ -> "TENSOR LOOP" (* TODO *)
-  | EFor _ -> "FOR LOOP" (* TODO *)
+  | ETensor (s1, e1, lst, e2) ->
+      "(tensor* " ^ "( [ " ^ s1 ^ " " ^ string_of_expr e1 ^ " ] ) \n" ^ "( "
+      ^ List.fold_left
+          (fun acc (s, e1', e2') ->
+            acc ^ " [ " ^ s ^ string_of_expr e1' ^ string_of_expr e2' ^ " ]")
+          "" lst
+      ^ " ) " ^ string_of_expr e2 ^ " )"
+  | EFor (s1, e1, lst, e2) ->
+      "(for " ^ "( [ " ^ s1 ^ " " ^ string_of_expr e1 ^ " ] ) \n" ^ "( "
+      ^ List.fold_left
+          (fun acc (s, e1', e2') ->
+            acc ^ " [ " ^ s ^ string_of_expr e1' ^ string_of_expr e2' ^ " ]")
+          "" lst
+      ^ " ) " ^ string_of_expr e2 ^ " )"
 
 (** [string_of_let_args] converts the bindings of a let expression into an FPCore string *)
 and string_of_let_args (args : (symbol * expr) list) : string =
