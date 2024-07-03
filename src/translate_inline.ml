@@ -161,7 +161,7 @@ let replace_map args size anon_func_map =
         ],
         EFor
           ( ctr,
-            EInt size,
+            EInt (size - 1),
             [
               ( construct,
                 ERef (ESymbol lst, [ EInt (size - 1) ]),
@@ -169,10 +169,7 @@ let replace_map args size anon_func_map =
                   [
                     ERef
                       ( ESymbol lst,
-                        [
-                          EOP
-                            (Plus (* MINUS *), [ EInt (size - 1); ESymbol ctr ]);
-                        ] );
+                        [ EOP (Minus, [ EInt (size - 2); ESymbol ctr ]) ] );
                     ESymbol construct;
                   ] );
             ],
