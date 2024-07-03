@@ -84,7 +84,7 @@ inlines all occurences of those functions in [e] *)
 let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
   let inline_expr' = inline_expr dict in
   match e with
-  | EInt _ | EFloat _ | ESymbol  _ -> e
+  | EInt _ | EFloat _ | ESymbol _ -> e
   | EOP (op, e's) -> EOP (op, List.map inline_expr' e's)
   | EIf (e1, e2, e3) -> EIf (inline_expr' e1, inline_expr' e2, inline_expr' e3)
   | ELet (args, e) ->
@@ -144,32 +144,43 @@ let replace_map args size anon_func_map =
   let destruct = next_var () in
   let lst = next_var () in
   let construct = next_var () in
-  ELet
-    ( [
-        ( lst,
-          ETensor
-            ( ctr,
-              EInt size,
-              [ (destruct, arr, ERef (ESymbol destruct, [ EFloat 1.0 ])) ],
-              EIf
-                ( EOP
-                    ( Equals,
-                      [
-                        EOP (Plus, [ ESymbol ctr; EFloat 1.0 ]);
-                        EFloat (float_of_int size);
-                      ] ),
-                  EApp (map_func, ERef (ESymbol destruct, [ EFloat 1.0 ])),
-                  EApp (map_func, ERef (ESymbol destruct, [ EFloat 0.0 ])) ) ) );
-      ],
-      ETensor
-        ( ctr,
-          EInt size,
-          [
-            ( construct,
-              ERef (ESymbol lst, [ EInt (size - 1) ]),
-              EArray [ ERef (ESymbol lst, [ ESymbol ctr ]) ] );
-          ],
-          EIf
-            ( EOP (Equals, [ ESymbol ctr; EInt 0 ]),
-              ERef (ESymbol destruct, [ EInt 1 ]),
-              ERef (ESymbol destruct, [ EInt 0 ]) ) ) )
+  let prog =
+    ELet
+      ( [
+          ( lst,
+            ETensor
+              ( ctr,
+                EInt size,
+                [ (destruct, arr, ERef (ESymbol destruct, [ EInt 1 ])) ],
+                EIf
+                  ( EOP
+                      ( Equals,
+                        [ EOP (Plus, [ ESymbol ctr; EInt 1 ]); EInt size ] ),
+                    EApp (map_func, ERef (ESymbol destruct, [ EInt 1 ])),
+                    EApp (map_func, ERef (ESymbol destruct, [ EInt 0 ])) ) ) );
+        ],
+        EFor
+          ( ctr,
+            EInt size,
+            [
+              ( construct,
+                ERef (ESymbol lst, [ EInt (size - 1) ]),
+                EArray
+                  [
+                    ERef
+                      ( ESymbol lst,
+                        [
+                          EOP
+                            (Plus (* MINUS *), [ EInt (size - 1); ESymbol ctr ]);
+                        ] );
+                    ESymbol construct;
+                  ] );
+            ],
+            ESymbol construct ) )
+  in
+  let func_map =
+    List.map
+      (fun (s, (args, e)) -> (s, FPCore (Some s, args, [], e)))
+      anon_func_map
+  in
+  inline_expr func_map prog

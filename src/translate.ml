@@ -62,9 +62,9 @@ let translate_op (op : op) : fpop =
 (** [unwind_abs] takes a term [t] and 
   returns the list of parameters and the body of the function.
   Should be called with [args] as nil [] *)
-let rec unwind_abs (t : term) (args : symbol list) : symbol list * term =
+let rec unwind_abs (t : term) (args : argument list) : argument list * term =
   match t with
-  | TmAbs (_, b_i, _, t') -> unwind_abs t' (b_i.b_name :: args)
+  | TmAbs (_, b_i, _, t') -> unwind_abs t' (ASymbol b_i.b_name :: args)
   | _ -> (args, t)
 
 (** [unwind_app_tm] takes a term [t] and 
@@ -76,6 +76,7 @@ let rec unwind_app_tm (t : term) (args : term list) : symbol * term list =
   | TmApp (_, t1, t2) -> unwind_app_tm t1 (t2 :: args)
   | TmPrim (_, tprim) -> (
       match tprim with PrimTString str -> (str, args) | _ -> ("", args))
+  | TmVar (_, v_i) -> (v_i.v_name, args)
   | _ -> ("", args)
 
 (** [translate] converts a NumFuzz term [prog] into an equivalent FPCore program*)
@@ -177,19 +178,21 @@ and translate_expr (body : term) : expr =
     | TmRet (_, t) -> translate_expr' subst_map anon_func_map t
     | TmApp (_, t1, t2) ->
         (* Check for map/fold application here *)
-        (* let name, args = unwind_app_tm body [] in
-           if Str.(string_match (regexp "map[0-9]+") name 0) then
-             let size =
-               int_of_string (String.sub name 3 (String.length name - 3))
-             in
-             replace_map
-             size
-               (List.map (translate_expr' subst_map anon_func_map) args)
-               anon_func_map
-           else *)
-        EApp
-          ( translate_expr' subst_map anon_func_map t1,
-            translate_expr' subst_map anon_func_map t2 )
+        let name, args = unwind_app_tm body [] in
+        (* if Str.(string_match (regexp "map[0-9]+") name 0) then *)
+        if String.length name >= 3 && String.sub name 0 3 = "map" then
+          let _ = print_endline "map found" in
+          let size =
+            4
+            (* int_of_string (String.sub name 3 (String.length name - 3)) *)
+          in
+          replace_map
+            (List.map (translate_expr' subst_map anon_func_map) args)
+            size anon_func_map
+        else
+          EApp
+            ( translate_expr' subst_map anon_func_map t1,
+              translate_expr' subst_map anon_func_map t2 )
     | TmAbs _ -> failwith "FPCore does not support nested functions."
     | TmAmp1 (_, t) ->
         ERef (translate_expr' subst_map anon_func_map t, [ EInt 0 ])
@@ -331,14 +334,16 @@ let rec string_of_expr (e : expr) : string =
       "(tensor* " ^ "( [ " ^ s1 ^ " " ^ string_of_expr e1 ^ " ] ) \n" ^ "( "
       ^ List.fold_left
           (fun acc (s, e1', e2') ->
-            acc ^ " [ " ^ s ^ string_of_expr e1' ^ string_of_expr e2' ^ " ]")
+            acc ^ " [ " ^ s ^ " " ^ string_of_expr e1' ^ " "
+            ^ string_of_expr e2' ^ " ]")
           "" lst
       ^ " ) " ^ string_of_expr e2 ^ " )"
   | EFor (s1, e1, lst, e2) ->
       "(for " ^ "( [ " ^ s1 ^ " " ^ string_of_expr e1 ^ " ] ) \n" ^ "( "
       ^ List.fold_left
           (fun acc (s, e1', e2') ->
-            acc ^ " [ " ^ s ^ string_of_expr e1' ^ string_of_expr e2' ^ " ]")
+            acc ^ " [ " ^ s ^ " " ^ string_of_expr e1' ^ " "
+            ^ string_of_expr e2' ^ " ]")
           "" lst
       ^ " ) " ^ string_of_expr e2 ^ " )"
 
