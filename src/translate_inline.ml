@@ -49,8 +49,8 @@ let rec substitute_args_rec (subst_map : (string * expr) list) (body : expr) :
   | EConstant c -> EConstant c
   | EApp (e1, e2) -> EApp (substitute_args_rec' e1, substitute_args_rec' e2)
   | EBang _ -> body
-  | EFor (s, e1, l, e2) ->
-      EFor
+  | ETensor (s, e1, l, e2) ->
+      ETensor
         ( s,
           substitute_args_rec' e1,
           List.map
@@ -90,8 +90,8 @@ let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
       | Some func_def -> substitute_args func_def args
       | None -> e)
   | EBang _ -> e
-  | EFor (s, e1, l, e2) ->
-      EFor
+  | ETensor (s, e1, l, e2) ->
+      ETensor
         ( s,
           inline_expr' e1,
           List.map (fun (s, e1, e2) -> (s, inline_expr' e1, inline_expr' e2)) l,
@@ -128,24 +128,23 @@ let replace_map args size anon_func_map =
   in
   let ctr = next_var () in
   let destruct = next_var () in
-  let first_loop =
-    [
-      ( destruct,
-        arr,
-        ERef (ESymbol destruct, [ 1 ])
-        (* Apply map_func to first elem of result, then set result to the second elem of result. Need to check to do something special for the last iteration *)
-      );
-    ]
-  in
-  EFor
-    ( ctr,
-      ENum (float_of_int size),
-      first_loop,
-      EIf
-        ( EOP
-            ( Equals,
-              [
-                EOP (Plus, [ ESymbol ctr; ENum 1.0 ]); ENum (float_of_int size);
-              ] ),
-          ERef (ESymbol destruct, [ 1 ]),
-          ERef (ESymbol destruct, [ 0 ]) ) )
+  let lst = next_var () in
+  let first_loop = [ (destruct, arr, ERef (ESymbol destruct, [ 1 ])) ] in
+  ELet
+    ( [
+        ( lst,
+          ETensor
+            ( ctr,
+              ENum (float_of_int size),
+              first_loop,
+              EIf
+                ( EOP
+                    ( Equals,
+                      [
+                        EOP (Plus, [ ESymbol ctr; ENum 1.0 ]);
+                        ENum (float_of_int size);
+                      ] ),
+                  EApp (map_func, ERef (ESymbol destruct, [ 1 ])),
+                  EApp (map_func, ERef (ESymbol destruct, [ 0 ])) ) ) );
+      ],
+      ESymbol "next loop" )

@@ -319,7 +319,7 @@ let rec string_of_expr (e : expr) : string =
   | EApp (e1, e2) -> "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
   | EBang (p_lst, e) ->
       "(! " ^ string_of_prop_lst p_lst ^ " " ^ string_of_expr e ^ ")"
-  | EFor _ -> "IF LOOP" (* TODO *)
+  | ETensor _ -> "IF LOOP" (* TODO *)
 
 (** [string_of_let_args] converts the bindings of a let expression into an FPCore string *)
 and string_of_let_args (args : (symbol * expr) list) : string =
@@ -382,8 +382,8 @@ let rec transform_ast expr check =
       Option.default
         (EApp (transform_ast e1 check, transform_ast e2 check))
         (check e1 e2)
-  | EFor (s, e1, l, e2) ->
-      EFor
+  | ETensor (s, e1, l, e2) ->
+      ETensor
         ( s,
           transform_ast e1 check,
           List.map
@@ -413,7 +413,7 @@ let check_elementary (core : fpcore) =
         | Equals | GreaterThan | Cast -> false)
         || List.exists check_elem_helper lst
     | ERef (expr, _) -> check_elem_helper expr
-    | EFor (_, e1, lst, e2) ->
+    | ETensor (_, e1, lst, e2) ->
         check_elem_helper e1
         || List.exists
              (fun (_, e1, e2) -> check_elem_helper e1 || check_elem_helper e2)

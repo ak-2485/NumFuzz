@@ -19,7 +19,7 @@ and expr =
   | EConstant of constant
   | EApp of expr * expr
   | EBang of property list * expr
-  | EFor of symbol * expr * (symbol * expr * expr) list * expr
+  | ETensor of symbol * expr * (symbol * expr * expr) list * expr
 
 and data = DSymbol of symbol | DNum of float
 and fpop = Plus | Times | Divide | Sqrt | Equals | GreaterThan | Cast
