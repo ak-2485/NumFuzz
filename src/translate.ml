@@ -81,7 +81,20 @@ let rec unwind_app_tm (t : term) (args : term list) : symbol * term list =
   | TmVar (_, v_i) -> (v_i.v_name, args)
   | _ -> ("", args)
 
-(** [translate] converts a NumFuzz term [prog] into an equivalent FPCore program*)
+(** Given a term [t] of nested pairs, returns the number of elements *)
+let size_of_nested_list (t : term) : int =
+  let ty = Ty_bi.get_type t in
+  let rec size_of_nested_list' ty i =
+    match ty with
+    | TyAmpersand (t1, t2) ->
+        if t1 == t2 then i else size_of_nested_list' t2 (i + 1)
+    | _ ->
+        failwith
+          "Input to map/fold function is not a proper list of nested pairs"
+  in
+  size_of_nested_list' ty 0
+
+(** [translate] converts a NumFuzz term [prog] into an equivalent FPCore program *)
 let rec translate (prog : term) : program =
   match prog with
   | TmAbs _ ->
@@ -186,10 +199,24 @@ and translate_expr (body : term) : expr =
         in
         (* if Str.(string_match (regexp "map[0-9]+") name 0) then *)
         if String.length name >= 3 && String.sub name 0 3 = "map" then
-          let size = 4 (* TODO: FIND SIZE OF MAP *) in
+          let size =
+            size_of_nested_list
+              (match arg_terms with
+              | [ t; _ ] -> t
+              | _ ->
+                  failwith
+                    "Wrong number of arguments for map function (Expected: 2)")
+          in
           replace_map args size anon_func_map
         else if String.length name >= 4 && String.sub name 0 4 = "fold" then
-          let size = 4 (* TODO: FIND SIZE OF FOLD *) in
+          let size =
+            size_of_nested_list
+              (match arg_terms with
+              | [ _; t ] -> t
+              | _ ->
+                  failwith
+                    "Wrong number of arguments for fold function (Expected: 2)")
+          in
           replace_fold args size anon_func_map
         else
           (* Not a map or a fold; check for anonymous function to inline *)

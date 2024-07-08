@@ -147,7 +147,7 @@ let replace_map args size anon_func_map =
   let arr, map_func =
     match args with
     | [ h; t ] -> (h, t)
-    | _ -> failwith "Wrong number of arguments for map function (should be 2)"
+    | _ -> failwith "Wrong number of arguments for map function (Expected: 2)"
   in
   let ctr = next_var () in
   let destruct = next_var () in
@@ -191,7 +191,7 @@ let replace_fold args size anon_func_map =
   let func, arr =
     match args with
     | [ h; t ] -> (h, t)
-    | _ -> failwith "Wrong number of arguments for fold function (should be 2)"
+    | _ -> failwith "Wrong number of arguments for fold function (Expected: 2)"
   in
   let ctr = next_var () in
   let destruct = next_var () in
