@@ -1,14 +1,5 @@
 open Translate_ast
 
-(** [unwind_app] takes an expression of a function application [e] and 
-  returns the list of arguments being passed into the function.
-  Should be called with [args] as nil [] *)
-let rec unwind_app (e : expr) (args : expr list) : symbol * expr list =
-  match e with
-  | EApp (e1, e2) -> unwind_app e1 (e2 :: args)
-  | ESymbol name -> (name, args)
-  | _ -> failwith "Unable to parse function call while inlining"
-
 (** [build_arg_sub_map] takes a list [vars] and a list [args] and creates an 
   association list mapping the nth element of [vars] to the nth element of [lists].
   Requires: [vars] and [args] are the same length *)
@@ -44,10 +35,11 @@ let rec substitute_args_rec (subst_map : (string * expr) list) (body : expr) :
       ELet
         ( List.map (fun (s, e) -> (s, substitute_args_rec' e)) args,
           substitute_args_rec' e )
-  | EArray e's -> EArray (List.map (fun e -> substitute_args_rec' e) e's)
+  | EArray e's -> EArray (List.map substitute_args_rec' e's)
   | ERef (e, d's) -> ERef (substitute_args_rec' e, d's)
   | EConstant c -> EConstant c
-  | EApp (e1, e2) -> EApp (substitute_args_rec' e1, substitute_args_rec' e2)
+  | EApp (e1, e's) ->
+      EApp (substitute_args_rec' e1, List.map substitute_args_rec' e's)
   | EBang _ -> body
   | ETensor (s, e1, l, e2) ->
       ETensor
@@ -92,8 +84,12 @@ let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
   | EArray e's -> EArray (List.map inline_expr' e's)
   | ERef (e, d's) -> ERef (inline_expr' e, d's)
   | EConstant c -> EConstant c
-  | EApp _ -> (
-      let name, args = unwind_app e [] in
+  | EApp (f, args) -> (
+      let name =
+        match f with
+        | ESymbol s -> s
+        | _ -> failwith "function being applied is not a symbol"
+      in
       match List.assoc_opt name dict with
       | Some func_def -> substitute_args func_def args
       | None -> e)
@@ -156,8 +152,9 @@ let replace_map args size anon_func_map =
                   ( EOP
                       ( Equals,
                         [ EOP (Plus, [ ESymbol ctr; EInt 1 ]); EInt size ] ),
-                    EApp (map_func, ERef (ESymbol destruct, [ EInt 1 ])),
-                    EApp (map_func, ERef (ESymbol destruct, [ EInt 0 ])) ) ) );
+                    EApp (map_func, [ ERef (ESymbol destruct, [ EInt 1 ]) ]),
+                    EApp (map_func, [ ERef (ESymbol destruct, [ EInt 0 ]) ]) )
+              ) );
         ],
         EFor
           ( ctr,
@@ -172,6 +169,55 @@ let replace_map args size anon_func_map =
                         [ EOP (Minus, [ EInt (size - 2); ESymbol ctr ]) ] );
                     ESymbol construct;
                   ] );
+            ],
+            ESymbol construct ) )
+  in
+  let func_map =
+    List.map
+      (fun (s, (args, e)) -> (s, FPCore (Some s, args, [], e)))
+      anon_func_map
+  in
+  inline_expr func_map prog
+
+let replace_fold args size anon_func_map =
+  let func, arr =
+    match args with
+    | [ h; t ] -> (h, t)
+    | _ -> failwith "Wrong number of arguments for fold function (should be 2)"
+  in
+  let ctr = next_var () in
+  let destruct = next_var () in
+  let lst = next_var () in
+  let construct = next_var () in
+  let prog =
+    ELet
+      ( [
+          ( lst,
+            ETensor
+              ( ctr,
+                EInt size,
+                [ (destruct, arr, ERef (ESymbol destruct, [ EInt 1 ])) ],
+                EIf
+                  ( EOP
+                      ( Equals,
+                        [ EOP (Plus, [ ESymbol ctr; EInt 1 ]); EInt size ] ),
+                    ERef (ESymbol destruct, [ EInt 1 ]),
+                    ERef (ESymbol destruct, [ EInt 0 ]) ) ) );
+        ],
+        EFor
+          ( ctr,
+            EInt (size - 1),
+            [
+              ( construct,
+                ERef (ESymbol lst, [ EInt (size - 1) ]),
+                EApp
+                  ( func,
+                    [
+                      ERef
+                        ( ESymbol lst,
+                          [ EOP (Minus, [ EInt (size - 2); ESymbol ctr ]) ] );
+                      ESymbol construct;
+                    ] ) );
             ],
             ESymbol construct ) )
   in

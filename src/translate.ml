@@ -176,23 +176,27 @@ and translate_expr (body : term) : expr =
           ( [ Prec Binary16; PRound ],
             EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
     | TmRet (_, t) -> translate_expr' subst_map anon_func_map t
-    | TmApp (_, t1, t2) ->
+    | TmApp _ ->
         (* Check for map/fold application here *)
-        let name, args = unwind_app_tm body [] in
+        let name, arg_terms = unwind_app_tm body [] in
+        let args =
+          List.map (translate_expr' subst_map anon_func_map) arg_terms
+        in
         (* if Str.(string_match (regexp "map[0-9]+") name 0) then *)
         if String.length name >= 3 && String.sub name 0 3 = "map" then
-          let _ = print_endline "map found" in
           let size =
             4
             (* int_of_string (String.sub name 3 (String.length name - 3)) *)
           in
-          replace_map
-            (List.map (translate_expr' subst_map anon_func_map) args)
-            size anon_func_map
-        else
-          EApp
-            ( translate_expr' subst_map anon_func_map t1,
-              translate_expr' subst_map anon_func_map t2 )
+          replace_map args size anon_func_map
+        else if String.length name >= 4 && String.sub name 0 4 = "fold" then
+          let size =
+            4
+            (* int_of_string (String.sub name 3 (String.length name - 3)) *)
+          in
+          replace_fold args size anon_func_map
+          (* Not a map or a fold; general case *)
+        else EApp (ESymbol name, args)
     | TmAbs _ -> failwith "FPCore does not support nested functions."
     | TmAmp1 (_, t) ->
         ERef (translate_expr' subst_map anon_func_map t, [ EInt 0 ])
@@ -269,17 +273,17 @@ let string_of_op (op : fpop) : string =
   a variable name that represents one of the basic floating operations (addfp,sqrtfp,divfp,mulfp)
 and returns an equivalent FPCore term that does not call these functions. If [e1] is anything
 else, this function returns [None]. *)
-let check_app e1 e2 =
+let check_app e1 args =
   match e1 with
   | ESymbol s -> (
       let op = op_names s in
       if op = None then None
       else
         match Option.get op with
-        | Sqrt, prec -> Some (EBang ([ Prec prec; PRound ], EOP (Sqrt, [ e2 ])))
+        | Sqrt, prec -> Some (EBang ([ Prec prec; PRound ], EOP (Sqrt, args)))
         | _ -> (
-            match e2 with
-            | EArray arr_list ->
+            match args with
+            | EArray arr_list :: [] ->
                 let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
                 let actual_op, prec = Option.get op in
                 Some
@@ -289,17 +293,19 @@ let check_app e1 e2 =
 
 (** [check_app_elem] is the same as [check_app] but it doesn't add precision or
 rounding annotations. *)
-let check_app_elem e1 e2 =
+let check_app_elem e1 args =
   match e1 with
   | ESymbol s -> (
       let op = op_names s in
       if op = None then None
       else
         match Option.get op with
-        | Sqrt, _ -> Some (EOP (Sqrt, [ e2 ]))
+        | Sqrt, _ -> Some (EOP (Sqrt, args))
         | _ ->
             let arr_list =
-              match e2 with EArray l -> l | _ -> failwith "error in checkapp"
+              match args with
+              | [ EArray l ] -> l
+              | _ -> failwith "error in checkapp"
             in
             let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
             Some (EOP (Option.get op |> fst, [ el1; el2 ])))
@@ -329,7 +335,10 @@ let rec string_of_expr (e : expr) : string =
       ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" ds
       ^ ")"
   | EConstant c -> ( match c with True -> "TRUE" | False -> "FALSE")
-  | EApp (e1, e2) -> "(" ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")"
+  | EApp (e1, e's) ->
+      "(" ^ string_of_expr e1 ^ " "
+      ^ List.fold_left (fun acc a -> acc ^ " " ^ string_of_expr a) "" e's
+      ^ ")"
   | EBang (p_lst, e) ->
       "(! " ^ string_of_prop_lst p_lst ^ " " ^ string_of_expr e ^ ")"
   | ETensor (s1, e1, lst, e2) ->
@@ -406,10 +415,12 @@ let rec transform_ast expr check =
   | ERef (e, lst) -> ERef (transform_ast e check, lst)
   | EConstant _ -> expr
   | EBang (p_list, e) -> EBang (p_list, transform_ast e check)
-  | EApp (e1, e2) ->
+  | EApp (e1, e's) ->
       Option.default
-        (EApp (transform_ast e1 check, transform_ast e2 check))
-        (check e1 e2)
+        (EApp
+           ( transform_ast e1 check,
+             List.map (fun x -> transform_ast x check) e's ))
+        (check e1 e's)
   | ETensor (s, e1, l, e2) ->
       ETensor
         ( s,
@@ -441,7 +452,7 @@ let check_elementary (core : fpcore) =
     | ELet (lst, exp) ->
         List.exists (fun (_, expr) -> check_elem_helper expr) lst
         || check_elem_helper exp
-    | EApp (e1, e2) -> check_elem_helper e1 || check_elem_helper e2
+    | EApp (e1, e2) -> check_elem_helper e1 || List.exists check_elem_helper e2
     | EBang (_, expr) -> check_elem_helper expr
     | EArray lst -> List.exists check_elem_helper lst
     | EOP (op, lst) ->

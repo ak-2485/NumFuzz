@@ -18,7 +18,7 @@ and expr =
   | EArray of expr list
   | ERef of expr * expr list
   | EConstant of constant
-  | EApp of expr * expr
+  | EApp of expr * expr list
   | EBang of property list * expr
   | ETensor of symbol * expr * (symbol * expr * expr) list * expr
   | EFor of symbol * expr * (symbol * expr * expr) list * expr
