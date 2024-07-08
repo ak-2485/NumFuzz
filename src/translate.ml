@@ -75,7 +75,9 @@ let rec unwind_app_tm (t : term) (args : term list) : symbol * term list =
   match t with
   | TmApp (_, t1, t2) -> unwind_app_tm t1 (t2 :: args)
   | TmPrim (_, tprim) -> (
-      match tprim with PrimTString str -> (str, args) | _ -> ("", args))
+      match tprim with
+      | PrimTString str -> (str, args)
+      | _ -> failwith "Application where function is not a symbol.")
   | TmVar (_, v_i) -> (v_i.v_name, args)
   | _ -> ("", args)
 
@@ -177,26 +179,21 @@ and translate_expr (body : term) : expr =
             EOP (Cast, [ translate_expr' subst_map anon_func_map t ]) )
     | TmRet (_, t) -> translate_expr' subst_map anon_func_map t
     | TmApp _ ->
-        (* Check for map/fold application here *)
+        (* Check for map/fold application *)
         let name, arg_terms = unwind_app_tm body [] in
         let args =
           List.map (translate_expr' subst_map anon_func_map) arg_terms
         in
         (* if Str.(string_match (regexp "map[0-9]+") name 0) then *)
         if String.length name >= 3 && String.sub name 0 3 = "map" then
-          let size =
-            4
-            (* int_of_string (String.sub name 3 (String.length name - 3)) *)
-          in
+          let size = 4 (* TODO: FIND SIZE OF MAP *) in
           replace_map args size anon_func_map
         else if String.length name >= 4 && String.sub name 0 4 = "fold" then
-          let size =
-            4
-            (* int_of_string (String.sub name 3 (String.length name - 3)) *)
-          in
+          let size = 4 (* TODO: FIND SIZE OF FOLD *) in
           replace_fold args size anon_func_map
-          (* Not a map or a fold; general case *)
-        else EApp (ESymbol name, args)
+        else
+          (* Not a map or a fold; check for anonymous function to inline *)
+          inline_anon anon_func_map (EApp (ESymbol name, args))
     | TmAbs _ -> failwith "FPCore does not support nested functions."
     | TmAmp1 (_, t) ->
         ERef (translate_expr' subst_map anon_func_map t, [ EInt 0 ])

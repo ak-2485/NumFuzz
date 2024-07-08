@@ -107,6 +107,19 @@ let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
           List.map (fun (s, e1, e2) -> (s, inline_expr' e1, inline_expr' e2)) l,
           inline_expr' e2 )
 
+(** [inline_anon] takes in an expression [e] and inlines all anonymous function 
+  definitions from [anon_func_map] into [e]. If multiples functions are defined with 
+  the same name, the latest definition is used. *)
+
+let inline_anon (anon_func_map : (symbol * (argument list * expr)) list)
+    (e : expr) =
+  let func_map =
+    List.map
+      (fun (s, (args, e)) -> (s, FPCore (Some s, args, [], e)))
+      anon_func_map
+  in
+  inline_expr func_map e
+
 (** [inline] takes in a program [prog] (list of fpcore's) and inlines all function 
   definitions into the last function. If multiples functions are defined with 
   the same name, the latest definition is used. *)
@@ -172,12 +185,7 @@ let replace_map args size anon_func_map =
             ],
             ESymbol construct ) )
   in
-  let func_map =
-    List.map
-      (fun (s, (args, e)) -> (s, FPCore (Some s, args, [], e)))
-      anon_func_map
-  in
-  inline_expr func_map prog
+  inline_anon anon_func_map prog
 
 let replace_fold args size anon_func_map =
   let func, arr =
@@ -221,9 +229,4 @@ let replace_fold args size anon_func_map =
             ],
             ESymbol construct ) )
   in
-  let func_map =
-    List.map
-      (fun (s, (args, e)) -> (s, FPCore (Some s, args, [], e)))
-      anon_func_map
-  in
-  inline_expr func_map prog
+  inline_anon anon_func_map prog
