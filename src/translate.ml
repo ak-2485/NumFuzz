@@ -94,6 +94,56 @@ let size_of_nested_list (t : term) : int =
   in
   size_of_nested_list' ty 0
 
+(** Given a type [ty] of nested pairs, returns the number of elements *)
+let size_of_product (ty : ty) : int =
+  let rec size_of_product' ty i =
+    match ty with
+    | TyAmpersand (t1, t2) -> if t1 == t2 then i else size_of_product' t2 (i + 2)
+    | _ ->
+        failwith
+          "Input to map/fold function is not a proper list of nested pairs"
+  in
+  size_of_product' ty 0
+
+(** assuming the product type is always first argument *)
+let store_size (t : term) =
+  let rec store_size_helper (t : term) acc =
+    match t with
+    | TmPrim _ | TmVar _ -> []
+    | TmLet (_, b_info, _, t1, t2) ->
+        let first =
+          match t1 with
+          | TmAbs (_, _, ty_inner, term) ->
+              (b_info.b_name, size_of_product ty_inner)
+              :: store_size_helper term acc
+          | _ -> store_size_helper t1 acc
+        in
+        first @ store_size_helper t2 acc
+    | TmAbs (_, _, _, t1)
+    | TmRnd16 (_, t1)
+    | TmRnd32 (_, t1)
+    | TmRnd64 (_, t1)
+    | TmRet (_, t1)
+    | TmOp (_, _, t1)
+    | TmBox (_, _, t1)
+    | TmAmp1 (_, t1)
+    | TmAmp2 (_, t1) ->
+        store_size_helper t1 acc
+    | TmInr (_, t1) | TmInl (_, t1) -> store_size_helper t1 acc
+    | TmTens (_, t1, t2)
+    | TmApp (_, t1, t2)
+    | TmLetBind (_, _, t1, t2)
+    | TmTensDest (_, _, _, t1, t2)
+    | TmAmpersand (_, t1, t2)
+    | TmBoxDest (_, _, t1, t2) ->
+        store_size_helper t1 acc @ store_size_helper t2 acc
+    | TmUnionCase (_, t1, _, t2, _, t3) ->
+        store_size_helper t1 acc @ store_size_helper t2 acc
+        @ store_size_helper t3 acc
+  in
+
+  store_size_helper t []
+
 (** [translate] converts a NumFuzz term [prog] into an equivalent FPCore program *)
 let rec translate (prog : term) : program =
   match prog with
