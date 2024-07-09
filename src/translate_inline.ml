@@ -195,7 +195,7 @@ let replace_map args size anon_func_map =
   inline_anon anon_func_map prog
 
 let replace_fold args size anon_func_map =
-  let func, arr =
+  let arr, func =
     match args with
     | [ h; t ] -> (h, t)
     | _ ->
