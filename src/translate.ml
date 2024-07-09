@@ -39,14 +39,14 @@ but which we can inline in FPCore by using an appropiate rounding context
 and the equivalent operation.*)
 let op_names (s : symbol) =
   match s with
-  | "addfp" | "addfp_64" -> Some (Plus, Binary64)
-  | "divfp" | "divfp_64" -> Some (Divide, Binary64)
-  | "mulfp" | "mulfp_64" -> Some (Times, Binary64)
-  | "sqrtfp" | "sqrtfp_64" -> Some (Sqrt, Binary64)
-  | "addfp_32" -> Some (Plus, Binary32)
-  | "divfp_32" -> Some (Divide, Binary32)
-  | "mulfp_32" -> Some (Times, Binary32)
-  | "sqrtfp_32" -> Some (Sqrt, Binary32)
+  | "addfp" | "addfp64" -> Some (Plus, Binary64)
+  | "divfp" | "divfp64" -> Some (Divide, Binary64)
+  | "mulfp" | "mulfp64" -> Some (Times, Binary64)
+  | "sqrtfp" | "sqrtfp64" -> Some (Sqrt, Binary64)
+  | "addfp32" -> Some (Plus, Binary32)
+  | "divfp32" -> Some (Divide, Binary32)
+  | "mulfp32" -> Some (Times, Binary32)
+  | "sqrtfp32" -> Some (Sqrt, Binary32)
   | _ -> None
 
 (** [rnd_and_prec] is the list containing the FPCore properties for floating point
@@ -63,6 +63,17 @@ let translate_op (op : op) : fpop =
   | DivOp -> Divide
   | GtOp -> GreaterThan
   | EqOp -> Equals
+
+(** [unwind_types] takes a term [t] and 
+  returns a list with the types of the arguments of [t], provided that [t]
+  is an abstraction. Otherwise, the empty list is returned. *)
+let rec unwind_types (t : term) =
+  match t with TmAbs (_, _, ty, next) -> ty :: unwind_types next | _ -> []
+
+let check_function (t : ty) =
+  match t with
+  | TyBang (_, t') -> ( match t' with TyLollipop _ -> true | _ -> failwith "")
+  | _ -> false
 
 (** [unwind_abs] takes a term [t] and 
   returns the list of parameters and the body of the function.
@@ -110,57 +121,75 @@ let size_of_product (ty : ty) : int =
   in
   size_of_product' ty 0
 
-(** assuming the product type is always first argument *)
-let store_size (t : term) =
-  let rec store_size_helper (t : term) acc =
-    match t with
-    | TmPrim _ | TmVar _ -> []
-    | TmLet (_, b_info, _, t1, t2) ->
-        let first =
-          match t1 with
-          | TmAbs (_, _, ty_inner, term) ->
-              (b_info.b_name, size_of_product ty_inner)
-              :: store_size_helper term acc
-          | _ -> store_size_helper t1 acc
-        in
-        first @ store_size_helper t2 acc
-    | TmAbs (_, _, _, t1)
-    | TmRnd16 (_, t1)
-    | TmRnd32 (_, t1)
-    | TmRnd64 (_, t1)
-    | TmRet (_, t1)
-    | TmOp (_, _, t1)
-    | TmBox (_, _, t1)
-    | TmAmp1 (_, t1)
-    | TmAmp2 (_, t1) ->
-        store_size_helper t1 acc
-    | TmInr (_, t1) | TmInl (_, t1) -> store_size_helper t1 acc
-    | TmTens (_, t1, t2)
-    | TmApp (_, t1, t2)
-    | TmLetBind (_, _, t1, t2)
-    | TmTensDest (_, _, _, t1, t2)
-    | TmAmpersand (_, t1, t2)
-    | TmBoxDest (_, _, t1, t2) ->
-        store_size_helper t1 acc @ store_size_helper t2 acc
-    | TmUnionCase (_, t1, _, t2, _, t3) ->
-        store_size_helper t1 acc @ store_size_helper t2 acc
-        @ store_size_helper t3 acc
+let size_of_nested_list_exp (ty : ty) : int =
+  let rec size_of_nested_list' ty i =
+    match ty with
+    | TyAmpersand (t1, t2) | TyTensor (t1, t2) ->
+        if t1 == t2 then i else size_of_nested_list' t2 (i + 1)
+    | _ -> 0
   in
+  size_of_nested_list' ty 2
 
-  store_size_helper t []
+let check_name str =
+  let len = String.length str in
+  if len < 3 then false
+  else if String.sub str 0 3 = "map" then true
+  else if len > 3 then if String.sub str 0 4 = "fold" then true else false
+  else false
+
+let check_higher_order t =
+  match t with
+  | TmLet (_, b_info, _, t1, _) -> (
+      if not (check_name b_info.b_name) then (false, 0)
+      else
+        match unwind_types t1 with
+        | [] -> (false, 0)
+        | [ t1; t2 ] ->
+            ( size_of_nested_list_exp t1 > 0 && check_function t2,
+              size_of_nested_list_exp t1 )
+        | _ -> (false, 0))
+  | _ -> (false, 0)
+
+(** assuming the product type is always first argument *)
+let rec store_size (t : term) =
+  match t with
+  | TmPrim _ | TmVar _ -> []
+  | TmLet (_, b_info, _, _, t2) ->
+      let tr, size = check_higher_order t in
+      if tr then (b_info.b_name, size) :: store_size t2 else store_size t2
+  | TmAbs (_, _, _, t1)
+  | TmRnd16 (_, t1)
+  | TmRnd32 (_, t1)
+  | TmRnd64 (_, t1)
+  | TmRet (_, t1)
+  | TmOp (_, _, t1)
+  | TmBox (_, _, t1)
+  | TmAmp1 (_, t1)
+  | TmAmp2 (_, t1) ->
+      store_size t1
+  | TmInr (_, t1) | TmInl (_, t1) -> store_size t1
+  | TmTens (_, t1, t2)
+  | TmApp (_, t1, t2)
+  | TmLetBind (_, _, t1, t2)
+  | TmTensDest (_, _, _, t1, t2)
+  | TmAmpersand (_, t1, t2)
+  | TmBoxDest (_, _, t1, t2) ->
+      store_size t1 @ store_size t2
+  | TmUnionCase (_, t1, _, t2, _, t3) ->
+      store_size t1 @ store_size t2 @ store_size t3
 
 (** [translate] converts a NumFuzz term [prog] into an equivalent FPCore program *)
-let rec translate (prog : term) : program =
+let rec translate (prog : term) dct : program =
   match prog with
   | TmAbs _ ->
       let arg_list, body = get_arguments prog in
-      [ FPCore (None, arg_list, [], translate_expr body) ]
+      [ FPCore (None, arg_list, [], translate_expr body dct) ]
   | TmLet (_, bind, _, t1, t2) -> (
       match t1 with
       | TmAbs _ ->
           let arg_list, body = get_arguments t1 in
-          FPCore (Some bind.b_name, arg_list, [], translate_expr body)
-          :: translate t2
+          FPCore (Some bind.b_name, arg_list, [], translate_expr body dct)
+          :: translate t2 dct
       | _ -> [])
   | _ -> []
 
@@ -189,7 +218,7 @@ and get_arguments (prog : term) : argument list * term =
 
 (** [translate_expr] converts a NumFuzz function body [body] into its equivalent FPCore expression. 
 Requires: [body] has no TMAbs terms, as FPCore does not support nested functions *)
-and translate_expr (body : term) : expr =
+and translate_expr (body : term) dct : expr =
   let rec translate_expr' subst_map anon_func_map body =
     match body with
     | TmVar (_, var_i) -> (
@@ -253,26 +282,12 @@ and translate_expr (body : term) : expr =
           List.map (translate_expr' subst_map anon_func_map) arg_terms
         in
         (* if Str.(string_match (regexp "map[0-9]+") name 0) then *)
-        if String.length name >= 3 && String.sub name 0 3 = "map" then
-          let size =
-            size_of_nested_list
-              (match arg_terms with
-              | [ t; _ ] -> t
-              | _ ->
-                  main_error dp
-                    "Wrong number of arguments for map function (Expected: 2)")
-          in
-          replace_map args size anon_func_map
-        else if String.length name >= 4 && String.sub name 0 4 = "fold" then
-          let size =
-            size_of_nested_list
-              (match arg_terms with
-              | [ _; t ] -> t
-              | _ ->
-                  main_error dp
-                    "Wrong number of arguments for fold function (Expected: 2)")
-          in
-          replace_fold args size anon_func_map
+        let tr1 = String.length name >= 3 && String.sub name 0 3 = "map" in
+        let tr2 = String.length name >= 4 && String.sub name 0 4 = "fold" in
+        if tr1 || tr2 then
+          let size = List.assoc_opt name dct in
+          if size <> None then replace_fold args (Option.get size) anon_func_map
+          else inline_anon anon_func_map (EApp (ESymbol name, args))
         else
           (* Not a map or a fold; check for anonymous function to inline *)
           inline_anon anon_func_map (EApp (ESymbol name, args))
@@ -602,7 +617,8 @@ substituion as dictated by [flag], and prints the resulting FPCore program to [o
 let export_prog (prog : term) (outfile : string) (flag : translate_flag) : unit
     =
   let oc = open_out outfile in
-  let translated = translate prog in
+  let dct = store_size prog in
+  let translated = translate prog dct in
   let transformed = handle_flag translated flag in
   let data = string_of_program transformed in
   Printf.fprintf oc "%s\n" data;
