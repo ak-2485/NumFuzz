@@ -1,18 +1,18 @@
-#include "float_ops/mulfp.fz"
-#include "float_ops/divfp.fz"
-#include "float_ops/addfp.fz"
+#include "float_ops/mulfp64.fz"
+#include "float_ops/divfp64.fz"
+#include "float_ops/addfp64.fz"
 
 function verhulst
  (x': ![2.0]num) 
 {
  let [x] = x';
- s1 = divfp (x,1.11);
+ s1 = divfp64 (x,1.11);
  let s2 = s1;
- s3 = addfp (|1.0, s2|);
+ s3 = addfp64 (|1.0, s2|);
  let s4 = s3;
- s5 = mulfp (4.0,x);
+ s5 = mulfp64 (4.0,x);
  let s6 = s5;
- divfp (s6,s4)
+ divfp64 (s6,s4)
 }
 
 verhulst

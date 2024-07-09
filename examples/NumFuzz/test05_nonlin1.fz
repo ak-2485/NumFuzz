@@ -1,12 +1,12 @@
-#include "float_ops/addfp.fz"
-#include "float_ops/divfp.fz"
+#include "float_ops/addfp64.fz"
+#include "float_ops/divfp64.fz"
 
 function test05_nonlin1
   (x : num) 
 {
-  sy= addfp (|x,1.0|);
+  sy= addfp64 (|x,1.0|);
   let y = sy;
-  divfp (1.0,y)
+  divfp64 (1.0,y)
 }
 
 test05_nonlin1

@@ -1,0 +1,4 @@
+function mulfp32 (xy: (num, num)) : M[eps32_up]num {
+  s = mul xy;
+  rnd32 s
+}

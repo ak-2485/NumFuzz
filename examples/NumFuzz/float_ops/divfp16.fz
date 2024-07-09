@@ -1,0 +1,4 @@
+function divfp16 (xy: (num, num)) : M[eps16_up]num {
+  s = div xy;
+  rnd16 s
+}

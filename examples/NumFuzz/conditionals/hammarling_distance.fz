@@ -1,6 +1,6 @@
-#include "../float_ops/addfp.fz"
-#include "../float_ops/divfp.fz"
-#include "../float_ops/pow2.fz"
+#include "../float_ops/addfp64.fz"
+#include "../float_ops/divfp64.fz"
+#include "../float_ops/pow2_64.fz"
 
 /*Interior conditional of the Hammarling alg for Euclidean length
     of a vector.
@@ -14,20 +14,20 @@ function hammarling
     let [t] = t';
     b = gt ([x{inf}],[t{inf}]); 
     if b then {
-        s0 = divfp (t,x);
+        s0 = divfp64 (t,x);
         let s1 = s0;
-        s2 = pow2 [s1{2.0}];
+        s2 = pow2_64 [s1{2.0}];
         let s3 = s2;
-        s4 = mulfp (s,s3);
+        s4 = mulfp64 (s,s3);
         let s5 = s4;
-        addfp (|1.0,s5|) 
+        addfp64 (|1.0,s5|) 
     }
     else {
-        s0 = divfp (t,x);
+        s0 = divfp64 (t,x);
         let s1 = s0;
-        s2 = pow2 [s1{2.0}];
+        s2 = pow2_64 [s1{2.0}];
         let s3 = s2;
-        addfp (|s,s3|) 
+        addfp64 (|s,s3|) 
     }
 }
 
