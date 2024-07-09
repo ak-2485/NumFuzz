@@ -1,4 +1,9 @@
 open Translate_ast
+open Support.Error
+open Support.Options
+
+let dp = Support.FileInfo.dummyinfo
+let main_error fi = error_msg General fi
 
 (** [build_arg_sub_map] takes a list [vars] and a list [args] and creates an 
   association list mapping the nth element of [vars] to the nth element of [lists].
@@ -12,7 +17,8 @@ let rec build_arg_sub_map (vars : argument list) (args : expr list)
       build_arg_sub_map vt at ((v_name, ah) :: map)
   | [], [] -> map
   | _ ->
-      failwith "Failed inline: function called with wrong number of arguments."
+      main_error dp
+        "Failed inline: function called with wrong number of arguments."
 
 (** [substitute_args_rec] takes a map [subst_map] from parameter names to the 
   argument passed in for that parameter and substitutes for all occurences of 
@@ -88,7 +94,7 @@ let rec inline_expr (dict : (string * fpcore) list) (e : expr) : expr =
       let name =
         match f with
         | ESymbol s -> s
-        | _ -> failwith "function being applied is not a symbol"
+        | _ -> main_error dp "function being applied is not a symbol"
       in
       match List.assoc_opt name dict with
       | Some func_def -> substitute_args func_def args
@@ -147,7 +153,8 @@ let replace_map args size anon_func_map =
   let arr, map_func =
     match args with
     | [ h; t ] -> (h, t)
-    | _ -> failwith "Wrong number of arguments for map function (Expected: 2)"
+    | _ ->
+        main_error dp "Wrong number of arguments for map function (Expected: 2)"
   in
   let ctr = next_var () in
   let destruct = next_var () in
@@ -191,7 +198,9 @@ let replace_fold args size anon_func_map =
   let func, arr =
     match args with
     | [ h; t ] -> (h, t)
-    | _ -> failwith "Wrong number of arguments for fold function (Expected: 2)"
+    | _ ->
+        main_error dp
+          "Wrong number of arguments for fold function (Expected: 2)"
   in
   let ctr = next_var () in
   let destruct = next_var () in

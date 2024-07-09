@@ -1,6 +1,11 @@
 open Syntax
 open Translate_ast
 open Translate_inline
+open Support.Error
+open Support.Options
+
+let dp = Support.FileInfo.dummyinfo
+let main_error fi = error_msg General fi
 
 (** [string_of prec prec] is the string representation of precision [prec].*)
 let string_of_prec = function
@@ -77,7 +82,7 @@ let rec unwind_app_tm (t : term) (args : term list) : symbol * term list =
   | TmPrim (_, tprim) -> (
       match tprim with
       | PrimTString str -> (str, args)
-      | _ -> failwith "Application where function is not a symbol.")
+      | _ -> main_error dp "Application where function is not a symbol.")
   | TmVar (_, v_i) -> (v_i.v_name, args)
   | _ -> ("", args)
 
@@ -89,8 +94,8 @@ let size_of_nested_list (t : term) : int =
     | TyAmpersand (t1, t2) ->
         if t1 == t2 then i else size_of_nested_list' t2 (i + 1)
     | _ ->
-        failwith
-          "Input to map/fold function is not a proper list of nested pairs"
+        main_error dp
+          "Input to map/fold function is not a proper list of nested pairs" 0
   in
   size_of_nested_list' ty 0
 
@@ -100,7 +105,7 @@ let size_of_product (ty : ty) : int =
     match ty with
     | TyAmpersand (t1, t2) -> if t1 == t2 then i else size_of_product' t2 (i + 2)
     | _ ->
-        failwith
+        main_error dp
           "Input to map/fold function is not a proper list of nested pairs"
   in
   size_of_product' ty 0
@@ -226,7 +231,7 @@ and translate_expr (body : term) : expr =
         | PrimTNum n -> EFloat n
         | PrimTString str -> ESymbol str
         | PrimTFun _ ->
-            failwith "Reached unreachable PrimTFun clause."
+            main_error dp "Reached unreachable PrimTFun clause."
             (* Check with Ariel ^ *))
     | TmRnd64 (_, t) ->
         EBang
@@ -254,7 +259,7 @@ and translate_expr (body : term) : expr =
               (match arg_terms with
               | [ t; _ ] -> t
               | _ ->
-                  failwith
+                  main_error dp
                     "Wrong number of arguments for map function (Expected: 2)")
           in
           replace_map args size anon_func_map
@@ -264,14 +269,14 @@ and translate_expr (body : term) : expr =
               (match arg_terms with
               | [ _; t ] -> t
               | _ ->
-                  failwith
+                  main_error dp
                     "Wrong number of arguments for fold function (Expected: 2)")
           in
           replace_fold args size anon_func_map
         else
           (* Not a map or a fold; check for anonymous function to inline *)
           inline_anon anon_func_map (EApp (ESymbol name, args))
-    | TmAbs _ -> failwith "FPCore does not support nested functions."
+    | TmAbs _ -> main_error dp "FPCore does not support nested functions."
     | TmAmp1 (_, t) ->
         ERef (translate_expr' subst_map anon_func_map t, [ EInt 0 ])
     | TmAmp2 (_, t) ->
@@ -379,7 +384,7 @@ let check_app_elem e1 args =
             let arr_list =
               match args with
               | [ EArray l ] -> l
-              | _ -> failwith "error in checkapp"
+              | _ -> main_error dp "error in checkapp"
             in
             let el1, el2 = (List.nth arr_list 0, List.nth arr_list 1) in
             Some (EOP (Option.get op |> fst, [ el1; el2 ])))
