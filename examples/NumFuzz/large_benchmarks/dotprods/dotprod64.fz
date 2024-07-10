@@ -158,5 +158,5 @@ let a63 = a63';
  ))))))))))))))))))));
 
  g = fun (x: num) {fun (y: num) {addfp64 (|x,y|)}};
- fold64 [g{63.0}] v1 
+ fold64 v1 [g{63.0}] 
 }

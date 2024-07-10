@@ -20,5 +20,5 @@ let a2 = a2';
 let a3 = a3';
 v1 = (a0,(a1,(a2,a3)));
 g = fun (x: num) {fun (y: num) {addfp64 (|x,y|)}};
-fold4[g{3.0}] v1
+fold4 v1 [g{3.0}]
 }
