@@ -70,6 +70,8 @@ let translate_op (op : op) : fpop =
 let rec unwind_types (t : term) =
   match t with TmAbs (_, _, ty, next) -> ty :: unwind_types next | _ -> []
 
+(** [check_function ty] is true if [t] is a comonadic type that wraps 
+  a function type, i.e. lollipop. *)
 let check_function (t : ty) =
   match t with
   | TyBang (_, t') -> ( match t' with TyLollipop _ -> true | _ -> failwith "")
@@ -97,57 +99,41 @@ let rec unwind_app_tm (t : term) (args : term list) : symbol * term list =
   | TmVar (_, v_i) -> (v_i.v_name, args)
   | _ -> ("", args)
 
-(** Given a term [t] of nested pairs, returns the number of elements *)
-let size_of_nested_list (t : term) : int =
-  let ty = Ty_bi.get_type t in
-  let rec size_of_nested_list' ty i =
-    match ty with
-    | TyAmpersand (t1, t2) ->
-        if t1 == t2 then i else size_of_nested_list' t2 (i + 1)
-    | _ ->
-        main_error dp
-          "Input to map/fold function is not a proper list of nested pairs" 0
-  in
-  size_of_nested_list' ty 0
-
-(** Given a type [ty] of nested pairs, returns the number of elements *)
-let size_of_product (ty : ty) : int =
-  let rec size_of_product' ty i =
-    match ty with
-    | TyAmpersand (t1, t2) -> if t1 == t2 then i else size_of_product' t2 (i + 2)
-    | _ ->
-        main_error dp
-          "Input to map/fold function is not a proper list of nested pairs"
-  in
-  size_of_product' ty 0
-
+(** [size_of_nested_list_exp ty] is the size of a producty type [ty], which
+could be either [TyAmpersand] or [TyTensor]. Otherwise, it returns [0]. *)
 let size_of_nested_list_exp (ty : ty) : int =
   let rec size_of_nested_list' ty i =
     match ty with
     | TyAmpersand (t1, t2) | TyTensor (t1, t2) ->
-        if t1 == t2 then i else size_of_nested_list' t2 (i + 1)
+        if t1 = t2 then i else size_of_nested_list' t2 (i + 1)
     | _ -> 0
   in
   size_of_nested_list' ty 2
 
+(** [check_name str] oi *)
 let check_name str =
   let len = String.length str in
-  if len < 3 then false
-  else if String.sub str 0 3 = "map" then true
-  else if len > 3 then if String.sub str 0 4 = "fold" then true else false
-  else false
+  (len >= 3 && String.sub str 0 3 = "map")
+  || (len >= 4 && String.sub str 0 4 = "fold")
 
-let check_higher_order t =
+(** [check_signature t] checks whether [t] is a let binding
+to a map or fold function. In addition to checking that [t] is of the form
+[let map/fold = lambda x. e in t2], it checks that the signature of the function
+the name is being bound is that of a product type and then a function type.
+
+If [t] has the right signature, the function returns the pair [(true,n)] where [n]
+is the size of product in the function signature. 
+The function returns [(false,0)] otherwise. *)
+let check_signature t =
   match t with
   | TmLet (_, b_info, _, t1, _) -> (
       if not (check_name b_info.b_name) then (false, 0)
       else
         match unwind_types t1 with
-        | [] -> (false, 0)
         | [ t1; t2 ] ->
-            ( size_of_nested_list_exp t1 > 0 && check_function t2,
-              size_of_nested_list_exp t1 )
-        | _ -> (false, 0))
+            let sz = size_of_nested_list_exp t1 in
+            (sz > 0 && check_function t2, sz)
+        | [] | _ -> (false, 0))
   | _ -> (false, 0)
 
 (** assuming the product type is always first argument *)
@@ -155,7 +141,7 @@ let rec store_size (t : term) =
   match t with
   | TmPrim _ | TmVar _ -> []
   | TmLet (_, b_info, _, _, t2) ->
-      let tr, size = check_higher_order t in
+      let tr, size = check_signature t in
       if tr then (b_info.b_name, size) :: store_size t2 else store_size t2
   | TmAbs (_, _, _, t1)
   | TmRnd16 (_, t1)
