@@ -136,6 +136,17 @@ let check_signature t =
         | [] | _ -> (false, 0))
   | _ -> (false, 0)
 
+(** Given a list of [args] and a map of anonymous function definitions [map],
+returns whether [args] contains any anonymous functions defined in [map] *)
+let rec check_anonymous_function_arg args map =
+  match args with
+  | ESymbol name :: tl -> (
+      match List.assoc_opt name map with
+      | Some _ -> true
+      | None -> check_anonymous_function_arg tl map)
+  | _ :: tl -> check_anonymous_function_arg tl map
+  | [] -> false
+
 (** assuming the product type is always first argument *)
 let rec store_size (t : term) =
   match t with
@@ -245,9 +256,7 @@ and translate_expr (body : term) dct : expr =
         | PrimTUnit -> EFloat (-1.0)
         | PrimTNum n -> EFloat n
         | PrimTString str -> ESymbol str
-        | PrimTFun _ ->
-            main_error dp "Reached unreachable PrimTFun clause."
-            (* Check with Ariel ^ *))
+        | PrimTFun _ -> main_error dp "Reached unreachable PrimTFun clause.")
     | TmRnd64 (_, t) ->
         EBang
           ( [ Prec Binary64; PRound ],
@@ -270,13 +279,19 @@ and translate_expr (body : term) dct : expr =
         (* if Str.(string_match (regexp "map[0-9]+") name 0) then *)
         let tr1 = String.length name >= 3 && String.sub name 0 3 = "map" in
         let tr2 = String.length name >= 4 && String.sub name 0 4 = "fold" in
-        if tr1 || tr2 then
-          let size = List.assoc_opt name dct in
-          if size <> None then replace_fold args (Option.get size) anon_func_map
-          else inline_anon anon_func_map (EApp (ESymbol name, args))
-        else
+        let size = List.assoc_opt name dct in
+        if tr1 && size <> None then
+          replace_map args (Option.get size) anon_func_map
+        else if tr2 && size <> None then
+          replace_fold args (Option.get size) anon_func_map
+        else if
           (* Not a map or a fold; check for anonymous function to inline *)
-          inline_anon anon_func_map (EApp (ESymbol name, args))
+          check_anonymous_function_arg args anon_func_map
+        then
+          main_error dp
+            "Translation does not support higher order or anonymous functions \
+             except for maps/folds."
+        else EApp (ESymbol name, args)
     | TmAbs _ -> main_error dp "FPCore does not support nested functions."
     | TmAmp1 (_, t) ->
         ERef (translate_expr' subst_map anon_func_map t, [ EInt 0 ])
@@ -334,7 +349,7 @@ let rec string_of_args (args : argument list) : string =
       (match arg with
       | ASymbol x -> x
       | Array (x, ds) -> "(" ^ x ^ string_of_dim_list ds ^ ")")
-      ^ (if tl == [] then "" else " ")
+      ^ (if tl = [] then "" else " ")
       ^ string_of_args tl
 
 (** [string_of_op op] is the string representation of an FPCore operation [op]. *)
