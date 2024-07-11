@@ -276,7 +276,6 @@ and translate_expr (body : term) dct : expr =
         let args =
           List.map (translate_expr' subst_map anon_func_map) arg_terms
         in
-        (* if Str.(string_match (regexp "map[0-9]+") name 0) then *)
         let tr1 = String.length name >= 3 && String.sub name 0 3 = "map" in
         let tr2 = String.length name >= 4 && String.sub name 0 4 = "fold" in
         let size = List.assoc_opt name dct in
@@ -289,9 +288,9 @@ and translate_expr (body : term) dct : expr =
           check_anonymous_function_arg args anon_func_map
         then
           main_error dp
-            "Translation does not support higher order or anonymous functions \
-             except for maps/folds."
-        else EApp (ESymbol name, args)
+            "Translation does not support higher order functions except for \
+             maps/folds."
+        else inline_anon anon_func_map (EApp (ESymbol name, args))
     | TmAbs _ -> main_error dp "FPCore does not support nested functions."
     | TmAmp1 (_, t) ->
         ERef (translate_expr' subst_map anon_func_map t, [ EInt 0 ])
