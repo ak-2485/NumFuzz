@@ -39,14 +39,18 @@ but which we can inline in FPCore by using an appropiate rounding context
 and the equivalent operation.*)
 let op_names (s : symbol) =
   match s with
-  | "addfp" | "addfp64" -> Some (Plus, Binary64)
-  | "divfp" | "divfp64" -> Some (Divide, Binary64)
-  | "mulfp" | "mulfp64" -> Some (Times, Binary64)
-  | "sqrtfp" | "sqrtfp64" -> Some (Sqrt, Binary64)
+  | "addfp64" -> Some (Plus, Binary64)
   | "addfp32" -> Some (Plus, Binary32)
+  | "addfp16" -> Some (Plus, Binary16)
+  | "divfp64" -> Some (Divide, Binary64)
   | "divfp32" -> Some (Divide, Binary32)
+  | "divfp16" -> Some (Divide, Binary16)
+  | "mulfp64" -> Some (Times, Binary64)
   | "mulfp32" -> Some (Times, Binary32)
+  | "mulfp16" -> Some (Times, Binary16)
+  | "sqrtfp64" -> Some (Sqrt, Binary64)
   | "sqrtfp32" -> Some (Sqrt, Binary32)
+  | "sqrtfp16" -> Some (Sqrt, Binary16)
   | _ -> None
 
 (** [rnd_and_prec] is the list containing the FPCore properties for floating point
@@ -569,10 +573,14 @@ let check_elementary (core : fpcore) =
 (** [get_core_name (FPCore (s,_,_,_))] is [s].*)
 let get_core_name = function FPCore (s, _, _, _) -> s
 
-(** [elem_names s] is [true] if [s] is [addfp,mulfp,sqrt], or [divfp]. 
-   [false] otherwise. *)
+(** [elem_names s] is [true] if [s] is one of [addfp,mulfp,sqrt] or [divfp].
+  postfixed with [64,32] or [16]. The function returns [false] otherwise. *)
 let elem_names (s : string) =
-  match s with "addfp" | "mulfp" | "sqrtfp" | "divfp" -> true | _ -> false
+  match s with
+  | "addfp64" | "addfp32" | "addfp16" | "mulfp64" | "mulfp32" | "mulfp16"
+  | "divfp16" | "divfp32" | "divfp64" | "sqrtfp16" | "sqrtfp32" | "sqrtfp64" ->
+      true
+  | _ -> false
 
 (** [check_prog prog] applies [check_elementary] to every [FPCore] in prog
 whose name is [None] or not one of the floating point operations in [elem_names].

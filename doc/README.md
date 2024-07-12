@@ -212,7 +212,9 @@ Soundness of the error bounds inferred by NumFuzz is guaranteed by Corollary 4.1
 2. All constants and variables must be strictly
 positive numbers.
 
-3. The precision is fixed as binary64 and the rounding mode is fixed as round towards $+\infty$. 
+3. The precision can be one of binary16, binary32, or binary64 and must be indicated
+when using the rounding operator (i.e. `rnd64`). 
+The rounding mode is fixed as round towards $+\infty$. 
 
 
 ## Syntax
@@ -243,7 +245,9 @@ v, w ::=                                        VALUES
       inr v                                     injection into sum
       fun (x:T) {e}                             ordinary function
       [v{r}]                                    co-monadic scaling
-      rnd v                                     rounding towards +inf
+      rnd16 v                                   round toward +inf in 16-bit precision
+      rnd32 v                                   round toward +inf in 32-bit precision
+      rnd64 v                                   round toward +inf in 64-bit precision
       ret v                                     monadic return 
       let x = (rnd v); e                        base monadic sequence  
 
@@ -289,6 +293,36 @@ write `function ID args {v} e` to denote the let-binding `ID = v ; e`, where `v`
     6. Equal `eq: ![inf]num ⊗ ![inf]num -o bool`
 
 As usual, the `bool` type is constructed from the sum of units: `bool = () + ()`.
+
+## FPCore Translation
+
+The NumFuzz artifact provides a tool for transpiling a subset of NumFuzz programs
+to [FPCore](https://fpbench.org/spec/fpcore-2.0.html) programs. To run the 
+tool on a program, run the command `dune exec -- nfuzz BENCHMARK.fz --translate OUTPUT.fpcore`.
+Here, `--translate` is the default flag for program translation. 
+
+- **Transpilation Flags**: 
+
+    1. `--translate`. The default translation mode -- it produces a file with a single FPCore
+    and uses of floating point operations in NumFuzz inlined with the usual FPCore
+    operations but with a specific rounding context that matches that of NumFuzz.
+    2. `--translate-inline`. This translation mode is the same as the default
+    but it does not inline calls to floating point operations, meaning that they
+    include construction of arrays to match the syntax of NumFuzz floating operators,
+    which take pairs as inputs. 
+    3. `--translate-literal`. This translation mode produces multiple FPCores
+    in a single file. It matches the grammar of FPCore, since FPCores *are* 
+    function definitions in this language. More details about this translation mode
+    can be found in the transpiler report.
+    4. `--translate-binary64`. This translation mode produces programs
+    with all rounding annotations removed and with the FPCore toplevel rounding context
+    having binary64 precision and rounding towards positive infinity.
+
+- **Limitations**: Currently, the transpiler
+is limited to translating programs that use higher order functions only as inputs to fold or map 
+functions, such as those in `NumFuzz/examples/NumFuzz/folds`. When definining
+other fold or map functions, their signature must be that of a product type
+followed by the input function to be applied to each element in the input tuple.
 
 ## Examples
 
