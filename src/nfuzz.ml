@@ -54,22 +54,22 @@ let argDefs =
     ( "--translate",
       Arg.String
         (fun s ->
-          translate := Some Default;
+          translate := Some SmartInline;
           translate_outfile := Some s),
-      "Translates NumFuzz code into FPCore" );
+      "Translates NumFuzz code into an FPCore benchmark" );
     ( "--translate-inline",
       Arg.String
         (fun s ->
           translate := Some NaiveInline;
           translate_outfile := Some s),
-      "Translates NumFuzz code into FPCore with functions inlined" );
-    ( "--translate-smart",
+      "Translates NumFuzz code into FPCore with functions inlined but no smart \
+       simplification of result" );
+    ( "--translate-literal",
       Arg.String
         (fun s ->
           translate := Some SmartInline;
           translate_outfile := Some s),
-      "Translates NumFuzz code into FPCore with concise implementations of \
-       common functions and other functions inlined" );
+      "Translates NumFuzz code into FPCore as literally as possible" );
     ( "--translate-binary64",
       Arg.String
         (fun s ->
