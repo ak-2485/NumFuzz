@@ -1,0 +1,13 @@
+#include "../float_ops/addfp64.fz"
+#include "../float_ops/divfp32.fz"
+
+function x_by_xy
+  (x : ![2.0]num) (y : num) 
+{
+  let [x'] = x;
+  s = addfp64(|x',y|);
+  let z = s;
+  divfp32 (x',z)
+}
+
+x_by_xy
