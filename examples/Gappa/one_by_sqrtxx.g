@@ -6,5 +6,5 @@ r1 = rnd(sqrt(r0));
 z = rnd(1/r1);
 
 # the logical formula that Gappa will try (and succeed) to prove
-{ x in [0.1,1000]  -> |(r - z) / r| in ? }
+{ x in [0.1,1000]  -> |(z - r) / r| in ? }
 
