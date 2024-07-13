@@ -53,7 +53,7 @@ let parseArgs () =
 let parse file =
   let readme,writeme = Unix.pipe () in
   ignore (Unix.create_process
-      "/usr/bin/cpp" [|"/usr/bin/cpp" ; "-w" ; file |]
+      "cpp" [|"cpp" ; "-w" ; file |]
       Unix.stdin writeme Unix.stderr);
   Unix.close writeme;
   let pi = Unix.in_channel_of_descr readme in
