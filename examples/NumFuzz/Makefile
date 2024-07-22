@@ -6,7 +6,10 @@ TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
         Horner2 Horner2_with_er Horner5 Horner10\
 		Horner20
 
-.PHONY: autotest clean tests $(TEST_INPUTS) 
+MIXED_PREC := Horner2_with_er_mix sqrt_add_mix sums4_sums2 \
+		x_by_xy1 x_by_xy2 x_plus_one_by_x
+
+.PHONY: autotest clean tests $(TEST_INPUTS) $(MIXED_PREC)
 
 autotest: $(TEST_INPUTS) 
 
@@ -20,5 +23,14 @@ tests:
 
 clean : 
 	rm numfuzz_tests.txt 
+
+$(MIXED_PREC): 
+	@echo " " 
+	@echo $@ 
+	@dune exec --no-print-directory -- nfuzz mixed_precision/$@.fz
+
+# Target to run tests for MIXED_PREC and save output to numfuzz_tests_mixed.txt
+tests_mixed: 
+	@$(MAKE) --no-print-directory $(MIXED_PREC) > numfuzz_tests_mixed.txt 2>&1
 
 		

@@ -11,7 +11,12 @@ TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
 		Horner2 Horner2_with_er Horner5\
  		Horner10 Horner20
 
-.PHONY: autotest clean tests $(TEST_INPUTS) 
+# Mixed-precision benchmarks
+
+MIXED_PREC := Horner2_with_er_mix sqrt_add_mix sums4_sums2 \
+		x_by_xy1 x_by_xy2 x_plus_one_by_x
+
+.PHONY: autotest clean tests $(TEST_INPUTS) $(MIXED_PREC)
 
 autotest: $(TEST_INPUTS) 
 
@@ -35,6 +40,30 @@ $(TEST_INPUTS):
 	@printf "*** END GAPPA *** \n" 
 	@printf "*** END BENCHMARK: $@ *** \n \n"
 
+$(MIXED_PREC): 
+	@printf "*** START BENCHMARK: $@ *** \n"
+	@printf "*** TOOL: NumFuzz *** \n"
+	@dune exec --no-print-directory -- nfuzz \
+		$(NUMFUZZ)/mixed_precision/$@.fz 
+	@printf "*** END NumFuzz *** \n \n" 
+
+	@printf "*** BENCHMARK: $@ *** \n"
+	@printf "*** TOOL: FPTaylor *** \n"
+	@$(FPTAYLOR)/FPTaylor-0.9.4/fptaylor  -c \
+    	$(FPTAYLOR)/config.cfg $(FPTAYLOR)/mixed_precision/$@.txt
+
+	@printf "*** END FPTAYLOR *** \n \n" 
+
+	@printf "*** BENCHMARK: $@ *** \n"
+	@printf "*** TOOL: Gappa *** \n"
+	@bash -c "time gappa $(GAPPA)/mixed_precision/$@.g"
+	@printf "*** END GAPPA *** \n" 
+	@printf "*** END BENCHMARK: $@ *** \n \n"
+
+tests_mixed:
+	@dune build
+	@$(MAKE) --no-print-directory $(MIXED_PREC) > mixed_test_inputs.txt 2>&1
+	@./out_table.sh
 
 tests:
 	@dune build

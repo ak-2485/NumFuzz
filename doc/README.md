@@ -41,11 +41,11 @@ FPTaylor requires the [OCaml Num library](https://github.com/ocaml/num) which ca
 ```
 opam install num
 ```
-Now, in the directory `NumFuzz/examples/FPTaylor`, extract FPTaylor to the directory `FPTaylor-9.3.0` by running the command  
+Now, in the directory `NumFuzz/examples/FPTaylor`, extract FPTaylor to the directory `FPTaylor-9.4.0` by running the command  
 ```
-tar -xzf v0.9.3.tar.gz
+tar -xzf v0.9.4.tar.gz
 ```
-In the directory `FPTaylor-9.3.0` run
+In the directory `FPTaylor-9.4.0` run
 ```
 make all
 ```
