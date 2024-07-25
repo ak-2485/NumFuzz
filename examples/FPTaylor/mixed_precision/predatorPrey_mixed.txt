@@ -7,5 +7,5 @@ Definitions
 	K rnd64_up= 111e-2;
 
 Expressions
-	predatorPrey rnd32_up = (((r * x) * x) / (1 + ((x / K) * (x / K))));
+	predatorPrey rnd32_up = ( rnd64_up( (r * x) * x ) / rnd64_up(1 + ( (x / K) * (x / K) )) );
 }

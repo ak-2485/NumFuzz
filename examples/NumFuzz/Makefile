@@ -7,7 +7,8 @@ TEST_INPUTS:= hypot x_by_xy one_by_sqrtxx \
 		Horner20
 
 MIXED_PREC := Horner2_with_er_mix sqrt_add_mix sums4_sums2 \
-		x_by_xy1 x_by_xy2 x_plus_one_by_x
+		x_by_xy1 x_by_xy2 x_plus_one_by_x predatorPrey_mixed \
+		verhulst_mixed
 
 .PHONY: autotest clean tests $(TEST_INPUTS) $(MIXED_PREC)
 

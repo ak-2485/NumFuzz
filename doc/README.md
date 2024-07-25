@@ -200,6 +200,14 @@ Large benchmarks other that do not model matrix multiplication follow the same o
 
 To verify the reported error bounds and check the timings listed in Table 3 of Section 6.2, simply run `make tests` in the directory `examples/NumFuzz/conditionals`. This will generate the file `conditional_tests.txt`, which contains the NumFuzz output for each conditional benchmark listed in Table 3 of Section 6.2.
 
+## Mixed Precision Benchmarks
+
+The test suite alsovincludes several mixed precision benchmarks which produce `mixed_test.txt`
+with the same information as the benchmarks in the previous sections. To run
+the entire mixed precision suite, type the command `make tests_mixed` in the toplevel directory.
+Alternatively, you can use the same command in one of FPTaylor, Gappa, or NumFuzz
+directories in the `/examples` directory. This will produce a file with results
+only for that particular tool.
 
 # Writing NumFuzz Programs
 
