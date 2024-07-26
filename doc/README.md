@@ -202,12 +202,13 @@ To verify the reported error bounds and check the timings listed in Table 3 of S
 
 ## Mixed Precision Benchmarks
 
-The test suite alsovincludes several mixed precision benchmarks which produce `mixed_test.txt`
-with the same information as the benchmarks in the previous sections. To run
-the entire mixed precision suite, type the command `make tests_mixed` in the toplevel directory.
+The test suite also includes several mixed precision benchmarks, but which
+is executed separately from the tests outlined above. 
+To run the entire mixed precision suite, type the command `make tests_mixed` in the toplevel directory.
+Doing this will produce the file `mixed_test.txt` with the same information as the benchmarks in the previous sections. 
 Alternatively, you can use the same command in one of FPTaylor, Gappa, or NumFuzz
-directories in the `/examples` directory. This will produce a file with results
-only for that particular tool.
+directories in the `/examples` directory. This will produce a file `TOOL_mixed_test.txt`
+with results only for that particular tool.
 
 # Writing NumFuzz Programs
 
