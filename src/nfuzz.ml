@@ -103,11 +103,10 @@ let parseArgs () =
 
 (* Parse the input *)
 let parse file =
-  let readme, writeme = Unix.pipe () in
-  ignore
-    (Unix.create_process "/usr/bin/cpp"
-       [| "/usr/bin/cpp"; "-w"; file |]
-       Unix.stdin writeme Unix.stderr);
+  let readme,writeme = Unix.pipe () in
+  ignore (Unix.create_process
+      "cpp" [|"cpp" ; "-w" ; file |]
+      Unix.stdin writeme Unix.stderr);
   Unix.close writeme;
   let pi = Unix.in_channel_of_descr readme in
   let lexbuf = Lexer.create file pi in
