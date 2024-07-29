@@ -4,5 +4,5 @@ Variables
 	float64 y in [0.1, 100];
 
 Expressions
-	x_by_xy1 rnd32_up= (x / (rnd64_up (x + y)) );
+	x_by_xy1 = rnd32_up(x / (rnd64_up (x + y)) );
 }

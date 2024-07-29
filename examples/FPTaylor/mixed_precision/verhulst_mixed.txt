@@ -7,5 +7,5 @@ Definitions
 	K rnd64_up= 111e-2;
 
 Expressions
-	verhulst_mixed rnd64_up = (rnd32_up(r * x) / (rnd32_up(1 + rnd32_up(x / K))));
+	verhulst_mixed = rnd64_up(rnd32_up(r * x) / (rnd32_up(1 + rnd32_up(x / K))));
 }

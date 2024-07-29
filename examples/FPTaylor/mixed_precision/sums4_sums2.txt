@@ -6,5 +6,5 @@ Variables
 	real x3 in [0.1, 1000];
 
 Expressions
-	sums4_sum2 rnd32_up= ((rnd64_up (x0 + x1)) + (rnd32_up (x2 + x3)));
+	sums4_sum2 = rnd32_up((rnd64_up (x0 + x1)) + (rnd32_up (x2 + x3)));
 }

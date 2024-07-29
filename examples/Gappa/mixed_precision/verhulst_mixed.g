@@ -6,13 +6,13 @@ r = 4;
 K = 111e-2;
 
 dr = (1 + (x / K));
-df rnd32 = (1 + (rnd32(x / K)) );
+df = rnd32(1 + (rnd32(x / K)) );
 nr = (r * x);
-nf rnd32 = (r * x);
+nf  = rnd32(r * x);
 
 R = nr/dr;
-Z rnd64 = (nf/df);
+Z = rnd64(nf/df);
 
 # the logical formula that Gappa will try (and succeed) to prove
-{ x in [0.1,1000]  -> |(R - Z) / R| in ? }
+{ x in [0.1,1000]  -> |(Z - R) / R| in ? }
 
