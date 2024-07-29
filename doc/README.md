@@ -93,7 +93,7 @@ To verify the reported relative error bounds and check the timings listed in Tab
 To run all benchmarks for each tool individually, you can run `make tests` in the tool directory `examples/TOOLNAME` (e.g., `examples/numfuzz`). This will generate a file `examples/TOOLNAME/TOOLNAME_tests.txt` (e.g., `examples/NumFuzz/numfuzz_tests.txt`).
 
 To run individual benchmarks, use the following commands.
-- **FPTaylor**: In the directory `NumFuzz/examples/FPTaylor` run `FPTaylor-0.9.3/fptaylor -c config.cfg BENCHMARK.txt`
+- **FPTaylor**: In the directory `NumFuzz/examples/FPTaylor` run `FPTaylor-0.9.4/fptaylor -c config.cfg BENCHMARK.txt`
 - **Gappa**:  In the directory `NumFuzz/examples/Gappa` run `time gappa BENCHMARK.g`
 - **NumFuzz**: 	In the directory `NumFuzz/examples/NumFuzz`	run `dune exec -- nfuzz BENCHMARK.fz`
 
