@@ -478,11 +478,25 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return (type_of_prim pt, zeros len)
 
   (* Rounding *)
-  | TmRnd(i, v) ->
+  | TmRnd64(i, v) ->
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
-
+    
     let eps = SiConst ( (2.220446049250313e-16)) in
+    return (TyMonad(eps, TyPrim PrimNum), sis_v)
+  
+  | TmRnd32(i, v) ->
+    type_of v    >>= fun (ty_v, sis_v)  ->
+    check_is_num i ty_v >>
+      
+    let eps = SiConst ( (1.192092895507812e-7)) in
+    return (TyMonad(eps, TyPrim PrimNum), sis_v)
+  
+  | TmRnd16(i, v) ->
+    type_of v    >>= fun (ty_v, sis_v)  ->
+    check_is_num i ty_v >>
+      
+    let eps = SiConst ( (0.0009765625)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Ret *)

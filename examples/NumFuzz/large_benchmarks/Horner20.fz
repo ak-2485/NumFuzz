@@ -1,4 +1,4 @@
-#include "../float_ops/fma.fz"
+#include "../float_ops/fma64.fz"
 #include "folds/fold21.fz"
 
 function Horner20   
@@ -8,7 +8,7 @@ function Horner20
     (x : ![20.0]num) 
 {
   let [x'] = x;
-  g = fun (a: num) {fun (b: num) {FMA b x' a}};
+  g = fun (a: num) {fun (b: num) {FMA64 b x' a}};
   fold21 as [g{20.0}]
 }
 

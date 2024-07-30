@@ -1,4 +1,4 @@
-function map8
+function map8_prod
     (as : ((num,num), ((num,num), ((num,num), ((num,num), ((num,num), ((num,num), ((num,num), (num,num)))))))))
     (c' : ![8.0]((num,num) -o M[eps64_up]num))
 {

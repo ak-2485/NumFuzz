@@ -1,9 +1,9 @@
 function map4_prod
 (a :
 ((num,num),((num,num),((num,num),(num,num)))))
-(c' : ![4.0]((num,num) -o M[eps64_up]num))
+(c2 : ![4.0]((num,num) -o M[eps64_up]num))
 {
-let [c] = c'; 
+let [c] = c2; 
 let (a0, as1) = a;
 let (a1, as2)= as1;
 let (a2, a3)= as2;

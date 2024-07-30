@@ -1,0 +1,4 @@
+function addfp16 (xy: <num, num>) : M[eps16_up]num {
+  s = add xy;
+  rnd16 s
+}

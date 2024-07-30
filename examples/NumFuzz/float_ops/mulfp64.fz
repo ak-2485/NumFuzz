@@ -1,0 +1,4 @@
+function mulfp64 (xy: (num, num)) : M[eps64_up]num {
+  s = mul xy;
+  rnd64 s
+}

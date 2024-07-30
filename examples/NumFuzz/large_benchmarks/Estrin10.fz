@@ -1,4 +1,4 @@
-#include "../float_ops/addfp.fz"
+#include "../float_ops/addfp64.fz"
 #include "../float_ops/pow4fp.fz"
 #include "../float_ops/pow8fp.fz"
 
@@ -19,11 +19,11 @@ function Estrin10
     let (a8,as9) = as8;
     let (a9,a10) = as9;
     
-    t1 = mulfp(a1,x);
-    t3 = mulfp(a3,x);
-    t5 = mulfp(a5,x);
-    t7 = mulfp(a7,x);
-    t9 = mulfp(a9,x);
+    t1 = mulfp64(a1,x);
+    t3 = mulfp(64a3,x);
+    t5 = mulfp64(a5,x);
+    t7 = mulfp64(a7,x);
+    t9 = mulfp64(a9,x);
 
     let t1' = t1;
     let t3' = t3;
@@ -31,37 +31,37 @@ function Estrin10
     let t7' = t7;
     let t9' = t9;
 
-    z0 = addfp(|a0,t1'|);
+    z0 = addfp64(|a0,t1'|);
     let z0' = z0;
-    z2 = addfp(|a2,t3'|);
+    z2 = addfp64(|a2,t3'|);
     let z2' = z2;
-    z4 = addfp(|a4,t5'|);
+    z4 = addfp64(|a4,t5'|);
     let z4' = z4;
-    z6 = addfp(|a6,t7'|);
+    z6 = addfp64(|a6,t7'|);
     let z6' = z6;
-    z8 = addfp(|a8,t9'|);
+    z8 = addfp64(|a8,t9'|);
     let z8' = z8;
 
-    p2 =  mulfp(x,x);
+    p2 =  mulfp64(x,x);
     let p2' = p2;
-    s0 = mulfp(z2',p2');
+    s0 = mulfp64(z2',p2');
     let s0' = s0;
 
-    p6 =  mulfp(x,x);
+    p6 =  mulfp64(x,x);
     let p6' = p6;
-    s1 = mulfp(z6',p6');
+    s1 = mulfp64(z6',p6');
     let s1' = s1;
     
-    p10 =  mulfp(x,x);
+    p10 =  mulfp64(x,x);
     let p10' = p10;
-    s2 = mulfp(a10,p10'); 
+    s2 = mulfp64(a10,p10'); 
     let s2' = s2;
 
-    u0 = addfp(|z0',s0'|);
+    u0 = addfp64(|z0',s0'|);
     let u0' = u0;
-    u1 = addfp(|z4',s1'|);
+    u1 = addfp64(|z4',s1'|);
     let u1' = u1;
-    u2 = addfp(|z8',s2'|);
+    u2 = addfp64(|z8',s2'|);
     let u2' = u2;
 
     r4 =  pow4fp [x{4.0}];
@@ -69,15 +69,15 @@ function Estrin10
     r8 =  pow8fp [x{8.0}];
     let r8' = r8;    
 
-    v00 = mulfp(u1',r4');
+    v00 = mulfp64(u1',r4');
     let v00' = v00;
-    v0 = addfp(|u0',v00'|);
+    v0 = addfp64(|u0',v00'|);
     let v0' = v0;
 
-    v1 = mulfp(u2',r8');
+    v1 = mulfp64(u2',r8');
     let v1' = v1;
 
-    addfp(|v0',v1'|)
+    addfp64(|v0',v1'|)
 }
 
 Estrin10

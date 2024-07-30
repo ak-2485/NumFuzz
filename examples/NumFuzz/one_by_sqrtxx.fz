@@ -1,15 +1,15 @@
-#include "float_ops/mulfp.fz"
-#include "float_ops/divfp.fz"
-#include "float_ops/sqrtfp.fz"
+#include "float_ops/mulfp64.fz"
+#include "float_ops/divfp64.fz"
+#include "float_ops/sqrtfp64.fz"
 
 function one_by_sqrtxx
   (x : num)
 {
-  sz = mulfp (x,x);
+  sz = mulfp64 (x,x);
   let z = sz;
-  sy = sqrtfp ([z{0.5}]);
+  sy = sqrtfp64 ([z{0.5}]);
   let y = sy;
-  divfp (1.0,y)
+  divfp64 (1.0,y)
 }
 
 one_by_sqrtxx

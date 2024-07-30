@@ -1,0 +1,11 @@
+{
+Variables
+	float64 x in [0.1,1000];
+
+Definitions
+	r rnd64_up= 4;
+	K rnd64_up= 111e-2;
+
+Expressions
+	verhulst_mixed = rnd64_up(rnd32_up(r * x) / (rnd32_up(1 + rnd32_up(x / K))));
+}

@@ -1,17 +1,17 @@
-#include "float_ops/mulfp.fz"
-#include "float_ops/addfp.fz"
-#include "float_ops/sqrtfp.fz"
+#include "float_ops/mulfp64.fz"
+#include "float_ops/addfp64.fz"
+#include "float_ops/sqrtfp64.fz"
 
 
 function i4
  (x': ![0.5]num) (y: num)  
 {
- s1 = mulfp(y,y);
+ s1 = mulfp64(y,y);
  let s2 = s1;
  let [x] = x';
- s3 = addfp (|x, s2|);
+ s3 = addfp64 (|x, s2|);
  let s4 = s3;
- sqrtfp [s4{0.5}]
+ sqrtfp64 [s4{0.5}]
 }
 
 i4
