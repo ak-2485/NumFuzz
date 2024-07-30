@@ -1,0 +1,11 @@
+{
+Variables
+	float64 x in [0.1,1000];
+
+Definitions
+	r rnd64_up= 4;
+	K rnd64_up= 111e-2;
+
+Expressions
+	predatorPrey  = rnd32_up( ( rnd64_up( rnd64_up(r * x) * x ) / rnd64_up(1 + rnd64_up( rnd64_up(x / K) * rnd64_up(x / K) )) ));
+}

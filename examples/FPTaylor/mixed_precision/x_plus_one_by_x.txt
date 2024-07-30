@@ -1,0 +1,8 @@
+
+{
+Variables
+	real t in [1, 999];
+
+Expressions
+	x_plus_one_by_x  = rnd64_up(t / rnd32_up(t + 1));
+}

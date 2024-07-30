@@ -1,7 +1,7 @@
-#include "../float_ops/addfp.fz"
-#include "../float_ops/sqrtfp.fz"
-#include "../float_ops/divfp.fz"
-#include "../float_ops/pow2.fz"
+#include "../float_ops/addfp64.fz"
+#include "../float_ops/sqrtfp64.fz"
+#include "../float_ops/divfp64.fz"
+#include "../float_ops/pow2_64.fz"
 #include "min.fz"
 #include "max.fz"
 #include "band.fz"
@@ -23,15 +23,15 @@ function pythagorean_sum (a : ![inf]num) (b : ![inf]num) {
     else { 
         p = max [a'{inf}] [b'{inf}];
         q = min [a'{inf}] [b'{inf}];
-        rho' = divfp (q,p);
+        rho' = divfp64 (q,p);
         let rho = rho';
-        s  = pow2 [rho{2.0}];
+        s  = pow2_64 [rho{2.0}];
         let s0  = s; 
-        s1 = addfp (|1.0,s0|);
+        s1 = addfp64 (|1.0,s0|);
         let s2 = s1; 
-        s3 = sqrtfp [s2{0.5}];
+        s3 = sqrtfp64 [s2{0.5}];
         let s4 = s3;             
-        mulfp (p,s4)
+        mulfp64 (p,s4)
     }
 }
 

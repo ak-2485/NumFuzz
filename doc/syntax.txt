@@ -10,6 +10,9 @@ T ::=                                           TYPES
       T + T                                     sum
       T -o T                                    1-sensitive function
       MuT                                       monadic type
+      M[eps_64up]T                              syntactic sugar for M[2^(-52)]
+      M[eps_32up]T                              syntactic sugar for M[2^(-23)]
+      M[eps_16up]T                              syntactic sugar for M[2^(-10)]
       !sT                                       co-monadic type
 
 v, w ::=                                        VALUES
@@ -21,7 +24,9 @@ v, w ::=                                        VALUES
       inr v                                     injection into sum
       fun (x:T) {e}                             ordinary function
       [v{r}]                                    co-monadic scaling
-      rnd v                                     rounding towards +inf
+      rnd16 v                                   round toward +inf in 16-bit precision
+      rnd32 v                                   round toward +inf in 32-bit precision
+      rnd64 v                                   round toward +inf in 64-bit precision
       ret v                                     monadic return 
       let x = (rnd v); e                        base monadic sequence  
 

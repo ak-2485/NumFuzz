@@ -1,0 +1,7 @@
+function FMA32
+  (x : num) (y : num) (z : num) : M[eps32_up]num 
+{
+  a = mul (x,y);
+  b = add (|a,z|);
+  rnd32 b
+}

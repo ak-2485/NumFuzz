@@ -93,7 +93,10 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> RBRACK
 %token <Support.FileInfo.info> RET
 %token <Support.FileInfo.info> RPAREN
-%token <Support.FileInfo.info> RND
+(*Mixed precision rounding *)
+%token <Support.FileInfo.info> RND16
+%token <Support.FileInfo.info> RND32
+%token <Support.FileInfo.info> RND64
 %token <Support.FileInfo.info> SEMI
 (* %token <Support.FileInfo.info> SENS *)
 %token <Support.FileInfo.info> SQRTOP
@@ -107,7 +110,9 @@ let from_args_to_type arg_list oty = match oty with
 %token <string Support.FileInfo.withinfo> ID
 %token <float Support.FileInfo.withinfo> FLOATV
 %token <float Support.FileInfo.withinfo> EPS
-%token <float Support.FileInfo.withinfo> EPS2
+%token <float Support.FileInfo.withinfo> EPS16
+%token <float Support.FileInfo.withinfo> EPS32
+%token <float Support.FileInfo.withinfo> EPS64
 %token <string Support.FileInfo.withinfo> STRINGV
 
 /* ---------------------------------------------------------------------- */
@@ -250,8 +255,15 @@ Val:
       { fun ctx -> TmAmpersand($1, $3 ctx, $5 ctx) }
   | LBRACK Val SensTerm RBRACK
       { fun ctx -> TmBox($1, $3 ctx, $2 ctx) }
-  | RND Val
-      { fun ctx -> TmRnd($1, $2 ctx) }
+      
+  | RND64 Val
+      { fun ctx -> TmRnd64($1, $2 ctx) } (* CHECK WITH ARIEL / CHANGE EVENTUALLY *)
+  | RND32 Val 
+      { fun ctx -> TmRnd32($1, $2 ctx) }
+  | RND16 Val 
+      { fun ctx -> TmRnd16($1, $2 ctx) }    
+//   | RND Val
+//       { fun ctx -> TmRnd64($1, $2 ctx) } (* CHECK WITH ARIEL / CHANGE EVENTUALLY *)
   | RET Val
       { fun ctx -> TmRet($1, $2 ctx) }
   | FUN LPAREN ID ColType RPAREN LBRACE Term RBRACE
@@ -285,7 +297,11 @@ SensAtomicTerm :
       { fun _cx -> SiInfty  }
   | EPS
       { fun _cx -> SiConst ( $1.v) }
-  | EPS2
+  | EPS16
+      { fun _cx -> SiConst ( $1.v) }
+  | EPS32 
+      { fun _cx -> SiConst ( $1.v) }
+  | EPS64
       { fun _cx -> SiConst ( $1.v) }
 
 MaybeType:

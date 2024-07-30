@@ -1,7 +1,7 @@
 function fold16
-  (c' : ![15.0](num -o num -o M[eps64_up]num))
   (as : (num, (num, (num, (num, (num, (num, (num, (num, (num, (num, 
           (num, (num, (num, (num, (num, num))))))))))))))))
+  (c' : ![15.0](num -o num -o M[eps64_up]num))
 {
   let [c] = c'; 
 

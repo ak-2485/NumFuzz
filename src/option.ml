@@ -6,10 +6,6 @@
 *)
 
 (* Very simple utility functions *)
-let map f = function
-        | None -> None
-        | Some v -> Some (f v)
-
-let default d = function
-  | None   -> d
-  | Some v -> v
+let map f = function None -> None | Some v -> Some (f v)
+let default d = function None -> d | Some v -> v
+let get = function Some v -> v | None -> failwith "Empty option type"

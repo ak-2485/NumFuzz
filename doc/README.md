@@ -41,11 +41,11 @@ FPTaylor requires the [OCaml Num library](https://github.com/ocaml/num) which ca
 ```
 opam install num
 ```
-Now, in the directory `NumFuzz/examples/FPTaylor`, extract FPTaylor to the directory `FPTaylor-9.3.0` by running the command  
+Now, in the directory `NumFuzz/examples/FPTaylor`, extract FPTaylor to the directory `FPTaylor-9.4.0` by running the command  
 ```
-tar -xzf v0.9.3.tar.gz
+tar -xzf v0.9.4.tar.gz
 ```
-In the directory `FPTaylor-9.3.0` run
+In the directory `FPTaylor-9.4.0` run
 ```
 make all
 ```
@@ -93,7 +93,7 @@ To verify the reported relative error bounds and check the timings listed in Tab
 To run all benchmarks for each tool individually, you can run `make tests` in the tool directory `examples/TOOLNAME` (e.g., `examples/numfuzz`). This will generate a file `examples/TOOLNAME/TOOLNAME_tests.txt` (e.g., `examples/NumFuzz/numfuzz_tests.txt`).
 
 To run individual benchmarks, use the following commands.
-- **FPTaylor**: In the directory `NumFuzz/examples/FPTaylor` run `FPTaylor-0.9.3/fptaylor -c config.cfg BENCHMARK.txt`
+- **FPTaylor**: In the directory `NumFuzz/examples/FPTaylor` run `FPTaylor-0.9.4/fptaylor -c config.cfg BENCHMARK.txt`
 - **Gappa**:  In the directory `NumFuzz/examples/Gappa` run `time gappa BENCHMARK.g`
 - **NumFuzz**: 	In the directory `NumFuzz/examples/NumFuzz`	run `dune exec -- nfuzz BENCHMARK.fz`
 
@@ -200,6 +200,15 @@ Large benchmarks other that do not model matrix multiplication follow the same o
 
 To verify the reported error bounds and check the timings listed in Table 3 of Section 6.2, simply run `make tests` in the directory `examples/NumFuzz/conditionals`. This will generate the file `conditional_tests.txt`, which contains the NumFuzz output for each conditional benchmark listed in Table 3 of Section 6.2.
 
+## Mixed Precision Benchmarks
+
+The test suite also includes several mixed precision benchmarks, but which
+is executed separately from the tests outlined above. 
+To run the entire mixed precision suite, type the command `make tests_mixed` in the toplevel directory.
+Doing this will produce the file `mixed_test.txt` with the same information as the benchmarks in the previous sections. 
+Alternatively, you can use the same command in one of FPTaylor, Gappa, or NumFuzz
+directories in the `/examples` directory. This will produce a file `TOOL_mixed_test.txt`
+with results only for that particular tool.
 
 # Writing NumFuzz Programs
 
@@ -212,7 +221,9 @@ Soundness of the error bounds inferred by NumFuzz is guaranteed by Corollary 4.1
 2. All constants and variables must be strictly
 positive numbers.
 
-3. The precision is fixed as binary64 and the rounding mode is fixed as round towards $+\infty$. 
+3. The precision can be one of binary16, binary32, or binary64 and must be indicated
+when using the rounding operator (i.e. `rnd64`). 
+The rounding mode is fixed as round towards $+\infty$. 
 
 
 ## Syntax
@@ -243,7 +254,9 @@ v, w ::=                                        VALUES
       inr v                                     injection into sum
       fun (x:T) {e}                             ordinary function
       [v{r}]                                    co-monadic scaling
-      rnd v                                     rounding towards +inf
+      rnd16 v                                   round toward +inf in 16-bit precision
+      rnd32 v                                   round toward +inf in 32-bit precision
+      rnd64 v                                   round toward +inf in 64-bit precision
       ret v                                     monadic return 
       let x = (rnd v); e                        base monadic sequence  
 
@@ -289,6 +302,36 @@ write `function ID args {v} e` to denote the let-binding `ID = v ; e`, where `v`
     6. Equal `eq: ![inf]num ⊗ ![inf]num -o bool`
 
 As usual, the `bool` type is constructed from the sum of units: `bool = () + ()`.
+
+## FPCore Translation
+
+The NumFuzz artifact provides a tool for transpiling a subset of NumFuzz programs
+to [FPCore](https://fpbench.org/spec/fpcore-2.0.html) programs. To run the 
+tool on a program, run the command `dune exec -- nfuzz BENCHMARK.fz --translate OUTPUT.fpcore`.
+Here, `--translate` is the default flag for program translation. 
+
+- **Transpilation Flags**: 
+
+    1. `--translate`. The default translation mode -- it produces a file with a single FPCore
+    and uses of floating point operations in NumFuzz inlined with the usual FPCore
+    operations but with a specific rounding context that matches that of NumFuzz.
+    2. `--translate-inline`. This translation mode is the same as the default
+    but it does not inline calls to floating point operations, meaning that they
+    include construction of arrays to match the syntax of NumFuzz floating operators,
+    which take pairs as inputs. 
+    3. `--translate-literal`. This translation mode produces multiple FPCores
+    in a single file. It matches the grammar of FPCore, since FPCores *are* 
+    function definitions in this language. More details about this translation mode
+    can be found in the transpiler report.
+    4. `--translate-binary64`. This translation mode produces programs
+    with all rounding annotations removed and with the FPCore toplevel rounding context
+    having binary64 precision and rounding towards positive infinity.
+
+- **Limitations**: Currently, the transpiler
+is limited to translating programs that use higher order functions only as inputs to fold or map 
+functions, such as those in `NumFuzz/examples/NumFuzz/folds`. When definining
+other fold or map functions, their signature must be that of a product type
+followed by the input function to be applied to each element in the input tuple.
 
 ## Examples
 

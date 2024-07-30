@@ -1,4 +1,4 @@
-#include "float_ops/fma.fz"
+#include "float_ops/fma64.fz"
 
 function Horner2_with_error
   (a0 : M[eps64_up]num) (a1 : M[eps64_up]num)
@@ -9,9 +9,9 @@ function Horner2_with_error
   let a1'  = a1;
   let a2'  = a2;
   let x'   = x1;
-  sy1      = FMA a2' x' a1';
+  sy1      = FMA64 a2' x' a1';
   let y1   = sy1;
-  FMA y1 x' a0'
+  FMA64 y1 x' a0'
 }
 
 Horner2_with_error

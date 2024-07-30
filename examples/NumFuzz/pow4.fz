@@ -1,9 +1,9 @@
-#include "float_ops/mulfp.fz"
+#include "float_ops/mulfp64.fz"
 
 function pow2 (x : ![2.0]num) 
 {
   let [x'] = x;
-  mulfp(x',x')
+  mulfp64(x',x')
 }
 
 function pow4 (x : ![4.0]num) 

@@ -1,11 +1,11 @@
 #include "folds/fold6.fz"
-#include "float_ops/fma.fz"
+#include "float_ops/fma64.fz"
 
 function Horner5 (as : (num,(num,(num,(num,(num,num))))))
   (x : ![5.0]num) 
 {
   let [x'] = x;
-  g = fun (a: num) {fun (b: num) {FMA b x' a}};
+  g = fun (a: num) {fun (b: num) {FMA64 b x' a}};
   fold6 as [g{5.0}]
 }
 
