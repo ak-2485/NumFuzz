@@ -13,5 +13,5 @@ R = nr/dr;
 Z rnd= (nf/df);
 
 # the logical formula that Gappa will try (and succeed) to prove
-{ x in [0.1,1000]  -> |(R - Z) / R| in ? }
+{ x in [0.1,1000]  -> |(Z - R) / R| in ? }
 

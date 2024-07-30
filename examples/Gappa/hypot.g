@@ -6,4 +6,4 @@ r3 = rnd(r1 + r2);
 z  = rnd(sqrt(r3));
 
 # the logical formula that Gappa will try (and succeed) to prove
-{ x in [0.1,1000] /\ y in [0.1,1000] -> |(r - z) / r| in ? }
+{ x in [0.1,1000] /\ y in [0.1,1000] -> |(z - r) / r| in ? }

@@ -5,4 +5,4 @@ y = rnd(1+t);
 z = rnd(t/y);
 
 # the logical formula that Gappa will try (and succeed) to prove
-{ t in [0.1,1000]  -> |(r - z) / r| in ? }
+{ t in [0.1,1000]  -> |(z - r) / r| in ? }
