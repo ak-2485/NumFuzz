@@ -1,4 +1,4 @@
-A Type System for Numerical Error Analysis
+Numerical Fuzz: A Type System for Rounding Error Analysis
 =====
 This is the artifact for NumFuzz ("Numerical Fuzz"), a prototype implementation of the type system and floating-point error analysis tool described in the paper *A Type System for Numerical Error Analysis*. The type
 checker is based on the implementation due to Arthur Azevedo de Amorim
