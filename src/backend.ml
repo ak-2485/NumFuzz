@@ -38,10 +38,7 @@ let gen_op op =
   match op with
     AddOp        -> "add"
   | MulOp        -> "mul"
-  | SqrtOp       -> "sqrt"
   | DivOp        -> "div"
-  | GtOp         -> "gt"
-  | EqOp         -> "eq"
 
 (* Avoid clashes with ML names *)
 let ml_n n = "_" ^ n
@@ -75,50 +72,12 @@ let rec gen_term ppf t =
     (* Regular stuff for fuzz *)
     | TmPrim (_, prim) -> fprintf ppf "%s" (gen_primitive prim)
 
-    (* Round *)
-    | TmRnd64 (_, v) -> fprintf ppf "rnd64(%a)" gen_term v 
-    | TmRnd32 (_, v) -> fprintf ppf "rnd32(%a)" gen_term v 
-    | TmRnd16 (_, v) -> fprintf ppf "rnd16(%a)" gen_term v 
-
-    (* Ret *)
-    | TmRet (_, v) -> fprintf ppf "ret(%a)" gen_term v
-
-    | TmApp (_, f, e)  ->
-      (* Some (hacky) optimizations for the OCaml translation *)
-      begin
-        match f with
-        (* Binary operations *)
-        | TmApp (_, TmVar(_, v), e') ->
-          begin
-            match v.v_name with
-            | "op_add"      -> fprintf ppf "(%a +. %a)" gen_term e' gen_term e
-            | "op_sub"      -> fprintf ppf "(%a -. %a)" gen_term e' gen_term e
-            | "op_mul"      -> fprintf ppf "(%a *. %a)" gen_term e' gen_term e
-            | "op_div"      -> fprintf ppf "(%a /. %a)" gen_term e' gen_term e
-            | "string_concat" -> fprintf ppf "(%a ^ %a)" gen_term e' gen_term e
-            | _             -> fprintf ppf "(@[%a@ %a@])" gen_term f gen_term e
-          end
-        | _ -> fprintf ppf "(@[%a@ %a@])" gen_term f gen_term e
-      end
-    | TmAbs (_, b, _sty, body) ->
-      fprintf ppf "(fun %s ->@\n @[%a@])" (ml_b b) gen_term body
-
-    | TmAmpersand (_i, e1, e2) -> fprintf ppf "(%a,%a)" gen_term e1 gen_term e2
-    | TmAmp1 (_i, e1) -> fprintf ppf "Proj1 %a" gen_term e1
-    | TmAmp2 (_i, e1) -> fprintf ppf "Proj2 %a" gen_term e1
-
-    | TmBox(_i, _s1, e1) -> fprintf ppf "\n[%a@\n]" gen_term e1
-    | TmBoxDest (_i, b_x, tm_e1, tm_e2) ->
-      fprintf ppf "(let \n[%s\n] =  %a in@\n@[%a@])"
-        (ml_b b_x) gen_term tm_e1 gen_term tm_e2
-
-
     (* let bi = e1 in e2 *)
     | TmLet (_, bi, _sty, e1, e2) -> fprintf ppf "(let %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
 
-    | TmLetBind (_, bi, e1, e2) -> fprintf ppf "(letM %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
+    | TmDef (_, e) -> fprintf ppf "(Def = @\n%a)"  gen_term e
 
-    | TmOp (_, op, e1) -> fprintf ppf "(%s %a)" (gen_op op) gen_term e1
+    | TmAdd (_, x, y) -> fprintf ppf "(Add %s %s)"  (ml_n x.v_name) (ml_n y.v_name)
 
 
 

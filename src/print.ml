@@ -183,13 +183,7 @@ let rec pp_type ppf ty = match ty with
   (* ADT *)
   | TyUnion(ty1, ty2)       -> fprintf ppf "(%a @<1>%s @[<h>%a@])" pp_type ty1 (u_sym Symbols.Union)  pp_type ty2
   | TyTensor(ty1, ty2)      -> fprintf ppf "(%a @<1>%s @[<h>%a@])" pp_type ty1 (u_sym Symbols.Tensor) pp_type ty2
-  | TyAmpersand(ty1, ty2)   -> fprintf ppf "(%a & @[<h>%a@])" pp_type ty1 pp_type ty2
-  (* Funs *) (*
-  | TyLollipop(ty1, ty2) -> fprintf ppf "(@[<hov>%a %a@ %a@])" pp_type ty1 pp_arrow (SiConst (M.make_from_float 1.0)) pp_type ty2 *)
-  | TyLollipop(ty1, ty2) -> fprintf ppf "(@[<hov>%a %a@ %a@])" pp_type ty1 pp_arrow (SiConst ( 1.0)) pp_type ty2
-  | TyMonad(si,ty1) -> fprintf ppf "(M[%a] @[<h>%a@])" pp_si si pp_type ty1
-  | TyBang(si,ty1) -> fprintf ppf "(@<1>%s[%a] @[<h>%a@])" (u_sym Symbols.Bang)  pp_si si pp_type ty1
-
+ 
 let pp_type_list = pp_list pp_type
 
 (**********************************************************************)
@@ -242,11 +236,7 @@ let string_of_op s = List.assoc s binary_op_table
 let string_of_op2 fop = match fop with
     AddOp  -> "add"
   | MulOp  -> "mul"
-  | SqrtOp -> "sqrt"
   | DivOp  -> "div"
-  | GtOp   -> "gt"
-  | EqOp   -> "eq"
-
 
 let string_of_term_prim t = match t with
     PrimTUnit         -> "()"
@@ -295,41 +285,18 @@ let rec pp_term ppf t =
   (* Primitive terms *)
   | TmPrim(_, pt)           -> fprintf ppf "%s" (string_of_term_prim pt)
 
-  (* Rounding *)
-  | TmRnd64(_, tm1)           -> fprintf ppf "rnd64(%a)" pp_term tm1 
-  | TmRnd32(_, tm1)           -> fprintf ppf "rnd32(%a)" pp_term tm1
-  | TmRnd16(_, tm1)           -> fprintf ppf "rnd16(%a)" pp_term tm1 
-
-  (* Ret *)
-  | TmRet(_, tm1)           -> fprintf ppf "ret(%a)" pp_term tm1
-
-  (* Tensor and & *)
+   (* Tensor and & *)
   | TmTens(_, tm1, tm2)     -> fprintf ppf "(@[%a@], @[%a@])" pp_term tm1 pp_term tm2
   | TmTensDest(_, x, y, tm, term) -> fprintf ppf "@[<v>let (%a,%a) : = @[%a@];@,@[%a@]@]" pp_binfo x pp_binfo y pp_term tm pp_term term
 
-  | TmAmpersand(_, tm1, tm2)          -> fprintf ppf "(<@[%a@], @[%a@]>)" pp_term tm1 pp_term tm2
-  | TmAmp1(_, tm1)      -> fprintf ppf "Proj1 @[%a@]" pp_term tm1
-  | TmAmp2(_, tm1)      -> fprintf ppf "Proj2 @[%a@]" pp_term tm1
-
   (* OP *)
-  | TmOp(_, op, tm1)    -> fprintf ppf "%s(%a)" (string_of_op2 op) pp_term tm1
-
-  (* Box *)
-  | TmBox (_,_s,tm1)                -> fprintf ppf "\n[%a\n]" pp_term tm1
-  | TmBoxDest (_, x, tm, term)      -> fprintf ppf "@[<v>let \n[%a\n] : = @[%a@];@,@[%a@]@]" pp_binfo x pp_term tm pp_term term
-
-  (* Abstraction and Application *)
-  | TmAbs(_, a_n, ty_a, tm) ->
-    fprintf ppf "@<1>%s (%a%a) {@\n@[<hov 1> %a@]@\n}"
-      (u_sym Symbols.Lambda) pp_binfo a_n pp_type ty_a pp_term tm
-
-  | TmApp(_, tm1, tm2)         -> print_special_app ppf tm1 tm2
+  | TmAdd(_, x, y)    -> fprintf ppf "Add %a %a " pp_vinfo x pp_vinfo y
 
   | TmLet(_, n, _sty, tm1, tm2) ->
     fprintf ppf "@[<v>@[<hov>%a =@;<1 1>@[%a@]@];@,@[%a@]@]" pp_binfo n pp_term tm1 pp_term tm2
 
-  | TmLetBind(_, x, tm1, tm2) ->
-    fprintf ppf "@[<v>let %a : = @[%a@];@,@[%a@]@]" pp_binfo x pp_term tm1 pp_term tm2
+  | TmDef(_, tm1) ->
+    fprintf ppf "@[<v>Def := @[%a@]" pp_term tm1 
 
   (* Case expressions *)
   | TmInl(_, tm_l) -> fprintf ppf "inl @[%a@]" pp_term tm_l
@@ -340,24 +307,3 @@ let rec pp_term ppf t =
       pp_term tm
       pp_binfo ln (u_sym Symbols.DblArrow) pp_term ltm
       pp_binfo rn (u_sym Symbols.DblArrow) pp_term rtm
-
-
-
-(* We print some applications in an special way, note that this relies on debug information *)
-and print_special_app ppf tm1 tm2 =
-  let regular_print tm1 tm2 = fprintf ppf "(%a@;<1 1>@[<hov>%a@])" pp_term tm1 pp_term tm2 in
-  match tm1 with
-    (* Binary operations *)
-    TmApp(_, TmVar(_, v), op1) ->
-      if is_binary_op v.v_name then
-        fprintf ppf "(@[%a@] %s@ @[%a@])" pp_term op1 (string_of_op v.v_name) pp_term tm2
-      else if v.v_name = "tensor_pair" then
-        fprintf ppf "(%a, %a)" pp_term op1 pp_term tm2
-      else
-        regular_print tm1 tm2
-  | TmApp(_, TmApp(_, TmVar(_, v), cond), op1) ->
-    if v.v_name = "if_then_else" then
-      fprintf ppf "@[<v>if @[<hov>%a@] then@ @[<h>%a@]@,else@ @[%a@]@]" pp_term cond pp_term op1 pp_term tm2
-    else
-      regular_print tm1 tm2
-  | _ -> regular_print tm1 tm2

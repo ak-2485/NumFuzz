@@ -21,6 +21,7 @@ type ty_error_elem =
 | SensErrorLe  of si * si
 | SensErrorLt  of si * si
 | SensErrorEq  of si * si
+| NotDisjoint  of si * si
 | SensErrorDiv of si * si
 | MoreGeneral  of ty * ty
 | TypeMismatch of ty * ty
@@ -141,10 +142,18 @@ let zeros (n : int) : bsi list =
 
 (* A list with zero sensitivities, except for one variable *)
 (* Note that this has to be kept in sync with the actual ctx *)
-let singleton (n : int) (v : var_info) : bsi list =
+let singleton (n : int) (v : var_info) s : bsi list =
   let rec aux n l =
     if n = 0 then l
-    else let si = if n = v.v_index + 1 then Some si_one else None in
+    else let si = if n = v.v_index + 1 then Some s else None in
+         aux (n - 1) (si :: l) in
+  aux n []
+
+let zero_list_op (n : int) (v1 : var_info) (v2 : var_info) s1 s2 : bsi list =
+  let rec aux n l =
+    if n = 0 then l
+    else let si = if n = v1.v_index + 1 then Some s1 else
+                  if n = v2.v_index + 1 then Some s2 else None in
          aux (n - 1) (si :: l) in
   aux n []
 
@@ -178,9 +187,6 @@ let lub_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
   | None, Some si -> Some si
   | None, None -> None
 
-(* NB: The scrutinee is always a regular sensitivity (i.e. not box),
-   because it always comes from the index of a type, which *)
-
 let cs_add_eq (sil : si) (sir : si) =
   extend_cs (SiEq (sil, sir))
 
@@ -190,6 +196,7 @@ module TypeSub = struct
     match ty_f, ty_a with
     | _   when ty_f = ty_a -> return ()
     | _                    -> fail i @@ NotSubtype (TyPrim ty_f, TyPrim ty_a)
+
 
   (* Check whether ty_1 is a subtype of ty_2, generating the necessary
      constraints along the way. *)
@@ -208,22 +215,6 @@ module TypeSub = struct
     | TyTensor(tyl1, tyl2), TyTensor(tyr1, tyr2) ->
       check_type_sub i tyl1 tyr1 >>
       check_type_sub i tyl2 tyr2
-
-    | TyAmpersand(tyl1, tyl2), TyAmpersand(tyr1, tyr2) ->
-      check_type_sub i tyl1 tyr1 >>
-      check_type_sub i tyl2 tyr2
-
-    | TyLollipop(tyl1, tyl2), TyLollipop(tyr1, tyr2) ->
-      check_type_sub i tyr1 tyl1 >>
-      check_type_sub i tyl2 tyr2
-
-    | TyMonad(sl, tyl), TyMonad(sr, tyr) ->
-      check_type_sub i tyl tyr >>
-      check_sens_leq i sl sr
-
-    | TyBang(sl, tyl), TyBang(sr, tyr) ->
-      check_type_sub i tyl tyr >>
-      check_sens_leq i sl sr
 
     | _, _ -> fail
 
@@ -248,31 +239,9 @@ module TypeSub = struct
         check_type_eq i tyl1 tyr1 >>
         check_type_eq i tyl2 tyr2
 
-      | TyAmpersand(tyl1, tyl2), TyAmpersand(tyr1, tyr2) ->
-        check_type_eq i tyl1 tyr1 >>
-        check_type_eq i tyl2 tyr2
-
-      | TyLollipop(tyl1, tyl2), TyLollipop(tyr1, tyr2) ->
-        check_type_eq i tyr1 tyl1 >>
-        check_type_eq i tyl2 tyr2
-
-      | TyBang(sl, tyl), TyBang(sr, tyr) ->
-        check_type_eq i tyl tyr >>
-        check_sens_eq i sl sr
-
-      | TyMonad(el, tyl), TyMonad(er, tyr) ->
-        check_type_eq i tyl tyr >>
-        check_sens_eq i el er
-
       | _, _ -> fail
 
   let check_ty_union i sityl sityr =
-    match sityl, sityr with
-    | TyMonad(si_l, ty_l),TyMonad(si_r, ty_r) -> 
-          let si = Simpl.si_simpl_compute (SiLub(si_l, si_r)) in
-          check_type_eq i ty_r ty_l >>
-          return (TyMonad(si, ty_r))
-    | _ , _  -> 
           check_type_eq i sityl sityr >>
           return sityl
 
@@ -291,28 +260,6 @@ module TypeSub = struct
     match ty_arr with
     | _                   -> fail i @@ CannotApply(ty_arr, ty_arr)
 
-  (* This is good for return, eq, etc... it should be extended
-     systematically instead of the current hack *)
-  let infer_tyapp_very_simple i ty ty_arg =
-    match ty with
-    | TyLollipop(TyVar v, tyb) ->
-      if v.v_index = 0 then
-        let nt = ty_subst 0 ty_arg tyb in
-        ty_debug i "==> [%3d] Inferring type application from @[%a@] to @[%a@]" !ty_seq Print.pp_type tyb Print.pp_type nt;
-        return (nt)
-      else
-        fail i @@ CannotApply(ty, ty_arg)
-    | _ -> fail i @@ CannotApply(ty, ty_arg)
-
-  let check_app i ty_arr ty_arg =
-    ty_debug i "<-> [%3d] Application of @[%a@] to @[%a@]" !ty_seq Print.pp_type ty_arr Print.pp_type ty_arg;
-    match ty_arr with
-    (* Here we do inference of type applications *)
-
-    | TyLollipop(tya, tyb) ->
-      check_type_sub i ty_arg tya >> return (tyb)
-    | _                        -> fail i @@ CannotApply(ty_arr, ty_arg)
-
   let check_fuzz_shape i ty = fail i @@ WrongShape (ty, "fuzzy")
 
   let check_tensor_shape i ty =
@@ -320,18 +267,24 @@ module TypeSub = struct
     | TyTensor(ty1, ty2) -> return (ty1, ty2)
     | _                  -> fail i @@ WrongShape (ty, "tensor")
 
-  let check_op_shape op =
-    let num  = (TyPrim PrimNum) in
-    let ty_bool = (TyUnion(TyPrim PrimUnit, TyPrim PrimUnit)) in
-    match op with
-    | AddOp  -> return (TyLollipop((TyAmpersand(num, num)),num))
-    | MulOp  -> return (TyLollipop((TyTensor(num, num)),num))
-    | SqrtOp -> return (TyLollipop((TyBang(si_hlf, num)),num))
-    | DivOp  -> return (TyLollipop((TyTensor(num, num)),num))
-    | GtOp   -> 
-        return (TyLollipop((TyTensor(TyBang(si_infty,num),TyBang(si_infty,num))),ty_bool))
-    | EqOp   -> 
-        return (TyLollipop((TyTensor(TyBang(si_infty,num),TyBang(si_infty,num))),ty_bool))
+  let check_sens_disjoint' bsi1 bsi2 = 
+    match bsi1,bsi2 with
+      | Some si1, Some si2 -> 
+        if (si1 == si_zero) == false then post_si_leq si_zero si2 else
+        if (si2 == si_zero) == false then post_si_leq si_zero si1 else
+        false
+      | None, None -> true
+      | _, _ ->  false
+
+  let rec check_sens_disjoint i (bsi1 : bsi list) (bsi2 : bsi list) =
+    match bsi1, bsi2 with
+    | (sbsi1 :: l1), (sbsi2 :: l2) -> 
+        if check_sens_disjoint' sbsi1 sbsi2 then return () else 
+          fail i @@ Internal "Some linear context problem" >>
+        check_sens_disjoint i l1 l2
+    | [] , [] -> return ()
+    | _ , _ -> fail i @@ Internal "Some linear context problem"
+
 
 let check_is_num' ty : bool =
   match ty with
@@ -349,31 +302,7 @@ let check_is_num i ty : unit checker =
     | TyUnion(ty1, ty2) -> return (ty1, ty2)
     | _                 -> fail i @@ WrongShape (ty, "union")
 
-  let check_fun_shape i ty =
-    match ty with
-    | TyLollipop(ty1, ty2) -> return (ty1, ty2)
-    | _                 -> fail i @@ WrongShape (ty, "lollipop")
-
-  let check_bang_shape i sity =
-    match sity with
-    | TyBang(si1, ty1) -> return (si1, ty1)
-    | _                 -> fail i @@ WrongShape (sity, "bang")
-
-  let check_amp_shape i ty =
-    match ty with
-    | TyAmpersand(ty1, ty2) -> return (ty1, ty2)
-    | _                 -> fail i @@ WrongShape (ty, "amp")
-
-  let check_monadic_shape i sity =
-    match sity with
-    | TyMonad(si, ty) -> return (si, ty)
-    | _                 -> fail i @@ WrongShape (sity, "monad")
-
-  let check_monadic_shape_option sity =
-    match sity with
-    | TyMonad(si, ty) -> Some (si, ty)
-    | _               -> None
-
+ 
   let check_sized_nat_shape i ty = fail i @@ WrongShape (ty, "nat")
 
 end
@@ -410,6 +339,9 @@ let with_extended_ctx_2 (i : info)
 let get_var_ty (v : var_info) : ty checker =
   get_ctx >>= fun ctx ->
   return @@ snd (access_var ctx v.v_index)
+
+let shift_sens (bsi : bsi) (bsis : bsi list) : bsi list =
+  List.map (add_bsi bsi) bsis
 
 let add_sens (bsis1 : bsi list) (bsis2 : bsi list) : bsi list =
   List.map2 add_bsi bsis1 bsis2
@@ -470,74 +402,16 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
   | TmVar(_i, x)  ->
     get_ctx_length              >>= fun len ->
     get_var_ty x                >>= fun ty_x  ->
-    return (ty_x, singleton len x)
+    return (ty_x, singleton len x si_zero)
 
   (* Primitive terms *)
   | TmPrim(_, pt) ->
     get_ctx_length >>= fun len ->
     return (type_of_prim pt, zeros len)
 
-  (* Rounding *)
-  | TmRnd64(i, v) ->
-    type_of v    >>= fun (ty_v, sis_v)  ->
-    check_is_num i ty_v >>
-    
-    let eps = SiConst ( (2.220446049250313e-16)) in
-    return (TyMonad(eps, TyPrim PrimNum), sis_v)
-  
-  | TmRnd32(i, v) ->
-    type_of v    >>= fun (ty_v, sis_v)  ->
-    check_is_num i ty_v >>
-      
-    let eps = SiConst ( (1.192092895507812e-7)) in
-    return (TyMonad(eps, TyPrim PrimNum), sis_v)
-  
-  | TmRnd16(i, v) ->
-    type_of v    >>= fun (ty_v, sis_v)  ->
-    check_is_num i ty_v >>
-      
-    let eps = SiConst ( (0.0009765625)) in
-    return (TyMonad(eps, TyPrim PrimNum), sis_v)
-
-  (* Ret *)
-  | TmRet(_i, v) ->
-    type_of v    >>= fun (ty_v, sis_v)  ->
-
-    return (TyMonad(si_zero, ty_v), sis_v)
-
-  (* Abstraction and Application *)
-
-  (* λ (x : tya_x) { tm }        *)
-  | TmAbs(i, b_x, tya_x, tm) ->
-
-    with_extended_ctx i b_x.b_name tya_x (type_of tm) >>= fun (ty_tm, si_x, sis) ->
-
-    let si_x1 =  si_of_bsi si_x in
-    let si_x2 =  Simpl.si_simpl_compute si_x1 in
-
-    ty_debug (tmInfo t) "### [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si si_x2;
-
-      let si_x3  = Simpl.si_simpl si_x2 in
-      let si_x4  = Simpl.si_simpl_compute si_x3 in
-      check_sens_eq i (si_one) si_x4         >>
-
-      return (TyLollipop (tya_x, ty_tm), sis)
-
-  (* tm1 β → α, tm2: β *)
-  | TmApp(i, tm1, tm2)                             ->
-
-    type_of tm1 >>= fun (ty1, sis1) ->
-    type_of tm2 >>= fun (ty2, sis2) ->
-
-    (* Checks that ty1 has shape β → α, and that ty2 is and instance of β.
-       Returns α of ty1 *)
-    check_app i ty1 ty2 >>= fun (tya) ->
-
-    return (tya, add_sens sis1 sis2)
-
   (* Standard let-binding *)
   (* x : oty_x = tm_x ; e *)
-  | TmLet(i, x, oty_x, tm_x, e)                   ->
+  | TmLet(i, x, oty_x, tm_x, e)         ->
 
     type_of tm_x >>= fun (ty_x, sis_x)  ->
 
@@ -551,57 +425,25 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     ty_debug i "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo x P.pp_si (si_of_bsi si_x);
 
     let si_x =  (si_of_bsi si_x) in
-    check_sens_lt i si_zero si_x >>
     let si_x = Simpl.si_simpl si_x in
     let si_x = Simpl.si_simpl_compute si_x in
 
-    return (ty_e, add_sens sis_e (scale_sens (Some si_x) sis_x))
+    return (ty_e, add_sens (shift_sens (Some si_x) sis_x) sis_e)
 
-  (* Monadic let-binding x = v ; e *)
-  | TmLetBind(i, x, v, e)                   ->
+  (* Defs *)
+  | TmDef(i, e)                   ->
+    type_of e >>= fun (ty_e, sis_e)  ->
+    ty_debug i "*** Context DEF: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_e); 
 
-    type_of v >>= fun (ty_v, sis_v)  ->
+    return (ty_e,sis_e)
 
-    check_monadic_shape i ty_v >>= fun(er_v, ty_x) ->
-
-    ty_info2 i "### Type of binder %a is %a" Print.pp_binfo x Print.pp_type ty_x;
-
-    with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
-
-    check_monadic_shape i ty_e >>= fun(er_e, ty_e') ->
-
-    let si_x     = si_of_bsi si_x in
-    let si1      =  Simpl.si_simpl_compute (SiMult(si_x, er_v)) in
-    let si_total = Simpl.si_simpl_compute (SiAdd( si1, er_e)) in
-
-    return (TyMonad(si_total,ty_e'), add_sens sis_e (scale_sens (Some si_x) sis_v))
-
-  (* Tensor product and Cartesian product (ampersand &)*)
-  | TmAmpersand(_i, tm1, tm2)      ->
-
-    type_of tm1 >>= fun (ty1, sis1) ->
-    type_of tm2 >>= fun (ty2, sis2) ->
-
-    return (TyAmpersand(ty1, ty2), lub_sens sis1 sis2)
-
-  | TmAmp1(i, tm1)      ->
-
-      type_of tm1 >>= fun (ty, sis1) ->
-      check_amp_shape i ty >>= fun(ty_1, _ty_2) ->
-
-      return (ty_1, sis1)
-
-  | TmAmp2(i, tm2)      ->
-
-      type_of tm2 >>= fun (ty, sis2) ->
-      check_amp_shape i ty >>= fun(_ty_1, ty_2) ->
-
-      return (ty_2, sis2)
-
-  | TmTens(_i, e1, e2) ->
+  (* Tensor product*)
+  | TmTens(i, e1, e2) ->
 
     type_of e1 >>= fun (ty1, sis1) ->
     type_of e2 >>= fun (ty2, sis2) ->
+
+    check_sens_disjoint i sis1 sis2 >>
 
     return @@ (TyTensor(ty1, ty2), add_sens sis1 sis2)
 
@@ -612,39 +454,13 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     check_tensor_shape i ty_v >>= fun (ty_x, ty_y) ->
 
     (* Extend context with x and y *)
-    with_extended_ctx_2 i x.b_name ty_x y.b_name ty_y (type_of e) >>= fun (ty_e, si_x, si_y, sis_e) ->
+    with_extended_ctx_2 i x.b_name ty_x y.b_name ty_y 
+      (type_of e) >>= fun (ty_e, si_x, si_y, sis_e) ->
 
-    let si_x   = si_of_bsi si_x in
-    let si_y   = si_of_bsi si_y in
-    let si_max = SiLub(si_x,si_y) in
+    check_sens_eq i (si_of_bsi si_x) (si_of_bsi si_y) >>
+    check_sens_disjoint i sis_v sis_e >> 
 
-    return (ty_e, add_sens sis_e (scale_sens (Some si_max) sis_v))
-
-  (* Exponentials (bangs and boxes) *)
-  | TmBox(_i,si_v,v) ->
-
-    type_of v >>= fun (ty_v, sis_v) ->
-
-    return(TyBang(si_v, ty_v), scale_sens (Some si_v) sis_v)
-
-  (* let [x] = v in e *)
-  | TmBoxDest(i,x,tm_v,tm_e) ->
-
-    type_of tm_v >>= fun (sity_v, sis_v) ->
-
-    check_bang_shape i sity_v >>= fun (si_v, ty_x) ->
-
-    with_extended_ctx i x.b_name ty_x (type_of tm_e) >>= fun (ty_e, si_x, sis_e) ->
-
-    ty_debug i "### In box, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo x P.pp_si (si_of_bsi si_x);
-
-    let si_x = si_of_bsi si_x in
-    let t    = si_div si_x si_v in
-
-   ty_info2 i "**** Value of sens is %a" Print.pp_si si_x;
-   ty_info2 i "**** Value of scaling is %a" Print.pp_si t;
-
-    return(ty_e, add_sens (scale_sens (Some t) sis_v) sis_e)
+    return (ty_e, add_sens (shift_sens si_x sis_v) sis_e)
 
   (* Case analysis *)
   (* case v of inl(x) => e_l | inr(y) => f_r *)
@@ -687,16 +503,11 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
       return (TyUnion(TyPrim PrimUnit, ty), sis)
 
   (* Ops *)
-  | TmOp(i, fop, v) ->
-
-    type_of v >>= fun (ty_v, sis_v) ->
-
-    check_op_shape fop >>= fun (ty_op) ->
-    check_fun_shape i ty_op >>= fun(ty_arg,ty_ret) ->
-
-    check_type_eq i ty_v ty_arg >>
-
-    return (ty_ret, sis_v)
+  | TmAdd(_i, x, y) ->
+    (*type_of tm_x >>= fun (ty_x, sis_x) ->
+    type_of tm_y >>= fun (ty_y, sis_y) ->*)
+    get_ctx_length >>= fun len ->
+    return (TyPrim PrimNum, zero_list_op len x y si_hlf si_hlf)
 
   ) >>= fun (ty, sis) ->
 
@@ -717,6 +528,7 @@ let pp_tyerr ppf s = match s with
   | SensErrorEq (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a = %a" !ty_seq pp_si si1 pp_si si2
   | SensErrorLe (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a <= %a" !ty_seq pp_si si1 pp_si si2
   | SensErrorLt (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a < %a" !ty_seq pp_si si1 pp_si si2
+  | NotDisjoint (si1, si2)  -> fprintf ppf "EEE [%3d] Some linear context error %a and %a" !ty_seq pp_si si1 pp_si si2
   | SensErrorDiv (_si1, _si2)  -> fprintf ppf "Some sens div error" 
   | MoreGeneral(ty1, ty2) -> fprintf ppf "EEE [%3d] %a is not more general than %a"     !ty_seq pp_type ty1 pp_type ty2
   | TypeInst(ty1, ty2)    -> fprintf ppf "EEE [%3d] Type %a is not instance of %a"      !ty_seq pp_type ty1 pp_type ty2
@@ -729,8 +541,8 @@ let pp_tyerr ppf s = match s with
   | Internal s            -> fprintf ppf "EEE [%3d] Internal error: %s" !ty_seq s
 
 (* Equivalent to run *)
-let get_type program =
-  match type_of program Ctx.empty_context with
-  | Right (ty, _sis) -> ty
+let get_type program context =
+  match type_of program context with
+  | Right (ty, sis) -> (ty,sis)
   | Left e ->
     typing_error_pp e.i pp_tyerr e.v

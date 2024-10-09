@@ -54,6 +54,7 @@ let reservedWords = [
   ("of", fun i -> Parser.OF i);
   ("let", fun i -> Parser.LET i);
   ("function", fun i -> Parser.FUNCTION i);
+  ("def", fun i -> Parser.DEF i);
   ("if", fun i -> Parser.IF i);
   ("then", fun i -> Parser.THEN i);
   ("else", fun i -> Parser.ELSE i);

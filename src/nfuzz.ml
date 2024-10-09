@@ -9,12 +9,9 @@
 open Syntax
 open Support.Options
 open Support.Error
-open Translate_ast
 
 let outfile = ref (None : string option)
 let infile = ref ("" : string)
-let translate = ref (None : Translate_ast.translate_flag option)
-let translate_outfile = ref (None : string option)
 
 let argDefs =
   [
@@ -50,34 +47,7 @@ let argDefs =
       Arg.Unit
         (fun () ->
           debug_options := { !debug_options with var_output = PrVarIndex }),
-      "Print just indexes of variables" );
-    ( "--translate",
-      Arg.String
-        (fun s ->
-          translate := Some SmartInline;
-          translate_outfile := Some s),
-      "Translates NumFuzz code into an FPCore benchmark" );
-    ( "--translate-inline",
-      Arg.String
-        (fun s ->
-          translate := Some NaiveInline;
-          translate_outfile := Some s),
-      "Translates NumFuzz code into FPCore with functions inlined but no smart \
-       simplification of result" );
-    ( "--translate-literal",
-      Arg.String
-        (fun s ->
-          translate := Some SmartInline;
-          translate_outfile := Some s),
-      "Translates NumFuzz code into FPCore as literally as possible" );
-    ( "--translate-binary64",
-      Arg.String
-        (fun s ->
-          translate := Some Decimal;
-          translate_outfile := Some s),
-      "Translates NumFuzz code into FPCore with all operations using binary64 \
-       precision. Does not allow use of NumFuzz's real precision computations."
-    );
+      "Print just indexes of variables" )
   ]
 
 let dp = Support.FileInfo.dummyinfo
@@ -110,44 +80,20 @@ let parse file =
   Unix.close writeme;
   let pi = Unix.in_channel_of_descr readme in
   let lexbuf = Lexer.create file pi in
-  let program =
+  let (context, program) =
     try Parser.body Lexer.main lexbuf
     with Parsing.Parse_error ->
       error_msg Parser (Lexer.info lexbuf) "Parse error"
   in
   Parsing.clear_parser ();
   close_in pi;
-  program
+  (context, program)
 
-(* Main must be fun *)
-let check_main_type ty =
-  match ty with
-  | TyLollipop (TyPrim _, _) -> ()
-  | _ ->
-      main_error dp
-        "The type of the program must the db_source -o[?] fuzzy string"
+let type_check program context =
+  let (ty,sis) = Ty_bi.get_type program context in
+  (*main_info dp "Type of the program: @[%a@]" Print.pp_type ty *)
+  main_info dp "Sensitivities for context: @[%a@]" (Print.pp_list Print.pp_si) (Ty_bi.bsi_sens sis)
 
-let rec check_fun_type1 ty =
-  match ty with TyLollipop (_, ty2) -> check_fun_type1 ty2 | _ -> ty
-
-let relative_error1 ty =
-  match check_fun_type1 ty with
-  | TyMonad (si, TyPrim PrimNum) -> Some si
-  | _ -> None
-
-let relative_error2 si =
-  match si with SiConst f -> Some (f /. (1.0 -. f)) | _ -> None
-
-let type_check program =
-  let ty = Ty_bi.get_type program in
-  main_info dp "Type of the program: @[%a@]" Print.pp_type ty;
-  let opsi = relative_error1 ty in
-  match opsi with
-  | Some si -> (
-      match relative_error2 si with
-      | Some f -> main_info dp "Relative error: @[%a@]" Print.pp_si (SiConst f)
-      | _ -> ())
-  | _ -> ()
 
 let gen_caml program outfile =
   let out = open_out outfile in
@@ -180,12 +126,13 @@ let main () =
   (* Read the command-line arguments *)
   infile := parseArgs ();
 
-  let program = parse !infile in
+  let (context, program) = parse !infile in
 
   (* Print the results of the parsing phase *)
   main_debug dp "Parsed program:@\n@[%a@]@." Print.pp_term program;
+  main_debug dp "Parsed context:@\n@[%a@]@." Print.pp_var_ctx context.var_ctx;
 
-  if comp_enabled TypeChecker then type_check program;
+  if comp_enabled TypeChecker then type_check program context;
 
   (if comp_enabled Backend then
      match !outfile with
@@ -205,16 +152,7 @@ let main () =
          let _caml_exit = Sys.command command in
          let _caml_exit = Sys.command "rm -f *.cmo *.cmi" in
          main_info dp "Executable: %s generated" out_exe;
-         ());
-
-  match !translate with
-  | None -> ()
-  | Some flag -> (
-      match !translate_outfile with
-      | Some outfile_t ->
-          Translate.export_prog program outfile_t flag;
-          main_info dp "FPCore translation: %s generated" outfile_t
-      | None -> main_warning dp "No outfile for the translation was specified.")
+         ())
 
 let time f x =
   let t = Sys.time () in

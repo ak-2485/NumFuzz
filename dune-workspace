@@ -1,0 +1,15 @@
+(lang dune 3.16)
+
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))
+  (c_flags
+   (:standard -O2 -Wall -Wextra -g -L/usr/local/lib))
+  (env-vars
+   (LD_LIBRARY_PATH /usr/local/lib)))
+ (release
+  (flags
+   (:standard -warn-error))
+  (c_flags
+   (:standard -O2 -Werror))))

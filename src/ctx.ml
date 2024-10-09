@@ -108,6 +108,28 @@ let remove_first_var ctx =
       cs_ctx    = ctx.cs_ctx ;
     }
 
+let rec split_below ctx n =
+    if n = 0 then List.tl ctx
+    else 
+        match ctx with
+        | [] -> []
+        | head :: tail ->
+            split_below tail (n-1)
+
+let rec split_above ctx n = List.rev (split_below (List.rev ctx) n)
+
+let remove_nth_var n ctx =
+  if ctx.var_ctx = [] then
+  (* We got no generated context, we are coming from a constant term *)
+    ctx
+  else
+    let s_ctx = varctx_var_shift n (-1) ctx.var_ctx in
+    {
+      var_ctx   = split_above s_ctx n @ split_below s_ctx n;
+      tyvar_ctx = ctx.tyvar_ctx ;
+      cs_ctx    = ctx.cs_ctx ;
+    }
+
 let remove_first_ty_var ctx =
   if ctx.tyvar_ctx = [] then
   (* We got no generated context, we are coming from a constant term *)
@@ -123,5 +145,5 @@ let remove_first_ty_var ctx =
     }
 
 (* Accessing to the variable in the context *)
-let access_var    ctx i = List.nth ctx.var_ctx   i
+let access_var    ctx i = List.nth ctx.var_ctx i
 let access_ty_var ctx i = List.nth ctx.tyvar_ctx i

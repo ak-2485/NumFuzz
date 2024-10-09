@@ -1,0 +1,15 @@
+#include "float_ops/mulfp64.fz"
+#inlcude "float_ops/addfp64.fz""
+
+function dp4
+ (a: num) (b: num) (c: num) (d:num)  
+{
+ s1 = mulfp64(a,b);
+ let s2 = s1;
+ s3 = mulfp64 (c, d);
+ let s4 = s3;
+ addfp64 (s2,s4)
+}
+
+dp4
+

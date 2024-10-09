@@ -113,13 +113,6 @@ type ty =
   (* ADT *)
   | TyUnion of ty * ty
   | TyTensor of ty * ty
-  | TyAmpersand of ty * ty
-  (* Functional type *)
-  | TyLollipop of ty * ty
-  (* Monadic type *)
-  | TyMonad of si * ty
-  (* Comonadic type *)
-  | TyBang of si * ty
 
 (* map over types, first argument: action on vars, second argument
    action on evars, third argument action on sensitivities, 4th on sizes *)
@@ -130,13 +123,6 @@ let rec ty_map n fv fsi ty =
   (* ADT *)
   | TyUnion (ty1, ty2) -> TyUnion (ty_map n fv fsi ty1, ty_map n fv fsi ty2)
   | TyTensor (ty1, ty2) -> TyTensor (ty_map n fv fsi ty1, ty_map n fv fsi ty2)
-  | TyAmpersand (ty1, ty2) ->
-      TyAmpersand (ty_map n fv fsi ty1, ty_map n fv fsi ty2)
-  (* *)
-  | TyLollipop (ty1, ty2) ->
-      TyLollipop (ty_map n fv fsi ty1, ty_map n fv fsi ty2)
-  | TyMonad (si1, ty1) -> TyMonad (fsi n si1, ty_map n fv fsi ty1)
-  | TyBang (si1, ty1) -> TyBang (fsi n si1, ty_map n fv fsi ty1)
 
 let ty_shift o n ty =
   let fv k v = TyVar (var_shift k n v) in
@@ -176,7 +162,7 @@ let type_of_prim t =
   | PrimTString _ -> TyPrim PrimString
   | PrimTFun (_, ty) -> ty
 
-type op = AddOp | MulOp | SqrtOp | DivOp | GtOp | EqOp
+type op = AddOp | MulOp | DivOp 
 
 type term =
   | TmVar of info * var_info
@@ -189,28 +175,12 @@ type term =
   (*                      t  of { inl(x)     => tm1  | inl(y)     => tm2  } *)
   (* Primitive terms *)
   | TmPrim of info * term_prim
-  (* Rounding *)
-  | TmRnd64 of info * term
-  | TmRnd32 of info * term
-  | TmRnd16 of info * term
-  (* Ret *)
-  | TmRet of info * term
-  (* Regular Abstraction and Applicacion *)
-  | TmApp of info * term * term
-  | TmAbs of info * binder_info * ty * term
-  (* & constructor and eliminator *)
-  | TmAmpersand of info * term * term
-  | TmAmp1 of info * term
-  | TmAmp2 of info * term
-  (* Box constructor and elim *)
-  | TmBox of info * si * term
-  | TmBoxDest of info * binder_info * term * term
   (* Regular sequencing *)
   | TmLet of info * binder_info * ty option * term * term
-  (* Monadic sequencing *)
-  | TmLetBind of info * binder_info * term * term
+  (* Defs *)
+  | TmDef of info * term 
   (* Basic ops *)
-  | TmOp of info * op * term
+  | TmAdd of info * var_info * var_info
 
 let map_prim_ty n f p =
   match p with
@@ -225,10 +195,6 @@ let rec map_term_ty_aux n ft fsi tm =
   match tm with
   | TmVar (i, v) -> TmVar (i, v)
   | TmPrim (i, p) -> TmPrim (i, map_prim_ty n ft p)
-  | TmRnd64 (i, tm1) | TmRnd32 (i, tm1) | TmRnd16 (i, tm1) ->
-      TmRnd64 (i, tf n tm1)
-  | TmRet (i, tm1) -> TmRet (i, tf n tm1)
-  (*  *)
   | TmTens (i, tm1, tm2) -> TmTens (i, tf n tm1, tf n tm2)
   | TmTensDest (i, bi_x, bi_y, tm, tm_i) ->
       TmTensDest (i, bi_x, bi_y, tf n tm, tf n tm_i)
@@ -238,21 +204,11 @@ let rec map_term_ty_aux n ft fsi tm =
   | TmUnionCase (i, tm, bi_l, tm_l, bi_r, tm_r) ->
       TmUnionCase (i, tf n tm, bi_l, tf n tm_l, bi_r, tf n tm_r)
   (*  *)
-  | TmAbs (i, bi, ty, tm) -> TmAbs (i, bi, ft n ty, tf n tm)
-  | TmApp (i, tm1, tm2) -> TmApp (i, tf n tm1, tf n tm2)
-  (*  *)
-  | TmAmpersand (i, tm1, tm2) -> TmAmpersand (i, tf n tm1, tf n tm2)
-  | TmAmp1 (i, tm1) -> TmAmp1 (i, tf n tm1)
-  | TmAmp2 (i, tm1) -> TmAmp2 (i, tf n tm1)
-  (*  *)
-  | TmBox (i, si, tm1) -> TmBox (i, fsi n si, tf n tm1)
-  | TmBoxDest (i, bi, tm1, tm2) -> TmBoxDest (i, bi, tf n tm1, tf n tm2)
-  (*  *)
   | TmLet (i, bi, orty, tm, tm_i) -> TmLet (i, bi, opf orty, tf n tm, tf n tm_i)
   (*  *)
-  | TmLetBind (i, bi, tm, tm_i) -> TmLetBind (i, bi, tf n tm, tf n tm_i)
+  | TmDef (i, tm) -> TmDef (i, tf n tm)
   (*  *)
-  | TmOp (i, opi, tm) -> TmOp (i, opi, tf n tm)
+  | TmAdd (i, x, y) -> TmAdd (i, x,y)
 
 let map_term_ty fty fsi tm = map_term_ty_aux 0 fty fsi tm
 
@@ -276,28 +232,15 @@ let tmInfo t =
   match t with
   | TmVar (fi, _) -> fi
   | TmPrim (fi, _) -> fi
-  | TmRnd64 (fi, _) | TmRnd32 (fi, _) | TmRnd16 (fi, _) -> fi
-  | TmRet (fi, _) -> fi
-  (* *)
   | TmTens (fi, _, _) -> fi
   | TmTensDest (fi, _, _, _, _) -> fi
   (* *)
   | TmInl (fi, _) -> fi
   | TmInr (fi, _) -> fi
   | TmUnionCase (fi, _, _, _, _, _) -> fi
-  (* *)
-  | TmAbs (fi, _, _, _) -> fi
-  | TmApp (fi, _, _) -> fi
-  (* *)
-  | TmAmpersand (fi, _, _) -> fi
-  | TmAmp1 (fi, _) -> fi
-  | TmAmp2 (fi, _) -> fi
-  (* *)
-  | TmBox (fi, _, _) -> fi
-  | TmBoxDest (fi, _, _, _) -> fi
   (*  *)
   | TmLet (fi, _, _, _, _) -> fi
   (*  *)
-  | TmLetBind (fi, _, _, _) -> fi
+  | TmDef (fi, _) -> fi
   (*  *)
-  | TmOp (fi, _, _) -> fi
+  | TmAdd (fi, _, _) -> fi
