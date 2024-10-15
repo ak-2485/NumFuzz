@@ -13,12 +13,9 @@ let lex_error fi s = error_msg Support.Options.Lexer fi "%s" s
 let reservedWords = [
   (* Symbols *)
   ("+", fun i -> Parser.ADD i);
-  ("&", fun i -> Parser.AMP i);
-  ("!", fun i -> Parser.BANG i);
   (":", fun i -> Parser.COLON i);
   (",", fun i -> Parser.COMMA i);
   ("=>", fun i -> Parser.DBLARROW i);
-  ("M", fun i -> Parser.EM i);
   ("=", fun i -> Parser.EQUAL i);
   (";", fun i -> Parser.SEMI i);
   ("{", fun i -> Parser.LBRACE i);
@@ -36,16 +33,9 @@ let reservedWords = [
   ("false", fun i -> Parser.FALSE i); *)
   ("inf", fun i -> Parser.INF i); 
   ("fun", fun i -> Parser.FUN i);
-  ("rnd16", fun i -> Parser.RND16 i);
-  ("rnd32", fun i -> Parser.RND32 i);
-  ("rnd64", fun i -> Parser.RND64 i);
   ("ret", fun i -> Parser.RET i);
   ("add", fun i -> Parser.ADDOP i);
   ("mul", fun i -> Parser.MULOP i);
-  ("div", fun i -> Parser.MULOP i);
-  ("sqrt", fun i -> Parser.SQRTOP i);
-  ("gt", fun i -> Parser.GTOP i);
-  ("eq", fun i -> Parser.EQOP i);
   ("case", fun i -> Parser.UNIONCASE i);
   ("inl", fun i -> Parser.INL i);
   ("inr", fun i -> Parser.INR i);
@@ -54,7 +44,6 @@ let reservedWords = [
   ("of", fun i -> Parser.OF i);
   ("let", fun i -> Parser.LET i);
   ("function", fun i -> Parser.FUNCTION i);
-  ("def", fun i -> Parser.DEF i);
   ("if", fun i -> Parser.IF i);
   ("then", fun i -> Parser.THEN i);
   ("else", fun i -> Parser.ELSE i);
@@ -146,20 +135,6 @@ rule main = parse
 
 | ['0'-'9']+ '.' ['0'-'9']+
     { Parser.FLOATV {i=info lexbuf; v=float_of_string (text lexbuf)} }
-
-| ['0'-'9']+ '.' ['0'-'9']+ 'e' '-' ['0'-'9']+
-    { Parser.EPS {i=info lexbuf; v=float_of_string (text lexbuf)} }
-
-| "eps64_up"
-    { Parser.EPS64 {i=info lexbuf; v= 2.220446049250313e-16 } }
-
-| "eps32_up"
-    { Parser.EPS32 {i=info lexbuf; v = 1.1920928955078125e-07 } }
-
-| "eps16_up"
-    { Parser.EPS16 {i=info lexbuf; v = 0.0009765625 } }
-
-| "-o" { Parser.LOLLIPOP(info lexbuf) }
 
 | "inf" { Parser.INF(info lexbuf) }
 

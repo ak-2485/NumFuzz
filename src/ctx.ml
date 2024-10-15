@@ -113,22 +113,32 @@ let rec split_below ctx n =
     else 
         match ctx with
         | [] -> []
-        | head :: tail ->
+        | _ :: tail ->
             split_below tail (n-1)
 
-let rec split_above ctx n = List.rev (split_below (List.rev ctx) n)
+let split_above ctx n = List.rev (split_below (List.rev ctx) n)
 
 let remove_nth_var n ctx =
   if ctx.var_ctx = [] then
   (* We got no generated context, we are coming from a constant term *)
     ctx
   else
-    let s_ctx = varctx_var_shift n (-1) ctx.var_ctx in
+    let s_ctx = varctx_var_shift 0 (-1) (split_below ctx.var_ctx n) in
     {
-      var_ctx   = split_above s_ctx n @ split_below s_ctx n;
+      var_ctx   = split_above ctx.var_ctx n   @ s_ctx;      
       tyvar_ctx = ctx.tyvar_ctx ;
       cs_ctx    = ctx.cs_ctx ;
     }
+
+(* remove vars from ctx, l is list of indices *)
+let rec reduce_ctx l ctx2 = 
+  if ctx2.var_ctx = [] then 
+    ctx2
+  else
+    match ctx2.var_ctx with
+    | [] -> ctx2
+    | (var, value) :: l ->  
+            reduce_ctx l (remove_nth_var var.v_index ctx2)
 
 let remove_first_ty_var ctx =
   if ctx.tyvar_ctx = [] then

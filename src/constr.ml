@@ -81,7 +81,6 @@ let mk_constr_leq (i : FI.info) (ctx : context) (sil : si) (sir : si) : constr =
     c_upper    = sir;
   }
 
-
 let cs_store : (constr list) ref = ref []
 
 (*

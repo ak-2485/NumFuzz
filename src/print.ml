@@ -109,6 +109,9 @@ let pp_vinfo fmt v =
     | PrVarIndex -> fprintf fmt "[%d/%d]" v.v_index v.v_size
     | PrVarBoth  -> fprintf fmt "%a:[%d/%d]" pp_name vi v.v_index v.v_size
 
+let pp_vinfo_ind fmt v =
+  fprintf fmt "[%d]" v.v_index
+
 let pp_binfo fmt b = pp_name fmt (b.b_type, b.b_name)
 
 (* Kinds *)
@@ -189,7 +192,21 @@ let pp_type_list = pp_list pp_type
 (**********************************************************************)
 (* Pretty printing for contexts *)
 
-(* let pp_bi_ctx ppf  *)
+let pp_index_sis ppf (i,si) = 
+  fprintf ppf "(%d , @[%a@])" i pp_si si
+
+let pp_var_ctx_ind_elem ppf (v, ty) =
+  if !debug_options.full_context then
+    fprintf ppf "%a : @[%a@]" pp_vinfo_ind v pp_type ty
+  else
+    fprintf ppf "%a" pp_vinfo v
+
+let pp_var_ctx_ind   = pp_list pp_var_ctx_ind_elem
+
+let pp_var_si_ctx_elem ppf ((v, ty), si) =
+    fprintf ppf "%a :[%a] @[%a@]" pp_vinfo v pp_si si pp_type ty
+
+let pp_var_si_ctx   = pp_list pp_var_si_ctx_elem
 
 let pp_var_ctx_elem ppf (v, ty) =
   if !debug_options.full_context then
@@ -295,15 +312,4 @@ let rec pp_term ppf t =
   | TmLet(_, n, _sty, tm1, tm2) ->
     fprintf ppf "@[<v>@[<hov>%a =@;<1 1>@[%a@]@];@,@[%a@]@]" pp_binfo n pp_term tm1 pp_term tm2
 
-  | TmDef(_, tm1) ->
-    fprintf ppf "@[<v>Def := @[%a@]" pp_term tm1 
 
-  (* Case expressions *)
-  | TmInl(_, tm_l) -> fprintf ppf "inl @[%a@]" pp_term tm_l
-  | TmInr(_, tm_r) -> fprintf ppf "inr @[%a@]" pp_term tm_r
-  | TmUnionCase(_, tm, ln, ltm, rn, rtm) ->
-    (* Alternative using vertical boxes *)
-    fprintf ppf "case @[%a@] of {@\n   inl(%a) @<1>%s @[%a@]@\n | inr(%a) @<1>%s @[%a@]@\n}"
-      pp_term tm
-      pp_binfo ln (u_sym Symbols.DblArrow) pp_term ltm
-      pp_binfo rn (u_sym Symbols.DblArrow) pp_term rtm

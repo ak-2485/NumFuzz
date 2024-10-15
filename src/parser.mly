@@ -41,11 +41,7 @@ let rec list_to_term l body = match l with
   | (ty, n, i) :: tml -> TmAbs (i, nb_var n, ty, list_to_term tml body) *)
 
 (*let from_args_to_term arg_list body = list_to_term arg_list body*)
-let rec list_to_ctx l ctx = match l with
-    []                    -> ctx
-  | (ty, n, i) :: tml -> extend_var_ty n ty ctx
 
-let from_args_to_ctx arg_list ctx = list_to_ctx arg_list ctx
 (*
 let rec list_to_type l ret_ty = match l with
     []                        -> TyLollipop (TyPrim PrimUnit, ret_ty) (* Not yet allowed constant function *)
@@ -65,15 +61,10 @@ let from_args_to_type arg_list oty = match oty with
 /* Keyword tokens */
 %token <Support.FileInfo.info> ADD
 %token <Support.FileInfo.info> ADDOP
-%token <Support.FileInfo.info> AMP
-%token <Support.FileInfo.info> BANG
 %token <Support.FileInfo.info> COLON
 %token <Support.FileInfo.info> COMMA
 %token <Support.FileInfo.info> DBLARROW
-%token <Support.FileInfo.info> DEF
-%token <Support.FileInfo.info> DIVOP
 %token <Support.FileInfo.info> ELSE
-%token <Support.FileInfo.info> EM
 %token <Support.FileInfo.info> EQUAL
 %token <Support.FileInfo.info> EQOP
 %token <Support.FileInfo.info> EOF
@@ -104,12 +95,8 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> RET
 %token <Support.FileInfo.info> RPAREN
 (*Mixed precision rounding *)
-%token <Support.FileInfo.info> RND16
-%token <Support.FileInfo.info> RND32
-%token <Support.FileInfo.info> RND64
 %token <Support.FileInfo.info> SEMI
 (* %token <Support.FileInfo.info> SENS *)
-%token <Support.FileInfo.info> SQRTOP
 %token <Support.FileInfo.info> STRING
 %token <Support.FileInfo.info> THEN
 (* %token <Support.FileInfo.info> TRUE *)
@@ -119,10 +106,6 @@ let from_args_to_type arg_list oty = match oty with
 /* Identifier and constant value tokens */
 %token <string Support.FileInfo.withinfo> ID
 %token <float Support.FileInfo.withinfo> FLOATV
-%token <float Support.FileInfo.withinfo> EPS
-%token <float Support.FileInfo.withinfo> EPS16
-%token <float Support.FileInfo.withinfo> EPS32
-%token <float Support.FileInfo.withinfo> EPS64
 %token <string Support.FileInfo.withinfo> STRINGV
 
 /* ---------------------------------------------------------------------- */
@@ -141,7 +124,7 @@ body :
     LBRACE TyArguments RBRACE Term EOF
       { 
         let (args,ctx_args) = ($2 Ctx.empty_context) in
-        (ctx_args , $4 ctx_args )
+        (ctx_args , $4 ctx_args)
       }
 
 Term :
@@ -155,30 +138,11 @@ Term :
         let ctx_xy = extend_var $5.v ctx_x in
         TmTensDest($1, (nb_var $3.v), (nb_var $5.v), $8 ctx, $10 ctx_xy)
       }
-  (* case analysis *)
-  | UNIONCASE Term OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE INR LPAREN ID RPAREN DBLARROW Term RBRACE
-      { fun ctx ->
-        let ctx_l = extend_var $7.v  ctx in
-        let ctx_r = extend_var $14.v ctx in
-        TmUnionCase($1, $2 ctx, nb_var $7.v, $10 ctx_l, nb_var  $14.v, $17 ctx_r) }
-  (* sugar for conditionals *)
-  | IF Term THEN LBRACE Term RBRACE ELSE LBRACE Term RBRACE
-      { fun ctx ->
-        let ctx_l = extend_var "unit" ctx in
-        let ctx_r = extend_var "unit" ctx in
-        TmUnionCase($1, $2 ctx, nb_var "unit" , $5 ctx_l, nb_var "unit" , $9 ctx_r)
-      }
   (* let expression *)
   | LET ID MaybeType EQUAL Term SEMI Term
       { fun ctx ->
         let ctx' = extend_var $2.v ctx in
         TmLet($2.i, (nb_var $2.v), $3 ctx, $5 ctx, $7 ctx')
-      }
-  (* sugar for top level functions *)
-  | DEF ID Arguments LBRACE Term RBRACE
-      { fun ctx ->
-        let (args,ctx_args) = ($3 ctx) in
-        TmDef($2.i, $5 ctx_args)
       }
   (* primitive ops *)
   | ADDOP ID ID
@@ -231,10 +195,6 @@ Val:
       { fun _cx -> TmPrim ($1, PrimTUnit) }
   | ID
       { fun ctx -> TmVar($1.i, existing_var $1.i $1.v ctx) }
-  | INL Val
-      { fun ctx -> TmInl($1, $2 ctx)  }
-  | INR Val
-      { fun ctx -> TmInr($1, $2 ctx)  }
   | LPAREN PairSeq RPAREN
       { fun ctx -> $2 ctx }
   | STRINGV

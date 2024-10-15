@@ -79,6 +79,10 @@ let get_ty_ctx_length : int checker =
 let with_new_ctx (f : context -> context) (m : 'a checker) : 'a checker =
   fun ctx -> m (f ctx)
 
+let with_new_ctx2 (f : context -> context -> context) (computed_ctx : context) 
+  (m : 'a checker) : 'a checker =
+  fun current_ctx -> m (f computed_ctx current_ctx)
+
 let fail (i : info) (e : ty_error_elem) : 'a checker = fun _ ->
   Left { i = i; v = e }
 
@@ -313,16 +317,22 @@ open TypeSub
 let with_extended_ty_ctx (v : string) (k : kind) (m : 'a checker) : 'a checker =
   with_new_ctx (extend_ty_var v k) m
 
+let ctx_reduce (ctx : (int * bsi) list) =
+  List.map (fun (i, si) -> (i-1, si)) ctx
+
+let ctx_reduce2 (ctx : (int * bsi) list) =
+  List.map (fun (i, si) -> (i-2, si)) ctx
+
 (* Extend the context with a value binding and run a computation. The
    computation is assumed to produce a list of results, one for each
    variable in the extended context. That list is destructed, and the
    result corresponding to the new variable is returned separately for
    convenience. *)
-let with_extended_ctx (i : info) (v : string) (ty : ty) (m : ('a * 'b list) checker) :
-    ('a * 'b * 'b list) checker =
+let with_extended_ctx (i : info) (v : string) (ty : ty) (m : ('a * ('b * 'c) list) checker) :
+    ('a * ('b * 'c) * ('b * 'c) list) checker =
   with_new_ctx (extend_var v ty) m >>= fun (res, res_ext_ctx) ->
   match res_ext_ctx with
-  | res_v :: res_ctx -> return (res, res_v, res_ctx)
+  | res_v :: res_ctx -> return (res, res_v, ctx_reduce res_ctx)
   | [] -> fail i @@ Internal "Computation on extended context didn't produce enough results"
 
 (* Similar to the one above, but with two variables. vx has index 1 in
@@ -333,18 +343,31 @@ let with_extended_ctx_2 (i : info)
     (m : ('a * 'b list) checker) : ('a * 'b * 'b * 'b list) checker =
   with_new_ctx (fun ctx -> extend_var vy tyy (extend_var vx tyx ctx)) m >>= fun (res, res_ext_ctx) ->
   match res_ext_ctx with
-  | res_y :: res_x :: res_ctx -> return (res, res_x, res_y, res_ctx)
+  | res_y :: res_x :: res_ctx -> return (res, res_x, res_y, ctx_reduce2 res_ctx)
   | _ -> fail i @@ Internal "Computation on extended context didn't produce enough results"
+
+let intersect (ctx1 : int list) (ctx2 : int list) : int list = 
+  List.filter (fun a -> List.mem a ctx1) ctx2
+
+let check_disjoint i (ctx1 : (int * bsi) list) (ctx2 : (int * bsi) list) : unit checker = 
+  let ctx1_fst = List.map fst ctx1 in 
+  let ctx2_fst = List.map fst ctx2 in
+  let s1 = intersect ctx1_fst ctx2_fst in
+  if s1 == [] then
+    return ()
+  else 
+    fail i @@ Internal "Context check failed" 
 
 let get_var_ty (v : var_info) : ty checker =
   get_ctx >>= fun ctx ->
   return @@ snd (access_var ctx v.v_index)
 
-let shift_sens (bsi : bsi) (bsis : bsi list) : bsi list =
-  List.map (add_bsi bsi) bsis
+let shift_sens (bsi : bsi) (bsis : (int * bsi) list) : (int * bsi) list =
+  List.map (fun ab -> (fst ab, add_bsi bsi (snd ab))) bsis
 
-let add_sens (bsis1 : bsi list) (bsis2 : bsi list) : bsi list =
-  List.map2 add_bsi bsis1 bsis2
+(* should only ever be used on disjoint contexts *)
+let union_ctx (ctx1 : (int * bsi) list) (ctx2 : (int * bsi) list) : (int * bsi) list =
+   ctx1 @ ctx2
 
 let scale_sens (bsi : bsi) (bsis : bsi list) : bsi list =
   List.map (mult_bsi bsi) bsis
@@ -367,7 +390,6 @@ let kind_of (i : info) (si : si) : kind checker =
   (match si with
   | SiInfty       -> return Sens
   | SiConst _     -> return Sens
-
 
   | SiVar   v     ->
     get_ctx >>= fun ctx ->
@@ -392,7 +414,7 @@ let kind_of (i : info) (si : si) : kind checker =
    satisfied in order for the type to be valid. Raises an error if it
    detects that no typing is possible. *)
 
-let rec type_of (t : term) : (ty * bsi list) checker  =
+let rec type_of (t : term) : (ty * (int * bsi) list) checker  =
 
   ty_debug (tmInfo t) "--> [%3d] Enter type_of: @[%a@]" !ty_seq
     (Print.limit_boxes Print.pp_term) t; incr ty_seq;
@@ -401,113 +423,78 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
   (* Variables *)
   | TmVar(_i, x)  ->
     get_ctx_length              >>= fun len ->
-    get_var_ty x                >>= fun ty_x  ->
-    return (ty_x, singleton len x si_zero)
+    get_var_ty  x               >>= fun ty_x  ->
+    (* variable typed with zero backward error *)
+    return (ty_x, [x.v_index, Some si_zero])
 
   (* Primitive terms *)
   | TmPrim(_, pt) ->
     get_ctx_length >>= fun len ->
-    return (type_of_prim pt, zeros len)
+    return (type_of_prim pt, [])
 
   (* Standard let-binding *)
-  (* x : oty_x = tm_x ; e *)
-  | TmLet(i, x, oty_x, tm_x, e)         ->
+  (* let (x : oty_x) = e in f *)
+  | TmLet(i, x, oty_x, tm_e, tm_f)         ->
 
-    type_of tm_x >>= fun (ty_x, sis_x)  ->
+    type_of tm_e >>= fun (ty_e, ctx_e)  ->
 
-    ty_info2 i "### Type of binder %a is %a" Print.pp_binfo x Print.pp_type ty_x;
+    (*ty_info2 i "### Type of binder %a is %a" Print.pp_binfo x Print.pp_type ty_x; *)
 
-    check_type_sub' i ty_x oty_x >>
+    with_extended_ctx i x.b_name ty_e (type_of tm_f) >>= fun (ty_f, (_,si_x), ctx_f) ->
 
-    with_extended_ctx i x.b_name ty_x (type_of e) >>= fun (ty_e, si_x, sis_e) ->
+    ty_debug i "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq 
+      P.pp_binfo x P.pp_si (si_of_bsi si_x);
+    let ctx' = List.map (fun ab -> (fst ab, si_of_bsi (snd ab))) ctx_f in
+    ty_debug i "### Sensitivities for context: @[%a@]" (Print.pp_list Print.pp_index_sis) (ctx');
+    let ctx'' = List.map (fun ab -> (fst ab, si_of_bsi (snd ab))) ctx_e in
+    ty_debug i "### Sensitivities for context: @[%a@]" (Print.pp_list Print.pp_index_sis) (ctx'');
 
-    ty_debug i "*** Context let: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_e); 
-    ty_debug i "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo x P.pp_si (si_of_bsi si_x);
+    check_disjoint i ctx_e ctx_f >>
+
+(*    ty_debug i "*** Context let: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_e); 
+    ty_debug i "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq 
+    P.pp_binfo x P.pp_si (si_of_bsi si_x);*)
 
     let si_x =  (si_of_bsi si_x) in
     let si_x = Simpl.si_simpl si_x in
     let si_x = Simpl.si_simpl_compute si_x in
 
-    return (ty_e, add_sens (shift_sens (Some si_x) sis_x) sis_e)
-
-  (* Defs *)
-  | TmDef(i, e)                   ->
-    type_of e >>= fun (ty_e, sis_e)  ->
-    ty_debug i "*** Context DEF: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_e); 
-
-    return (ty_e,sis_e)
+    return (ty_e, union_ctx (shift_sens (Some si_x) ctx_e) ctx_f)
 
   (* Tensor product*)
-  | TmTens(i, e1, e2) ->
+  | TmTens(i, tm_e, tm_f) ->
 
-    type_of e1 >>= fun (ty1, sis1) ->
-    type_of e2 >>= fun (ty2, sis2) ->
+    type_of tm_e >>= fun (ty_e, ctx_e) ->
+    type_of tm_f >>= fun (ty_f, ctx_f) ->
 
-    check_sens_disjoint i sis1 sis2 >>
+    check_disjoint i ctx_e ctx_f >>
 
-    return @@ (TyTensor(ty1, ty2), add_sens sis1 sis2)
+    return (TyTensor(ty_e, ty_f), union_ctx ctx_e ctx_f)
 
-  (* let (x,y) = v in e *)
-  | TmTensDest(i, x, y, v, e) ->
+  (* let (x,y) = e in f *)
+  | TmTensDest(i, x, y, tm_e, tm_f) ->
 
-    type_of v >>= fun (ty_v, sis_v) ->
-    check_tensor_shape i ty_v >>= fun (ty_x, ty_y) ->
+    type_of tm_e >>= fun (ty_e, ctx_e) ->
+    check_tensor_shape i ty_e >>= fun (ty_x, ty_y) ->
 
     (* Extend context with x and y *)
     with_extended_ctx_2 i x.b_name ty_x y.b_name ty_y 
-      (type_of e) >>= fun (ty_e, si_x, si_y, sis_e) ->
+      (type_of tm_f) >>= fun (ty_f, (_,si_x), (_,si_y), ctx_f) ->
 
-    check_sens_eq i (si_of_bsi si_x) (si_of_bsi si_y) >>
-    check_sens_disjoint i sis_v sis_e >> 
+    check_disjoint i ctx_e ctx_f >> 
+    let si = lub_bsi si_x si_y in
 
-    return (ty_e, add_sens (shift_sens si_x sis_v) sis_e)
-
-  (* Case analysis *)
-  (* case v of inl(x) => e_l | inr(y) => f_r *)
-  | TmUnionCase(i, v, b_x, e_l, b_y, f_r)      ->
-
-    type_of v >>= fun (ty_v, sis_v) ->
-
-    check_union_shape i ty_v >>= fun (ty1, ty2) ->
-
-    with_extended_ctx i b_x.b_name ty1 (type_of e_l) >>= fun (tyl, si_x, sis_l) ->
-
-    with_extended_ctx i b_y.b_name ty2 (type_of f_r) >>= fun (tyr, si_y, sis_r) ->
-
-    check_ty_union i tyl tyr >>= fun ty_exp ->
-
-    ty_debug (tmInfo v) "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si (si_of_bsi si_x);
-
-    ty_debug (tmInfo v) "*** Context: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_v); 
-
-      let si_x = si_of_bsi si_x in
-      let si_y = si_of_bsi si_y in
-
-      check_sens_eq i si_x si_y >>
-
-      let theta = (lub_sens sis_l sis_r) in
-
-      if (post_si_eq si_x si_zero) then
-        return (ty_exp, add_sens theta (scale_sens (Some si_one) sis_v))
-      else
-        return (ty_exp, add_sens theta (scale_sens (Some si_x) sis_v))
-
-  | TmInl(_i, tm_l)      ->
-
-      type_of tm_l >>= fun (ty, sis) ->
-      return (TyUnion(ty, TyPrim PrimUnit), sis)
-
-  | TmInr(_i, tm_r)      ->
-
-      type_of tm_r >>= fun (ty, sis) ->
-      return (TyUnion(TyPrim PrimUnit, ty), sis)
+    return (ty_e, union_ctx (shift_sens si ctx_e) ctx_f)
 
   (* Ops *)
-  | TmAdd(_i, x, y) ->
-    (*type_of tm_x >>= fun (ty_x, sis_x) ->
-    type_of tm_y >>= fun (ty_y, sis_y) ->*)
-    get_ctx_length >>= fun len ->
-    return (TyPrim PrimNum, zero_list_op len x y si_hlf si_hlf)
+  | TmAdd(i, x, y) ->
+
+    ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+      P.pp_vinfo x x.v_index;
+    ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+      P.pp_vinfo y y.v_index;
+
+    return (TyPrim PrimNum,  [x.v_index, Some si_one] @ [y.v_index, Some si_one])
 
   ) >>= fun (ty, sis) ->
 

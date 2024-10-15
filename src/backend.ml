@@ -63,19 +63,11 @@ let rec gen_term ppf t =
       fprintf ppf "(let (%s,%s) =  %a in@\n@[%a@])"
         (ml_b b_x) (ml_b b_y) gen_term tm_e1 gen_term tm_e2
 
-    | TmInl (_i, e1) -> fprintf ppf "inl %a" gen_term e1
-    | TmInr (_i, e1) -> fprintf ppf "inr %a" gen_term e1
-    | TmUnionCase (_, tm_e, bi_l, tm_l, bi_r, tm_r) ->
-      fprintf ppf "(match %a with @[<v>| Left %s -> %a @,| Right %s -> %a@])"
-        gen_term tm_e (ml_b bi_l) gen_term tm_l (ml_b bi_r) gen_term tm_r
-
     (* Regular stuff for fuzz *)
     | TmPrim (_, prim) -> fprintf ppf "%s" (gen_primitive prim)
 
     (* let bi = e1 in e2 *)
     | TmLet (_, bi, _sty, e1, e2) -> fprintf ppf "(let %s = %a in@\n%a)" (ml_b bi) gen_term e1 gen_term e2
-
-    | TmDef (_, e) -> fprintf ppf "(Def = @\n%a)"  gen_term e
 
     | TmAdd (_, x, y) -> fprintf ppf "(Add %s %s)"  (ml_n x.v_name) (ml_n y.v_name)
 

@@ -6,9 +6,9 @@
    See the LICENSE file for details on licensing.
 *)
 
-open Syntax
 open Support.Options
 open Support.Error
+open Constr
 
 let outfile = ref (None : string option)
 let infile = ref ("" : string)
@@ -90,10 +90,14 @@ let parse file =
   (context, program)
 
 let type_check program context =
-  let (ty,sis) = Ty_bi.get_type program context in
-  (*main_info dp "Type of the program: @[%a@]" Print.pp_type ty *)
-  main_info dp "Sensitivities for context: @[%a@]" (Print.pp_list Print.pp_si) (Ty_bi.bsi_sens sis)
-
+  let (_ty,ctx) = Ty_bi.get_type program context in
+  (* main_info dp "Type of the program: @[%a@]" Print.pp_type ty *)
+  let si_list' = List.map snd ctx in
+  let si_list  = List.map (fun a ->  Simpl.si_simpl_compute (Ty_bi.si_of_bsi a)) si_list' in
+  let names'   = List.map fst ctx in
+  let names    = List.map (fun i -> (Ctx.access_var context i)) names' in
+  let ctx'     = List.combine names si_list in
+  main_info dp "Inferred Context:@\n@[%a@]@." Print.pp_var_si_ctx ctx'
 
 let gen_caml program outfile =
   let out = open_out outfile in
@@ -129,8 +133,9 @@ let main () =
   let (context, program) = parse !infile in
 
   (* Print the results of the parsing phase *)
-  main_debug dp "Parsed program:@\n@[%a@]@." Print.pp_term program;
-  main_debug dp "Parsed context:@\n@[%a@]@." Print.pp_var_ctx context.var_ctx;
+  main_debug dp "Parsed program:@\n@[%a@]@."  Print.pp_term program;
+  main_debug dp "Parsed context:@\n@[%a@]@."  Print.pp_var_ctx context.var_ctx;
+  main_debug dp "Parsed indicies:@\n@[%a@]@." Print.pp_var_ctx_ind context.var_ctx;
 
   if comp_enabled TypeChecker then type_check program context;
 
