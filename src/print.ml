@@ -135,7 +135,7 @@ let rec pp_si fmt s =
 let pp_si_op fmt o =
   match o with
   | None    -> fprintf fmt "?"
-  | Some si -> pp_si fmt si
+  | Some si -> pp_si fmt (Simpl.si_simpl_compute si)
 
 (**********************************************************************)
 (* Pretty printing for constraints *)

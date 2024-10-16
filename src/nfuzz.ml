@@ -90,14 +90,9 @@ let parse file =
   (context, program)
 
 let type_check program context =
-  let (_ty,ctx) = Ty_bi.get_type program context in
+  let (ty,ctx) = Ty_bi.get_type program context in
   (* main_info dp "Type of the program: @[%a@]" Print.pp_type ty *)
-  let si_list' = List.map snd ctx in
-  let si_list  = List.map (fun a ->  Simpl.si_simpl_compute (Ty_bi.si_of_bsi a)) si_list' in
-  let names'   = List.map fst ctx in
-  let names    = List.map (fun i -> (Ctx.access_var context i)) names' in
-  let ctx'     = List.combine names si_list in
-  main_info dp "Inferred Context:@\n@[%a@]@." Print.pp_var_si_ctx ctx'
+  main_info dp "Inferred Context:@\n@[%a@]@." (Print.pp_list Print.pp_si_op) ctx
 
 let gen_caml program outfile =
   let out = open_out outfile in

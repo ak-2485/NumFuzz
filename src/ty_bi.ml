@@ -146,11 +146,19 @@ let zeros (n : int) : bsi list =
 
 (* A list with zero sensitivities, except for one variable *)
 (* Note that this has to be kept in sync with the actual ctx *)
-let singleton (n : int) (v : var_info) s : bsi list =
+let singleton (n : int) (v : var_info) : bsi list =
   let rec aux n l =
     if n = 0 then l
-    else let si = if n = v.v_index + 1 then Some s else None in
+    else let si = if n = v.v_index + 1 then Some si_zero else None in
          aux (n - 1) (si :: l) in
+  aux n []
+
+let binop_ctx (n : int) (v1 : var_info) (v2 : var_info) s1 s2 : bsi list =
+  let rec aux n l =
+    if n = 0 then l
+    else let si = if n = v1.v_index + 1 then Some s1 else
+                  if n = v2.v_index + 1 then Some s2 else None in
+                  aux (n - 1) (si :: l) in
   aux n []
 
 let zero_list_op (n : int) (v1 : var_info) (v2 : var_info) s1 s2 : bsi list =
@@ -167,9 +175,7 @@ let zero_list_op (n : int) (v1 : var_info) (v2 : var_info) s1 s2 : bsi list =
 let add_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
   match bsi1, bsi2 with
   | Some si1, Some si2 -> Some (SiAdd (si1, si2))
-  | Some si, None
-  | None, Some si -> Some si
-  | None, None -> None
+  | _, _ -> None
 
 let mult_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
   match bsi1, bsi2 with
@@ -181,14 +187,15 @@ let div_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
   | Some si1, Some si2 -> Some (SiDiv (si1, si2))
   | _, _ -> None
 
+(* we don't want to use this in bean because it maps None si to zero *)
 let si_of_bsi (bsi : bsi) : si =
   Option.default si_zero bsi
 
 let lub_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
   match bsi1, bsi2 with
-  | Some si1, Some si2 -> Some (SiLub (si1, si2))
+  | Some si1, Some si2 -> Some (SiLub(Simpl.si_simpl_compute  si1, Simpl.si_simpl_compute  si2))
   | Some si, None
-  | None, Some si -> Some si
+  | None, Some si -> Some (Simpl.si_simpl_compute si)
   | None, None -> None
 
 let cs_add_eq (sil : si) (sir : si) =
@@ -257,49 +264,12 @@ module TypeSub = struct
     | None -> return ty
 
   (* Checks for types of different shapes *)
-
-  (* Check that the type is an application and can be applied to
-     arg. Return the result and sensitivity of the application *)
-  let check_ty_app_shape i ty_arr =
-    match ty_arr with
-    | _                   -> fail i @@ CannotApply(ty_arr, ty_arr)
-
   let check_fuzz_shape i ty = fail i @@ WrongShape (ty, "fuzzy")
 
   let check_tensor_shape i ty =
     match ty with
     | TyTensor(ty1, ty2) -> return (ty1, ty2)
     | _                  -> fail i @@ WrongShape (ty, "tensor")
-
-  let check_sens_disjoint' bsi1 bsi2 = 
-    match bsi1,bsi2 with
-      | Some si1, Some si2 -> 
-        if (si1 == si_zero) == false then post_si_leq si_zero si2 else
-        if (si2 == si_zero) == false then post_si_leq si_zero si1 else
-        false
-      | None, None -> true
-      | _, _ ->  false
-
-  let rec check_sens_disjoint i (bsi1 : bsi list) (bsi2 : bsi list) =
-    match bsi1, bsi2 with
-    | (sbsi1 :: l1), (sbsi2 :: l2) -> 
-        if check_sens_disjoint' sbsi1 sbsi2 then return () else 
-          fail i @@ Internal "Some linear context problem" >>
-        check_sens_disjoint i l1 l2
-    | [] , [] -> return ()
-    | _ , _ -> fail i @@ Internal "Some linear context problem"
-
-
-let check_is_num' ty : bool =
-  match ty with
-  | TyPrim PrimNum -> true
-  | _ -> false
-
-let check_is_num i ty : unit checker =
-  if check_is_num' ty then
-    return ()
-  else
-    fail i @@ WrongShape (ty, "num")
 
   let check_union_shape i ty =
     match ty with
@@ -313,26 +283,16 @@ end
 
 open TypeSub
 
-(* Extend the context with a type binding and run a computation *)
-let with_extended_ty_ctx (v : string) (k : kind) (m : 'a checker) : 'a checker =
-  with_new_ctx (extend_ty_var v k) m
-
-let ctx_reduce (ctx : (int * bsi) list) =
-  List.map (fun (i, si) -> (i-1, si)) ctx
-
-let ctx_reduce2 (ctx : (int * bsi) list) =
-  List.map (fun (i, si) -> (i-2, si)) ctx
-
 (* Extend the context with a value binding and run a computation. The
    computation is assumed to produce a list of results, one for each
    variable in the extended context. That list is destructed, and the
    result corresponding to the new variable is returned separately for
    convenience. *)
-let with_extended_ctx (i : info) (v : string) (ty : ty) (m : ('a * ('b * 'c) list) checker) :
-    ('a * ('b * 'c) * ('b * 'c) list) checker =
+let with_extended_ctx (i : info) (v : string) (ty : ty) (m : ('a * 'b list) checker) :
+    ('a * 'b * 'b list) checker =
   with_new_ctx (extend_var v ty) m >>= fun (res, res_ext_ctx) ->
   match res_ext_ctx with
-  | res_v :: res_ctx -> return (res, res_v, ctx_reduce res_ctx)
+  | res_v :: res_ctx -> return (res, res_v, res_ctx)
   | [] -> fail i @@ Internal "Computation on extended context didn't produce enough results"
 
 (* Similar to the one above, but with two variables. vx has index 1 in
@@ -343,31 +303,35 @@ let with_extended_ctx_2 (i : info)
     (m : ('a * 'b list) checker) : ('a * 'b * 'b * 'b list) checker =
   with_new_ctx (fun ctx -> extend_var vy tyy (extend_var vx tyx ctx)) m >>= fun (res, res_ext_ctx) ->
   match res_ext_ctx with
-  | res_y :: res_x :: res_ctx -> return (res, res_x, res_y, ctx_reduce2 res_ctx)
+  | res_y :: res_x :: res_ctx -> return (res, res_x, res_y, res_ctx)
   | _ -> fail i @@ Internal "Computation on extended context didn't produce enough results"
 
-let intersect (ctx1 : int list) (ctx2 : int list) : int list = 
-  List.filter (fun a -> List.mem a ctx1) ctx2
+let intersect_bsi (a : bsi) (b : bsi) : bool = 
+   not (a == None) && not (b == None)
 
-let check_disjoint i (ctx1 : (int * bsi) list) (ctx2 : (int * bsi) list) : unit checker = 
-  let ctx1_fst = List.map fst ctx1 in 
-  let ctx2_fst = List.map fst ctx2 in
-  let s1 = intersect ctx1_fst ctx2_fst in
-  if s1 == [] then
-    return ()
-  else 
-    fail i @@ Internal "Context check failed" 
+let check_disjoint i (ctx1 : bsi list) (ctx2 : bsi list) : unit checker = 
+  let s1 = List.find_opt (fun a -> a == true) (List.map2 intersect_bsi ctx1 ctx2) in
+  match s1 with 
+    | Some _   -> fail i @@ Internal "Context check failed" 
+    | None     -> return ()
 
 let get_var_ty (v : var_info) : ty checker =
   get_ctx >>= fun ctx ->
   return @@ snd (access_var ctx v.v_index)
 
-let shift_sens (bsi : bsi) (bsis : (int * bsi) list) : (int * bsi) list =
-  List.map (fun ab -> (fst ab, add_bsi bsi (snd ab))) bsis
+let shift_sens (s : bsi) (l :  bsi list) :  bsi list =
+  List.map (add_bsi s) l
+
+let rec union_ctx'  (ctx :  (bsi * bsi) list) : bsi list =
+   match ctx with 
+    | (Some s1, _) :: l -> Some s1 :: union_ctx' l
+    | (_, Some s2) :: l -> Some s2 :: union_ctx' l
+    | (None, None) :: l -> None :: union_ctx' l
+    | [] -> []
 
 (* should only ever be used on disjoint contexts *)
-let union_ctx (ctx1 : (int * bsi) list) (ctx2 : (int * bsi) list) : (int * bsi) list =
-   ctx1 @ ctx2
+let union_ctx (ctx1 : bsi list) (ctx2 :  bsi list) : bsi list =
+  union_ctx' (List.combine ctx1 ctx2)
 
 let scale_sens (bsi : bsi) (bsis : bsi list) : bsi list =
   List.map (mult_bsi bsi) bsis
@@ -414,7 +378,7 @@ let kind_of (i : info) (si : si) : kind checker =
    satisfied in order for the type to be valid. Raises an error if it
    detects that no typing is possible. *)
 
-let rec type_of (t : term) : (ty * (int * bsi) list) checker  =
+let rec type_of (t : term) : (ty *  bsi list) checker  =
 
   ty_debug (tmInfo t) "--> [%3d] Enter type_of: @[%a@]" !ty_seq
     (Print.limit_boxes Print.pp_term) t; incr ty_seq;
@@ -425,12 +389,12 @@ let rec type_of (t : term) : (ty * (int * bsi) list) checker  =
     get_ctx_length              >>= fun len ->
     get_var_ty  x               >>= fun ty_x  ->
     (* variable typed with zero backward error *)
-    return (ty_x, [x.v_index, Some si_zero])
+    return (ty_x, singleton len x)
 
   (* Primitive terms *)
   | TmPrim(_, pt) ->
     get_ctx_length >>= fun len ->
-    return (type_of_prim pt, [])
+    return (type_of_prim pt, zeros len)
 
   (* Standard let-binding *)
   (* let (x : oty_x) = e in f *)
@@ -438,28 +402,11 @@ let rec type_of (t : term) : (ty * (int * bsi) list) checker  =
 
     type_of tm_e >>= fun (ty_e, ctx_e)  ->
 
-    (*ty_info2 i "### Type of binder %a is %a" Print.pp_binfo x Print.pp_type ty_x; *)
-
-    with_extended_ctx i x.b_name ty_e (type_of tm_f) >>= fun (ty_f, (_,si_x), ctx_f) ->
-
-    ty_debug i "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq 
-      P.pp_binfo x P.pp_si (si_of_bsi si_x);
-    let ctx' = List.map (fun ab -> (fst ab, si_of_bsi (snd ab))) ctx_f in
-    ty_debug i "### Sensitivities for context: @[%a@]" (Print.pp_list Print.pp_index_sis) (ctx');
-    let ctx'' = List.map (fun ab -> (fst ab, si_of_bsi (snd ab))) ctx_e in
-    ty_debug i "### Sensitivities for context: @[%a@]" (Print.pp_list Print.pp_index_sis) (ctx'');
+    with_extended_ctx i x.b_name ty_e (type_of tm_f) >>= fun (ty_f, si_x, ctx_f) ->
 
     check_disjoint i ctx_e ctx_f >>
 
-(*    ty_debug i "*** Context let: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_e); 
-    ty_debug i "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq 
-    P.pp_binfo x P.pp_si (si_of_bsi si_x);*)
-
-    let si_x =  (si_of_bsi si_x) in
-    let si_x = Simpl.si_simpl si_x in
-    let si_x = Simpl.si_simpl_compute si_x in
-
-    return (ty_e, union_ctx (shift_sens (Some si_x) ctx_e) ctx_f)
+    return (ty_e, union_ctx (shift_sens si_x ctx_e) ctx_f)
 
   (* Tensor product*)
   | TmTens(i, tm_e, tm_f) ->
@@ -479,7 +426,7 @@ let rec type_of (t : term) : (ty * (int * bsi) list) checker  =
 
     (* Extend context with x and y *)
     with_extended_ctx_2 i x.b_name ty_x y.b_name ty_y 
-      (type_of tm_f) >>= fun (ty_f, (_,si_x), (_,si_y), ctx_f) ->
+      (type_of tm_f) >>= fun (ty_f, si_x, si_y, ctx_f) ->
 
     check_disjoint i ctx_e ctx_f >> 
     let si = lub_bsi si_x si_y in
@@ -494,7 +441,8 @@ let rec type_of (t : term) : (ty * (int * bsi) list) checker  =
     ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
       P.pp_vinfo y y.v_index;
 
-    return (TyPrim PrimNum,  [x.v_index, Some si_one] @ [y.v_index, Some si_one])
+    get_ctx_length              >>= fun len ->
+    return (TyPrim PrimNum,  binop_ctx len x y si_one si_one)
 
   ) >>= fun (ty, sis) ->
 
