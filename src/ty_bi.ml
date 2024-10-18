@@ -443,7 +443,35 @@ let rec type_of (t : term) : (ty *  bsi list) checker  =
 
     get_ctx_length              >>= fun len ->
     return (TyPrim PrimNum,  binop_ctx len x y si_one si_one)
+  
+  | TmSub(i, x, y) ->
 
+    ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+      P.pp_vinfo x x.v_index;
+    ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+      P.pp_vinfo y y.v_index;
+
+    get_ctx_length              >>= fun len ->
+    return (TyPrim PrimNum,  binop_ctx len x y si_one si_one)
+  
+  | TmMul(i, x, y) ->
+
+      ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+        P.pp_vinfo x x.v_index;
+      ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+        P.pp_vinfo y y.v_index;
+  
+      get_ctx_length              >>= fun len ->
+      return (TyPrim PrimNum,  binop_ctx len x y si_hlf si_hlf)
+  | TmDiv(i, x, y) ->
+    
+      ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+        P.pp_vinfo x x.v_index;
+      ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+        P.pp_vinfo y y.v_index;
+  
+      get_ctx_length              >>= fun len ->
+      return (TyPrim PrimNum,  binop_ctx len x y si_hlf si_hlf)
   ) >>= fun (ty, sis) ->
 
   decr ty_seq;

@@ -39,6 +39,7 @@ let gen_op op =
     AddOp        -> "add"
   | MulOp        -> "mul"
   | DivOp        -> "div"
+  | SubOp        -> "sub"
 
 (* Avoid clashes with ML names *)
 let ml_n n = "_" ^ n

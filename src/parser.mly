@@ -64,6 +64,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> COLON
 %token <Support.FileInfo.info> COMMA
 %token <Support.FileInfo.info> DBLARROW
+%token <Support.FileInfo.info> DIVOP
 %token <Support.FileInfo.info> ELSE
 %token <Support.FileInfo.info> EQUAL
 %token <Support.FileInfo.info> EQOP
@@ -98,6 +99,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> SEMI
 (* %token <Support.FileInfo.info> SENS *)
 %token <Support.FileInfo.info> STRING
+%token <Support.FileInfo.info> SUBOP
 %token <Support.FileInfo.info> THEN
 (* %token <Support.FileInfo.info> TRUE *)
 %token <Support.FileInfo.info> UNIONCASE
@@ -150,6 +152,21 @@ Term :
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
         TmAdd($1, x, y) }
+  | SUBOP ID ID
+      { fun ctx -> 
+        let x = existing_var $2.i $2.v ctx in
+        let y = existing_var $3.i $3.v ctx in
+        TmSub($1, x, y) }
+  | MULOP ID ID
+      { fun ctx -> 
+        let x = existing_var $2.i $2.v ctx in
+        let y = existing_var $3.i $3.v ctx in
+        TmMul($1, x, y) }
+  | DIVOP ID ID
+      { fun ctx -> 
+        let x = existing_var $2.i $2.v ctx in
+        let y = existing_var $3.i $3.v ctx in
+        TmDiv($1, x, y) }
   (* extra *)
   | LPAREN Term RPAREN
     { $2 }

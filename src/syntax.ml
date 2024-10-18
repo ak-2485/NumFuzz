@@ -162,7 +162,7 @@ let type_of_prim t =
   | PrimTString _ -> TyPrim PrimString
   | PrimTFun (_, ty) -> ty
 
-type op = AddOp | MulOp | DivOp 
+type op = AddOp | MulOp | DivOp | SubOp
 
 type term =
   | TmVar of info * var_info
@@ -175,6 +175,9 @@ type term =
   | TmLet of info * binder_info * ty option * term * term
   (* Basic ops *)
   | TmAdd of info * var_info * var_info
+  | TmSub of info * var_info * var_info
+  | TmDiv of info * var_info * var_info
+  | TmMul of info * var_info * var_info
 
 let map_prim_ty n f p =
   match p with
@@ -195,7 +198,10 @@ let rec map_term_ty_aux n ft fsi tm =
   (*  *)
   | TmLet (i, bi, orty, tm, tm_i) -> TmLet (i, bi, opf orty, tf n tm, tf n tm_i)
   (*  *)
-  | TmAdd (i, x, y) -> TmAdd (i, x,y)
+  | TmAdd (i, x, y) -> TmAdd (i, x, y)
+  | TmSub (i, x, y) -> TmSub (i, x, y)
+  | TmDiv (i, x, y) -> TmDiv (i, x, y)
+  | TmMul (i, x, y) -> TmMul (i, x, y)
 
 let map_term_ty fty fsi tm = map_term_ty_aux 0 fty fsi tm
 
@@ -225,3 +231,6 @@ let tmInfo t =
   | TmLet (fi, _, _, _, _) -> fi
   (*  *)
   | TmAdd (fi, _, _) -> fi
+  | TmSub (fi, _, _) -> fi
+  | TmDiv (fi, _, _) -> fi
+  | TmMul (fi, _, _) -> fi

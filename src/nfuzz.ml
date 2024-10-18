@@ -90,8 +90,10 @@ let parse file =
   (context, program)
 
 let type_check program context =
-  let (ty,ctx) = Ty_bi.get_type program context in
+  let (ty, ctx) = Ty_bi.get_type program context in
   (* main_info dp "Type of the program: @[%a@]" Print.pp_type ty *)
+  (* TODO: add info about which variables correspond to which sensitivity *)
+  main_info dp "Variables:@\n@[%a@]@.\n " Print.pp_var_ctx context.var_ctx;
   main_info dp "Inferred Context:@\n@[%a@]@." (Print.pp_list Print.pp_si_op) ctx
 
 let gen_caml program outfile =
@@ -130,7 +132,7 @@ let main () =
   (* Print the results of the parsing phase *)
   main_debug dp "Parsed program:@\n@[%a@]@."  Print.pp_term program;
   main_debug dp "Parsed context:@\n@[%a@]@."  Print.pp_var_ctx context.var_ctx;
-  main_debug dp "Parsed indicies:@\n@[%a@]@." Print.pp_var_ctx_ind context.var_ctx;
+  main_debug dp "Parsed indices:@\n@[%a@]@." Print.pp_var_ctx_ind context.var_ctx;
 
   if comp_enabled TypeChecker then type_check program context;
 
