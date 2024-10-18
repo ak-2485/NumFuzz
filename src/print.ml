@@ -254,6 +254,7 @@ let string_of_op2 fop = match fop with
     AddOp  -> "add"
   | MulOp  -> "mul"
   | DivOp  -> "div"
+  | SubOp  -> "sub"
 
 let string_of_term_prim t = match t with
     PrimTUnit         -> "()"
@@ -304,15 +305,22 @@ let rec pp_term ppf t =
 
    (* Tensor and & *)
   | TmTens(_, tm1, tm2)     -> fprintf ppf "(@[%a@], @[%a@])" pp_term tm1 pp_term tm2
-  | TmTensDest(_, x, y, tm, term) -> fprintf ppf "@[<v>let (%a,%a) : = @[%a@];@,@[%a@]@]" pp_binfo x pp_binfo y pp_term tm pp_term term
+  | TmTensDest(_, x, y, tm, term) -> fprintf ppf "@[<v>let (%a, %a) : = @[%a@];@,@[%a@]@]" pp_binfo x pp_binfo y pp_term tm pp_term term
 
   (* OP *)
-  | TmAdd(_, x, y)    -> fprintf ppf "Add %a %a " pp_vinfo x pp_vinfo y
-  | TmSub(_, x, y)    -> fprintf ppf "Sub %a %a " pp_vinfo x pp_vinfo y
-  | TmMul(_, x, y)    -> fprintf ppf "Mul %a %a " pp_vinfo x pp_vinfo y
-  | TmDiv(_, x, y)    -> fprintf ppf "Div %a %a " pp_vinfo x pp_vinfo y
+  | TmAdd(_, x, y)    -> fprintf ppf "Add %a %a" pp_vinfo x pp_vinfo y
+  | TmSub(_, x, y)    -> fprintf ppf "Sub %a %a" pp_vinfo x pp_vinfo y
+  | TmMul(_, x, y)    -> fprintf ppf "Mul %a %a" pp_vinfo x pp_vinfo y
+  | TmDiv(_, x, y)    -> fprintf ppf "Div %a %a" pp_vinfo x pp_vinfo y
 
   | TmLet(_, n, _sty, tm1, tm2) ->
     fprintf ppf "@[<v>@[<hov>%a =@;<1 1>@[%a@]@];@,@[%a@]@]" pp_binfo n pp_term tm1 pp_term tm2
+  (* Case *)
+  | TmUnionCase(_, tm, ln, ltm, rn, rtm) ->
+    (* Alternative using vertical boxes *)
+    fprintf ppf "case @[%a@] of {@\n   inl(%a) @<1>%s @[%a@]@\n | inr(%a) @<1>%s @[%a@]@\n}"
+      pp_term tm
+      pp_binfo ln (u_sym Symbols.DblArrow) pp_term ltm
+      pp_binfo rn (u_sym Symbols.DblArrow) pp_term rtm
 
 

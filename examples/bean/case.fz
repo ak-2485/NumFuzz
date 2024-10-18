@@ -1,0 +1,1 @@
+{(x : num + num)} case x of { inl(y) => y | inr(z) => z }

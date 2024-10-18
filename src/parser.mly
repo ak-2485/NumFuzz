@@ -140,6 +140,12 @@ Term :
         let ctx_xy = extend_var $5.v ctx_x in
         TmTensDest($1, (nb_var $3.v), (nb_var $5.v), $8 ctx, $10 ctx_xy)
       }
+  (* case analysis *)
+  | UNIONCASE Val OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE INR LPAREN ID RPAREN DBLARROW Term RBRACE
+      { fun ctx ->
+        let ctx_l = extend_var $7.v  ctx in
+        let ctx_r = extend_var $14.v ctx in
+        TmUnionCase($1, $2 ctx, nb_var $7.v, $10 ctx_l, nb_var  $14.v, $17 ctx_r) }
   (* let expression *)
   | LET ID MaybeType EQUAL Term SEMI Term
       { fun ctx ->

@@ -324,20 +324,18 @@ let shift_sens (s : bsi) (l :  bsi list) :  bsi list =
 
 let rec union_ctx'  (ctx :  (bsi * bsi) list) : bsi list =
    match ctx with 
+    | (Some s1, Some s2) :: l -> (lub_bsi (Some s1) (Some s2)) :: union_ctx' l
     | (Some s1, _) :: l -> Some s1 :: union_ctx' l
     | (_, Some s2) :: l -> Some s2 :: union_ctx' l
     | (None, None) :: l -> None :: union_ctx' l
     | [] -> []
 
-(* should only ever be used on disjoint contexts *)
+(* if contexts are not disjoint, takes greater of error bounds *)
 let union_ctx (ctx1 : bsi list) (ctx2 :  bsi list) : bsi list =
   union_ctx' (List.combine ctx1 ctx2)
 
 let scale_sens (bsi : bsi) (bsis : bsi list) : bsi list =
   List.map (mult_bsi bsi) bsis
-
-let lub_sens (bsis1 : bsi list) (bsis2 : bsi list) : bsi list =
-  List.map2 lub_bsi bsis1 bsis2
 
 let bsi_sens (bsis : bsi list) : si list =
   List.map si_of_bsi bsis
@@ -433,6 +431,25 @@ let rec type_of (t : term) : (ty *  bsi list) checker  =
 
     return (ty_e, union_ctx (shift_sens si ctx_e) ctx_f)
 
+  (* case v of (x.e_l | y.f_r) *)
+  | TmUnionCase(i, v, b_x, e_l, b_y, f_r) ->
+
+    type_of v >>= fun (ty_v, ctx_v) ->
+    check_union_shape i ty_v >>= fun (ty1, ty2) ->
+
+    with_extended_ctx i b_x.b_name ty1 (type_of e_l) >>= fun (tyl, si_x, ctx_l) ->
+    with_extended_ctx i b_y.b_name ty2 (type_of f_r) >>= fun (tyr, si_y, ctx_r) ->
+    (* check that e_l and f_r have the same type *)
+    check_ty_union i tyl tyr >>= fun ty_exp ->
+    (* check that domains are disjoint *)
+    check_disjoint i ctx_v ctx_l >> 
+    check_disjoint i ctx_v ctx_r >> 
+
+    (* take lub of x, y error *)
+    let si = lub_bsi si_x si_y in
+    (* non-disjoint union of left and right contexts *)
+    let ctx_union = union_ctx ctx_l ctx_r in
+    return (ty_exp, union_ctx (shift_sens si ctx_v) ctx_union)
   (* Ops *)
   | TmAdd(i, x, y) ->
 
