@@ -27,6 +27,7 @@ let reservedWords = [
   ("[", fun i -> Parser.LBRACK i);
   ("]", fun i -> Parser.RBRACK i);
   ("|", fun i -> Parser.PIPE i);
+  ("`", fun i -> Parser.TICK i);
 
   (* Keywords *)
   (* ("true", fun i -> Parser.TRUE i);

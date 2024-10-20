@@ -101,6 +101,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> STRING
 %token <Support.FileInfo.info> SUBOP
 %token <Support.FileInfo.info> THEN
+%token <Support.FileInfo.info> TICK
 (* %token <Support.FileInfo.info> TRUE *)
 %token <Support.FileInfo.info> UNIONCASE
 
@@ -115,7 +116,7 @@ let from_args_to_type arg_list oty = match oty with
 /* ---------------------------------------------------------------------- */
 
 %start body
-%type <Ctx.context * Syntax.term > body
+%type <Ctx.context * Ctx.context * Syntax.term > body
 %%
 
 /* ---------------------------------------------------------------------- */
@@ -123,10 +124,12 @@ let from_args_to_type arg_list oty = match oty with
 /* ---------------------------------------------------------------------- */
 
 body :
-    LBRACE TyArguments RBRACE Term EOF
+    // TODO: make discrete arguments optional
+    LBRACE TyArguments RBRACE TICK LBRACE TyArguments RBRACE Term EOF
       { 
-        let (args,ctx_args) = ($2 Ctx.empty_context) in
-        (ctx_args , $4 ctx_args)
+        let (args, ctx_args) = ($2 Ctx.empty_context) in
+        let (dargs, ctx_dargs) = ($6 Ctx.empty_context) in
+        (ctx_args, ctx_dargs, $8 ctx_args)
       }
 
 Term :

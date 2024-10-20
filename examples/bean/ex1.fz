@@ -1,1 +1,1 @@
-{(x : num) (y : num) (z : num)} let w = mul x y; add w z
+{(x : num) (y : num) (z : num)} `{(a : num)} let w = mul x y; add w z

@@ -1,1 +1,1 @@
-{(v : (num,(num,num)))}  let (v0, v') = v; let (v1, v2) = v'; let x = add v0 v1; add x v2
+{(v : (num,(num,num)))} `{(a : num)} let (v0, v') = v; let (v1, v2) = v'; let x = add v0 v1; add x v2

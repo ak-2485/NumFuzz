@@ -53,20 +53,20 @@ type 'a ty_error =
 let (@@) x y = x y
 
 (* Reader/Error monad for type-checking *)
-type 'a checker = context -> 'a ty_error
+type 'a checker = context -> context -> 'a ty_error
 
 let (>>=) (m : 'a checker) (f : 'a -> 'b checker) : 'b checker =
-  fun ctx ->
-    match m ctx with
-    | Right res -> f res ctx
+  fun ctx dctx ->
+    match m ctx dctx with
+    | Right res -> f res ctx dctx
     | Left e    -> Left e
 
 let (>>) m f = m >>= fun _ -> f
 
-let return (x : 'a) : 'a checker = fun _ctx -> Right x
+let return (x : 'a) : 'a checker = fun _ctx _dctx -> Right x
 
 let get_ctx : context checker =
-  fun ctx -> Right ctx
+  fun ctx _ -> Right ctx 
 
 let get_ctx_length : int checker =
   get_ctx                             >>= fun ctx ->
@@ -83,7 +83,7 @@ let with_new_ctx2 (f : context -> context -> context) (computed_ctx : context)
   (m : 'a checker) : 'a checker =
   fun current_ctx -> m (f computed_ctx current_ctx)
 
-let fail (i : info) (e : ty_error_elem) : 'a checker = fun _ ->
+let fail (i : info) (e : ty_error_elem) : 'a checker = fun _ _ ->
   Left { i = i; v = e }
 
 let si_div (si1: si) (si2: si) =
@@ -376,7 +376,7 @@ let kind_of (i : info) (si : si) : kind checker =
    satisfied in order for the type to be valid. Raises an error if it
    detects that no typing is possible. *)
 
-let rec type_of (t : term) : (ty *  bsi list) checker  =
+let rec type_of (t : term) : (ty * bsi list) checker =
 
   ty_debug (tmInfo t) "--> [%3d] Enter type_of: @[%a@]" !ty_seq
     (Print.limit_boxes Print.pp_term) t; incr ty_seq;
@@ -531,8 +531,8 @@ let pp_tyerr ppf s = match s with
   | Internal s            -> fprintf ppf "EEE [%3d] Internal error: %s" !ty_seq s
 
 (* Equivalent to run *)
-let get_type program context =
-  match type_of program context with
-  | Right (ty, sis) -> (ty,sis)
+let get_type program context dcontext =
+  match type_of program context dcontext with
+  | Right (ty, sis) -> (ty, sis)
   | Left e ->
     typing_error_pp e.i pp_tyerr e.v

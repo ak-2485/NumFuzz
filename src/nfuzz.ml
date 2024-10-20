@@ -80,20 +80,21 @@ let parse file =
   Unix.close writeme;
   let pi = Unix.in_channel_of_descr readme in
   let lexbuf = Lexer.create file pi in
-  let (context, program) =
+  let (context, dcontext, program) =
     try Parser.body Lexer.main lexbuf
     with Parsing.Parse_error ->
       error_msg Parser (Lexer.info lexbuf) "Parse error"
   in
   Parsing.clear_parser ();
   close_in pi;
-  (context, program)
+  (context, dcontext, program)
 
-let type_check program context =
-  let (ty, ctx) = Ty_bi.get_type program context in
+let type_check program context dcontext =
+  let (ty, ctx) = Ty_bi.get_type program context dcontext in
   (* main_info dp "Type of the program: @[%a@]" Print.pp_type ty *)
   (* TODO: add info about which variables correspond to which sensitivity *)
-  main_info dp "Variables:@\n@[%a@]@.\n " Print.pp_var_ctx context.var_ctx;
+  main_info dp "Discrete Variables:@\n@[%a@]@.\n " Print.pp_var_ctx dcontext.var_ctx;
+  main_info dp "Linear Variables:@\n@[%a@]@.\n " Print.pp_var_ctx context.var_ctx;
   main_info dp "Inferred Context:@\n@[%a@]@." (Print.pp_list Print.pp_si_op) ctx
 
 let gen_caml program outfile =
@@ -127,14 +128,15 @@ let main () =
   (* Read the command-line arguments *)
   infile := parseArgs ();
 
-  let (context, program) = parse !infile in
+  let (context, dcontext, program) = parse !infile in
 
   (* Print the results of the parsing phase *)
   main_debug dp "Parsed program:@\n@[%a@]@."  Print.pp_term program;
-  main_debug dp "Parsed context:@\n@[%a@]@."  Print.pp_var_ctx context.var_ctx;
+  main_debug dp "Parsed discrete context:@\n@[%a@]@."  Print.pp_var_ctx dcontext.var_ctx;
+  main_debug dp "Parsed linear context:@\n@[%a@]@."  Print.pp_var_ctx context.var_ctx;
   main_debug dp "Parsed indices:@\n@[%a@]@." Print.pp_var_ctx_ind context.var_ctx;
 
-  if comp_enabled TypeChecker then type_check program context;
+  if comp_enabled TypeChecker then type_check program context dcontext;
 
   (if comp_enabled Backend then
      match !outfile with
