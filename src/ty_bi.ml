@@ -430,6 +430,16 @@ let rec type_of (t : term) : (ty *  bsi list) checker  =
     let si = lub_bsi si_x si_y in
 
     return (ty_e, union_ctx (shift_sens si ctx_e) ctx_f)
+  
+  | TmInl(_i, ty_r, tm_l)      ->
+
+      type_of tm_l >>= fun (ty, ctx) ->
+      return (TyUnion(ty, ty_r), ctx)
+
+  | TmInr(_i, ty_l, tm_r)      ->
+
+      type_of tm_r >>= fun (ty, ctx) ->
+      return (TyUnion(ty_l, ty), ctx)
 
   (* case v of (x.e_l | y.f_r) *)
   | TmUnionCase(i, v, b_x, e_l, b_y, f_r) ->

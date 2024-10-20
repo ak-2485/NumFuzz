@@ -172,6 +172,8 @@ type term =
   (* Primitive terms *)
   | TmPrim of info * term_prim
   (* Case *)
+  | TmInl of info * ty * term
+  | TmInr of info * ty * term
   | TmUnionCase of info * term * binder_info * term * binder_info * term
   (*                      t  of { inl(x)     => tm1  | inl(y)     => tm2  } *)
   (* Regular sequencing *)
@@ -198,6 +200,8 @@ let rec map_term_ty_aux n ft fsi tm =
   | TmTens (i, tm1, tm2) -> TmTens (i, tf n tm1, tf n tm2)
   | TmTensDest (i, bi_x, bi_y, tm, tm_i) ->
       TmTensDest (i, bi_x, bi_y, tf n tm, tf n tm_i)
+  | TmInl (i, ty, tm_l) -> TmInl (i, ty, tf n tm_l)
+  | TmInr (i, ty, tm_r) -> TmInr (i, ty, tf n tm_r)
   | TmUnionCase (i, tm, bi_l, tm_l, bi_r, tm_r) ->
       TmUnionCase (i, tf n tm, bi_l, tf n tm_l, bi_r, tf n tm_r)
   | TmLet (i, bi, orty, tm, tm_i) -> TmLet (i, bi, opf orty, tf n tm, tf n tm_i)
@@ -232,6 +236,8 @@ let tmInfo t =
   | TmTens (fi, _, _) -> fi
   | TmTensDest (fi, _, _, _, _) -> fi
   (*  *)
+  | TmInl (fi, _, _) -> fi
+  | TmInr (fi, _, _) -> fi
   | TmUnionCase (fi, _, _, _, _, _) -> fi
   | TmLet (fi, _, _, _, _) -> fi
   (*  *)

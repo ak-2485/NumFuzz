@@ -218,6 +218,10 @@ Val:
       { fun _cx -> TmPrim ($1, PrimTUnit) }
   | ID
       { fun ctx -> TmVar($1.i, existing_var $1.i $1.v ctx) }
+  | INL Type Val
+      { fun ctx -> TmInl($1, $2 ctx, $3 ctx)  }
+  | INR Type Val
+      { fun ctx -> TmInr($1, $2 ctx, $3 ctx)  }
   | LPAREN PairSeq RPAREN
       { fun ctx -> $2 ctx }
   | STRINGV
