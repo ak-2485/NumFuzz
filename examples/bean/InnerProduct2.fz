@@ -1,0 +1,8 @@
+{(v : (num, num))}
+`{(u : (num, num))}
+
+dlet (u0, u1) = u;
+let (v0, v1) = v;
+let x = dmul u0 v0;
+let y = dmul u1 v1;
+add x y
