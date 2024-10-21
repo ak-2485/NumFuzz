@@ -503,7 +503,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
       P.pp_vinfo y y.v_index;
 
-    get_ctx_length              >>= fun len ->
+    get_ctx_length              >>= fun len ->  
     return (TyPrim PrimNum,  binop_ctx len x y si_one si_one)
   
   | TmSub(i, x, y) ->

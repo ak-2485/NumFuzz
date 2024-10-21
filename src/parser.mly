@@ -174,6 +174,7 @@ Term :
         TmLet($2.i, (nb_var $2.v), $3 ctx, $5 ctx dctx, $7 ctx' dctx)
       }
   (* primitive ops *)
+  (* TODO: ensure that variables are base numeric type *)
   | DMULOP ID ID
       { fun ctx dctx -> 
         let z = existing_var $2.i $2.v dctx in
