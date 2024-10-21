@@ -10,3 +10,7 @@ let (v0, v1) = v;
 let x = add u0 v0;
 let y = add u1 v1;
 add x y 
+
+/* this gives backward error of 3e for u instead of 2e, like in the paper */
+/* but I think 3e is actually correct since (dmul, add, add) are applied to
+   both u0 and u1 */
