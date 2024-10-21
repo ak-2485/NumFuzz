@@ -389,6 +389,12 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     (* variable typed with zero backward error *)
     return (ty_x, singleton len x)
 
+  | TmDVar(_i, x)  ->
+    get_ctx_length              >>= fun len ->
+    get_var_ty  x               >>= fun ty_x  ->
+    (* empty linear context *)
+    return (ty_x, zeros len)
+
   (* Primitive terms *)
   | TmPrim(_, pt) ->
     get_ctx_length >>= fun len ->

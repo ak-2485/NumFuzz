@@ -166,6 +166,7 @@ type op = AddOp | MulOp | DivOp | SubOp
 
 type term =
   | TmVar of info * var_info
+  | TmDVar of info * var_info
   (*  *)
   | TmTens of info * term * term
   | TmTensDest of info * binder_info * binder_info * term * term
@@ -196,6 +197,7 @@ let rec map_term_ty_aux n ft fsi tm =
   let opf = Option.map (ft n) in
   match tm with
   | TmVar (i, v) -> TmVar (i, v)
+  | TmDVar (i, v) -> TmDVar (i, v)
   | TmPrim (i, p) -> TmPrim (i, map_prim_ty n ft p)
   | TmTens (i, tm1, tm2) -> TmTens (i, tf n tm1, tf n tm2)
   | TmTensDest (i, bi_x, bi_y, tm, tm_i) ->
@@ -232,6 +234,7 @@ let term_si_subst x s tm =
 let tmInfo t =
   match t with
   | TmVar (fi, _) -> fi
+  | TmDVar (fi, _) -> fi
   | TmPrim (fi, _) -> fi
   | TmTens (fi, _, _) -> fi
   | TmTensDest (fi, _, _, _, _) -> fi

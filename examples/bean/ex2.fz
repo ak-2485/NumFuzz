@@ -1,1 +1,1 @@
-{(x : num)} `{(a : num)} x
+{(x : num)} `{(a : num)} a

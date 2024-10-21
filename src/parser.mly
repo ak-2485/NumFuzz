@@ -15,13 +15,22 @@ let parser_error   fi = Support.Error.error_msg   Support.Options.Parser fi
 (* look for a variable in the current context *)
 let existing_var fi id ctx =
   match Ctx.lookup_var id ctx with
-      None            -> parser_error fi "Identifier %s is unbound" id
-    | Some (var, _bi) -> var
+      None              -> parser_error fi "Identifier %s is unbound" id
+    | Some (var, _bi)   -> var
 
 let existing_tyvar fi id ctx =
   match Ctx.lookup_tyvar id ctx with
       None            -> parser_error fi "Type %s is unbound" id
     | Some (var, bi)  -> (var, bi)
+
+(* return Var or DVar *)
+let var_or_dvar fi id ctx dctx = 
+  match Ctx.lookup_var id ctx with
+      None              -> 
+        (match Ctx.lookup_var id dctx with
+          None              -> parser_error fi "Identifier %s is unbound" id
+        | Some (var, _bi)   -> TmDVar(fi, var))
+    | Some (var, _bi)   -> TmVar(fi, var)
 
 (* Wrap extend here in order to avoid mutually recursive
    dependencies *)
@@ -108,6 +117,7 @@ let from_args_to_type arg_list oty = match oty with
 
 /* Identifier and constant value tokens */
 %token <string Support.FileInfo.withinfo> ID
+%token <string Support.FileInfo.withinfo> D_ID
 %token <float Support.FileInfo.withinfo> FLOATV
 %token <string Support.FileInfo.withinfo> STRINGV
 
@@ -129,7 +139,7 @@ body :
       { 
         let (args, ctx_args) = ($2 Ctx.empty_context) in
         let (dargs, ctx_dargs) = ($6 Ctx.empty_context) in
-        (ctx_args, ctx_dargs, $8 ctx_args)
+        (ctx_args, ctx_dargs, $8 ctx_args ctx_dargs)
       }
 
 Term :
@@ -138,41 +148,41 @@ Term :
       { $1 }
   (* tensor product elimination *)
   | LET LPAREN ID COMMA ID RPAREN EQUAL Term SEMI Term
-      { fun ctx ->
+      { fun ctx dctx ->
         let ctx_x  = extend_var $3.v ctx   in
         let ctx_xy = extend_var $5.v ctx_x in
-        TmTensDest($1, (nb_var $3.v), (nb_var $5.v), $8 ctx, $10 ctx_xy)
+        TmTensDest($1, (nb_var $3.v), (nb_var $5.v), $8 ctx dctx, $10 ctx_xy dctx)
       }
   (* case analysis *)
   | UNIONCASE Val OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE INR LPAREN ID RPAREN DBLARROW Term RBRACE
-      { fun ctx ->
+      { fun ctx dctx ->
         let ctx_l = extend_var $7.v  ctx in
         let ctx_r = extend_var $14.v ctx in
-        TmUnionCase($1, $2 ctx, nb_var $7.v, $10 ctx_l, nb_var  $14.v, $17 ctx_r) }
+        TmUnionCase($1, $2 ctx dctx, nb_var $7.v, $10 ctx_l dctx, nb_var $14.v, $17 ctx_r dctx) }
   (* let expression *)
   | LET ID MaybeType EQUAL Term SEMI Term
-      { fun ctx ->
+      { fun ctx dctx ->
         let ctx' = extend_var $2.v ctx in
-        TmLet($2.i, (nb_var $2.v), $3 ctx, $5 ctx, $7 ctx')
+        TmLet($2.i, (nb_var $2.v), $3 ctx, $5 ctx dctx, $7 ctx' dctx)
       }
   (* primitive ops *)
   | ADDOP ID ID
-      { fun ctx -> 
+      { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
         TmAdd($1, x, y) }
   | SUBOP ID ID
-      { fun ctx -> 
+      { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
         TmSub($1, x, y) }
   | MULOP ID ID
-      { fun ctx -> 
+      { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
         TmMul($1, x, y) }
   | DIVOP ID ID
-      { fun ctx -> 
+      { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
         TmDiv($1, x, y) }
@@ -212,25 +222,25 @@ TyArguments :
 (* Sugar for n-ary tuples *)
 PairSeq:
     Val COMMA Val
-      { fun ctx -> TmTens($2, $1 ctx, $3 ctx)  }
+      { fun ctx dctx -> TmTens($2, $1 ctx dctx, $3 ctx dctx)  }
   | Val COMMA PairSeq
-      { fun ctx -> TmTens($2, $1 ctx, $3 ctx)  }
+      { fun ctx dctx -> TmTens($2, $1 ctx dctx, $3 ctx dctx)  }
 
 Val:
     LPAREN RPAREN
-      { fun _cx -> TmPrim ($1, PrimTUnit) }
+      { fun _ctx _dctx -> TmPrim ($1, PrimTUnit) }
   | ID
-      { fun ctx -> TmVar($1.i, existing_var $1.i $1.v ctx) }
+      { fun ctx dctx -> var_or_dvar $1.i $1.v ctx dctx }
   | INL Type Val
-      { fun ctx -> TmInl($1, $2 ctx, $3 ctx)  }
+      { fun ctx dctx -> TmInl($1, $2 ctx, $3 ctx dctx)  }
   | INR Type Val
-      { fun ctx -> TmInr($1, $2 ctx, $3 ctx)  }
+      { fun ctx dctx -> TmInr($1, $2 ctx, $3 ctx dctx)  }
   | LPAREN PairSeq RPAREN
-      { fun ctx -> $2 ctx }
+      { fun ctx dctx -> $2 ctx dctx}
   | STRINGV
-      { fun _cx -> TmPrim($1.i, PrimTString $1.v) }
+      { fun _cx _dctx -> TmPrim($1.i, PrimTString $1.v) }
   | FLOATV
-      { fun _cx -> TmPrim($1.i, PrimTNum $1.v) }
+      { fun _cx _dctx -> TmPrim($1.i, PrimTNum $1.v) }
   (* extra *)
   | LPAREN Val RPAREN
     { $2 }

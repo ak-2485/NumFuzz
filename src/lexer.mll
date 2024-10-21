@@ -59,7 +59,7 @@ let reservedWords = [
 (* Support functions *)
 
 type buildfun = info -> Parser.token
-let (symbolTable : (string,buildfun) Hashtbl.t) = Hashtbl.create 1024
+let (symbolTable : (string, buildfun) Hashtbl.t) = Hashtbl.create 1024
 let _ =
   List.iter (fun (str,f) -> Hashtbl.add symbolTable str f) reservedWords
 

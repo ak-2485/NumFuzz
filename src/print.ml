@@ -300,6 +300,7 @@ let pp_maybe_type ppf oty =
 let rec pp_term ppf t =
   match t with
     TmVar(_, v)             -> fprintf ppf "%a" pp_vinfo v
+  | TmDVar(_, v)             -> fprintf ppf "%a" pp_vinfo v
   (* Primitive terms *)
   | TmPrim(_, pt)           -> fprintf ppf "%s" (string_of_term_prim pt)
 
