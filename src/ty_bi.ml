@@ -68,6 +68,9 @@ let return (x : 'a) : 'a checker = fun _ctx _dctx -> Right x
 let get_ctx : context checker =
   fun ctx _ -> Right ctx 
 
+let get_dctx : context checker =
+  fun _ dctx -> Right dctx 
+
 let get_ctx_length : int checker =
   get_ctx                             >>= fun ctx ->
   return @@ List.length ctx.var_ctx
@@ -77,7 +80,10 @@ let get_ty_ctx_length : int checker =
   return @@ List.length ctx.tyvar_ctx
 
 let with_new_ctx (f : context -> context) (m : 'a checker) : 'a checker =
-  fun ctx -> m (f ctx)
+  fun ctx dctx -> m (f ctx) dctx
+
+let with_new_dctx (f : context -> context) (m : 'a checker) : 'a checker =
+  fun ctx dctx -> m ctx (f dctx)
 
 let with_new_ctx2 (f : context -> context -> context) (computed_ctx : context) 
   (m : 'a checker) : 'a checker =
@@ -306,6 +312,12 @@ let with_extended_ctx_2 (i : info)
   | res_y :: res_x :: res_ctx -> return (res, res_x, res_y, res_ctx)
   | _ -> fail i @@ Internal "Computation on extended context didn't produce enough results"
 
+(* extends the discrete context with 2 variables *)
+let with_extended_dctx_2 (i : info)
+    (vx : string) (tyx : ty) (vy : string) (tyy : ty)
+    (m : ('a * 'b list) checker) : ('a * 'b list) checker =
+  with_new_dctx (fun dctx -> extend_var vy tyy (extend_var vx tyx dctx)) m
+
 let intersect_bsi (a : bsi) (b : bsi) : bool = 
    not (a == None) && not (b == None)
 
@@ -318,6 +330,10 @@ let check_disjoint i (ctx1 : bsi list) (ctx2 : bsi list) : unit checker =
 let get_var_ty (v : var_info) : ty checker =
   get_ctx >>= fun ctx ->
   return @@ snd (access_var ctx v.v_index)
+
+let get_dvar_ty (v : var_info) : ty checker =
+  get_dctx >>= fun dctx ->
+  return @@ snd (access_var dctx v.v_index)
 
 let shift_sens (s : bsi) (l :  bsi list) :  bsi list =
   List.map (add_bsi s) l
@@ -391,7 +407,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
 
   | TmDVar(_i, x)  ->
     get_ctx_length              >>= fun len ->
-    get_var_ty  x               >>= fun ty_x  ->
+    get_dvar_ty  x              >>= fun ty_x  ->
     (* empty linear context *)
     return (ty_x, zeros len)
 
@@ -435,7 +451,20 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     check_disjoint i ctx_e ctx_f >> 
     let si = lub_bsi si_x si_y in
 
-    return (ty_e, union_ctx (shift_sens si ctx_e) ctx_f)
+    return (ty_f, union_ctx (shift_sens si ctx_e) ctx_f)
+  
+  (* dlet (x,y) = e in f *)
+  | TmTensDDest(i, x, y, tm_e, tm_f) ->
+
+    type_of tm_e >>= fun (ty_e, ctx_e) ->
+    check_tensor_shape i ty_e >>= fun (ty_x, ty_y) ->
+
+    (* Extend context with x and y *)
+    with_extended_dctx_2 i x.b_name ty_x y.b_name ty_y 
+      (type_of tm_f) >>= fun (ty_f, ctx_f) ->
+
+    check_disjoint i ctx_e ctx_f >> 
+    return (ty_f, union_ctx ctx_e ctx_f)
   
   | TmInl(_i, ty_r, tm_l)      ->
 

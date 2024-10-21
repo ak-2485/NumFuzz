@@ -170,6 +170,7 @@ type term =
   (*  *)
   | TmTens of info * term * term
   | TmTensDest of info * binder_info * binder_info * term * term
+  | TmTensDDest of info * binder_info * binder_info * term * term
   (* Primitive terms *)
   | TmPrim of info * term_prim
   (* Case *)
@@ -202,6 +203,8 @@ let rec map_term_ty_aux n ft fsi tm =
   | TmTens (i, tm1, tm2) -> TmTens (i, tf n tm1, tf n tm2)
   | TmTensDest (i, bi_x, bi_y, tm, tm_i) ->
       TmTensDest (i, bi_x, bi_y, tf n tm, tf n tm_i)
+  | TmTensDDest (i, bi_x, bi_y, tm, tm_i) ->
+      TmTensDDest (i, bi_x, bi_y, tf n tm, tf n tm_i)
   | TmInl (i, ty, tm_l) -> TmInl (i, ty, tf n tm_l)
   | TmInr (i, ty, tm_r) -> TmInr (i, ty, tf n tm_r)
   | TmUnionCase (i, tm, bi_l, tm_l, bi_r, tm_r) ->
@@ -238,6 +241,7 @@ let tmInfo t =
   | TmPrim (fi, _) -> fi
   | TmTens (fi, _, _) -> fi
   | TmTensDest (fi, _, _, _, _) -> fi
+  | TmTensDDest (fi, _, _, _, _) -> fi
   (*  *)
   | TmInl (fi, _, _) -> fi
   | TmInr (fi, _, _) -> fi

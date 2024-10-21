@@ -308,6 +308,8 @@ let rec pp_term ppf t =
   | TmTens(_, tm1, tm2)     -> fprintf ppf "(@[%a@], @[%a@])" pp_term tm1 pp_term tm2
   | TmTensDest(_, x, y, tm, term) -> fprintf ppf "@[<v>let (%a, %a) : = @[%a@];@,@[%a@]@]" 
     pp_binfo x pp_binfo y pp_term tm pp_term term
+  | TmTensDDest(_, x, y, tm, term) -> fprintf ppf "@[<v>dlet (%a, %a) : = @[%a@];@,@[%a@]@]" 
+    pp_binfo x pp_binfo y pp_term tm pp_term term
 
   (* OP *)
   | TmAdd(_, x, y)    -> fprintf ppf "Add %a %a" pp_vinfo x pp_vinfo y

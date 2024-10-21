@@ -74,6 +74,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> COMMA
 %token <Support.FileInfo.info> DBLARROW
 %token <Support.FileInfo.info> DIVOP
+%token <Support.FileInfo.info> DLET
 %token <Support.FileInfo.info> ELSE
 %token <Support.FileInfo.info> EQUAL
 %token <Support.FileInfo.info> EQOP
@@ -147,6 +148,12 @@ Term :
     Val
       { $1 }
   (* tensor product elimination *)
+  | DLET LPAREN ID COMMA ID RPAREN EQUAL Term SEMI Term
+      { fun ctx dctx ->
+        let dctx_x  = extend_var $3.v dctx   in
+        let dctx_xy = extend_var $5.v dctx_x in
+        TmTensDDest($1, (nb_var $3.v), (nb_var $5.v), $8 ctx dctx, $10 ctx dctx_xy)
+      }
   | LET LPAREN ID COMMA ID RPAREN EQUAL Term SEMI Term
       { fun ctx dctx ->
         let ctx_x  = extend_var $3.v ctx   in

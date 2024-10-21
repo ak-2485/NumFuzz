@@ -45,6 +45,7 @@ let reservedWords = [
   ("pi1", fun i -> Parser.PROJ1 i);
   ("pi2", fun i -> Parser.PROJ2 i);
   ("of", fun i -> Parser.OF i);
+  ("dlet", fun i -> Parser.DLET i);
   ("let", fun i -> Parser.LET i);
   ("function", fun i -> Parser.FUNCTION i);
   ("if", fun i -> Parser.IF i);

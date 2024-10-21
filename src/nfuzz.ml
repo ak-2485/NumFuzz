@@ -92,7 +92,6 @@ let parse file =
 let type_check program context dcontext =
   let (ty, ctx) = Ty_bi.get_type program context dcontext in
   (* main_info dp "Type of the program: @[%a@]" Print.pp_type ty *)
-  (* TODO: add info about which variables correspond to which sensitivity *)
   main_info dp "Discrete Variables:@\n@[%a@]@.\n " Print.pp_var_ctx dcontext.var_ctx;
   main_info dp "Linear Variables:@\n@[%a@]@.\n " Print.pp_var_ctx context.var_ctx;
   main_info dp "Inferred Context:@\n@[%a@]@." (Print.pp_list Print.pp_si_op) ctx
