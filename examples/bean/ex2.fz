@@ -1,1 +1,1 @@
-{(x : (num, num)) (y : num)} `{(c : (num, num)) } dlet (a, b) = c; (b, x)
+{(x : (num, num)) (y : num)} `{(c : (num, num)) } dlet (a, b) = c; dmul a y

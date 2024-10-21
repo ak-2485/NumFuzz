@@ -75,6 +75,7 @@ let from_args_to_type arg_list oty = match oty with
 %token <Support.FileInfo.info> DBLARROW
 %token <Support.FileInfo.info> DIVOP
 %token <Support.FileInfo.info> DLET
+%token <Support.FileInfo.info> DMULOP
 %token <Support.FileInfo.info> ELSE
 %token <Support.FileInfo.info> EQUAL
 %token <Support.FileInfo.info> EQOP
@@ -173,6 +174,11 @@ Term :
         TmLet($2.i, (nb_var $2.v), $3 ctx, $5 ctx dctx, $7 ctx' dctx)
       }
   (* primitive ops *)
+  | DMULOP ID ID
+      { fun ctx dctx -> 
+        let z = existing_var $2.i $2.v dctx in
+        let x = existing_var $3.i $3.v ctx in
+        TmDMul($1, z, x) }
   | ADDOP ID ID
       { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in

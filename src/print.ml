@@ -316,6 +316,7 @@ let rec pp_term ppf t =
   | TmSub(_, x, y)    -> fprintf ppf "Sub %a %a" pp_vinfo x pp_vinfo y
   | TmMul(_, x, y)    -> fprintf ppf "Mul %a %a" pp_vinfo x pp_vinfo y
   | TmDiv(_, x, y)    -> fprintf ppf "Div %a %a" pp_vinfo x pp_vinfo y
+  | TmDMul(_, x, y)    -> fprintf ppf "DMul %a %a" pp_vinfo x pp_vinfo y
 
   | TmLet(_, n, _sty, tm1, tm2) ->
     fprintf ppf "@[<v>@[<hov>%a =@;<1 1>@[%a@]@];@,@[%a@]@]" pp_binfo n pp_term tm1 pp_term tm2

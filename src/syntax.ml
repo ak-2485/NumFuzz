@@ -185,6 +185,7 @@ type term =
   | TmSub of info * var_info * var_info
   | TmDiv of info * var_info * var_info
   | TmMul of info * var_info * var_info
+  | TmDMul of info * var_info * var_info
 
 let map_prim_ty n f p =
   match p with
@@ -215,6 +216,7 @@ let rec map_term_ty_aux n ft fsi tm =
   | TmSub (i, x, y) -> TmSub (i, x, y)
   | TmDiv (i, x, y) -> TmDiv (i, x, y)
   | TmMul (i, x, y) -> TmMul (i, x, y)
+  | TmDMul (i, x, y) -> TmDMul (i, x, y)
 
 let map_term_ty fty fsi tm = map_term_ty_aux 0 fty fsi tm
 
@@ -252,3 +254,4 @@ let tmInfo t =
   | TmSub (fi, _, _) -> fi
   | TmDiv (fi, _, _) -> fi
   | TmMul (fi, _, _) -> fi
+  | TmDMul (fi, _, _) -> fi

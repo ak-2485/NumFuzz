@@ -152,10 +152,10 @@ let zeros (n : int) : bsi list =
 
 (* A list with zero sensitivities, except for one variable *)
 (* Note that this has to be kept in sync with the actual ctx *)
-let singleton (n : int) (v : var_info) : bsi list =
+let singleton (n : int) (v : var_info) (si : si) : bsi list =
   let rec aux n l =
     if n = 0 then l
-    else let si = if n = v.v_index + 1 then Some si_zero else None in
+    else let si = if n = v.v_index + 1 then Some si else None in
          aux (n - 1) (si :: l) in
   aux n []
 
@@ -403,7 +403,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     get_ctx_length              >>= fun len ->
     get_var_ty  x               >>= fun ty_x  ->
     (* variable typed with zero backward error *)
-    return (ty_x, singleton len x)
+    return (ty_x, singleton len x si_zero)
 
   | TmDVar(_i, x)  ->
     get_ctx_length              >>= fun len ->
@@ -534,6 +534,14 @@ let rec type_of (t : term) : (ty * bsi list) checker =
   
       get_ctx_length              >>= fun len ->
       return (TyPrim PrimNum,  binop_ctx len x y si_hlf si_hlf)
+
+  | TmDMul(i, z, x) ->
+
+      ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
+        P.pp_vinfo x x.v_index;
+
+      get_ctx_length              >>= fun len ->
+      return (TyPrim PrimNum, singleton len x si_hlf)
   ) >>= fun (ty, sis) ->
 
   decr ty_seq;
