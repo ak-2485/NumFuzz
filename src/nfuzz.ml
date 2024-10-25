@@ -8,7 +8,6 @@
 
 open Support.Options
 open Support.Error
-open Constr
 
 let outfile = ref (None : string option)
 let infile = ref ("" : string)
@@ -24,12 +23,6 @@ let argDefs =
     ( "--verbose",
       Arg.Int (fun l -> debug_options := { !debug_options with level = l }),
       "Set printing level to n (1 Warning [2 Info], 3+ Debug)" );
-    ( "--disable-types",
-      Arg.Unit (fun () -> comp_disable TypeChecker),
-      "Disable type checking and inference" );
-    ( "--disable-codegen",
-      Arg.Unit (fun () -> comp_disable Backend),
-      "Disable code generation" );
     ( "--disable-unicode",
       Arg.Unit
         (fun () -> debug_options := { !debug_options with unicode = false }),
@@ -91,20 +84,10 @@ let parse file =
 
 let type_check program context dcontext =
   let (ty, ctx) = Ty_bi.get_type program context dcontext in
-  (* main_info dp "Type of the program: @[%a@]" Print.pp_type ty *)
-  main_info dp "Discrete Variables:@\n@[%a@]@.\n " Print.pp_var_ctx dcontext.var_ctx;
-  main_info dp "Linear Variables:@\n@[%a@]@.\n " Print.pp_var_ctx context.var_ctx;
-  main_info dp "Inferred Context:@\n@[%a@]@." (Print.pp_list Print.pp_si_op) ctx
+  main_info dp "Type of the program: @[%a@]@\n" Print.pp_type ty;
+  main_info dp "Discrete Variables:@\n@[%a@]@\n" Print.pp_var_ctx dcontext;
+  main_info dp "Inferred Context:@\n@[%a@]@\n" Print.pp_var_ctx_si (List.combine context ctx)
 
-let gen_caml program outfile =
-  let out = open_out outfile in
-  let ofmt = Format.formatter_of_out_channel out in
-  Backend.gen_program ofmt program
-
-(* Must use this *)
-let get_tty_size = ()
-
-(* === The main function === *)
 let main () =
   (* Setup the pretty printing engine *)
   let fmt_margin =
@@ -131,39 +114,17 @@ let main () =
 
   (* Print the results of the parsing phase *)
   main_debug dp "Parsed program:@\n@[%a@]@."  Print.pp_term program;
-  main_debug dp "Parsed discrete context:@\n@[%a@]@."  Print.pp_var_ctx dcontext.var_ctx;
-  main_debug dp "Parsed linear context:@\n@[%a@]@."  Print.pp_var_ctx context.var_ctx;
-  main_debug dp "Parsed indices:@\n@[%a@]@." Print.pp_var_ctx_ind context.var_ctx;
+  main_debug dp "Parsed discrete context:@\n@[%a@]@."  Print.pp_var_ctx dcontext;
+  main_debug dp "Parsed linear context:@\n@[%a@]@."  Print.pp_var_ctx context;
+  main_debug dp "Parsed indices:@\n@[%a@]@." Print.pp_var_ctx_ind context;
 
-  if comp_enabled TypeChecker then type_check program context dcontext;
-
-  (if comp_enabled Backend then
-     match !outfile with
-     | None ->
-         main_warning dp
-           "No executable was specified, use -o to generate an executable file"
-     | Some out_f ->
-         let out_ml = out_f ^ ".ml" in
-         let out_exe = out_f ^ ".byte" in
-         let command =
-           "ocamlbuild -I runtime -libs str -cflag '-rectypes' " ^ out_exe
-         in
-
-         gen_caml program out_ml;
-
-         main_info dp "Compiling: %s" command;
-         let _caml_exit = Sys.command command in
-         let _caml_exit = Sys.command "rm -f *.cmo *.cmi" in
-         main_info dp "Executable: %s generated" out_exe;
-         ())
+  if comp_enabled TypeChecker then type_check program context dcontext
 
 let time f x =
   let t = Sys.time () in
   let fx = f x in
   Printf.printf "Execution time: %fs\n" (Sys.time () -. t);
   fx
-
-(* === Call the main function and catch any exceptions === *)
 
 let res =
   try

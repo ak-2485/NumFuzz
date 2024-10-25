@@ -14,7 +14,9 @@ open Support.FileInfo
 module Opt = Support.Options
 module P   = Print
 
-(* Type checking and synthesis engine for Fuzz. *)
+(* ---------------------------------------------------------------------- *)
+(* Type checking *)
+(* ---------------------------------------------------------------------- *)
 
 (* Errors *)
 type ty_error_elem =
@@ -29,7 +31,6 @@ type ty_error_elem =
 | CannotApply  of ty * ty
 | OccursCheck  of var_info * ty
 | WrongShape   of ty * string
-| WrongKind    of kind * kind
 | NotSubtype   of ty * ty
 | Internal     of string
 
@@ -48,9 +49,6 @@ let ty_debug3  fi = message 6 Opt.TypeChecker fi
 type 'a ty_error =
   Right of 'a
 | Left  of ty_error_elem withinfo
-
-(* Native @@ is already in ocaml 4.0 *)
-let (@@) x y = x y
 
 (* Reader/Error monad for type-checking *)
 type 'a checker = context -> context -> 'a ty_error
@@ -72,12 +70,8 @@ let get_dctx : context checker =
   fun _ dctx -> Right dctx 
 
 let get_ctx_length : int checker =
-  get_ctx                             >>= fun ctx ->
-  return @@ List.length ctx.var_ctx
-
-let get_ty_ctx_length : int checker =
-  get_ctx                             >>= fun ctx ->
-  return @@ List.length ctx.tyvar_ctx
+  get_ctx >>= fun ctx ->
+  return @@ List.length ctx
 
 let with_new_ctx (f : context -> context) (m : 'a checker) : 'a checker =
   fun ctx dctx -> m (f ctx) dctx
@@ -92,44 +86,10 @@ let with_new_ctx2 (f : context -> context -> context) (computed_ctx : context)
 let fail (i : info) (e : ty_error_elem) : 'a checker = fun _ _ ->
   Left { i = i; v = e }
 
-let si_div (si1: si) (si2: si) =
-  Simpl.si_simpl_compute (SiDiv(si1, si2))
-
-let check_sens_div' (sil : si) (sir: si) : bool =
-  let sil' = Simpl.si_simpl_compute sil in
-  let sir' = Simpl.si_simpl_compute sir in
-  match sil', sir' with
-  | SiConst _, SiConst _ -> true
-  | _, _ -> false
-
-let check_sens_div i (sil : si) (sir : si) : unit checker =
-  if check_sens_div' sil sir then
-    return ()
-  else
-    fail i @@ SensErrorDiv(sil, sir)
-
-let check_sens_leq i (sil : si) (sir : si) : unit checker =
-  if post_si_leq sil sir then
-    return()
-  else
-    fail i @@ SensErrorLe(sil, sir)
-
-let check_sens_lt i (sil : si) (sir : si) : unit checker =
-  if post_si_lt sil sir then
-    return ()
-  else
-    fail i @@ SensErrorLt(sil, sir)
-
-let check_sens_eq  i (sil : si) (sir : si) : unit checker =
-  if post_si_eq sil sir then
-    return ()
-  else
-    fail i @@ SensErrorEq(sil, sir)
-
 (* Constants *)
-let si_zero  = SiConst  0.0
-let si_one   = SiConst  1.0
-let si_hlf   = SiConst  0.5
+let si_zero  = SiConst 0.0
+let si_one   = SiConst 1.0
+let si_hlf   = SiConst 0.5
 let si_infty = SiInfty
 
 (* Type of sensitivities augmented with □, with corresponding
@@ -137,12 +97,6 @@ let si_infty = SiInfty
    that doesn't have an assigned sensitivity, which must be
    later on. *)
 type bsi = si option
-
-(* A list only with one sensitivities *)
-let ones (n : int) : bsi list =
-  let rec aux n l =
-    if n = 0 then l else aux (n - 1) (Some si_one :: l) in
-  aux n []
 
 (* A list only with zero sensitivities *)
 let zeros (n : int) : bsi list =
@@ -167,14 +121,6 @@ let binop_ctx (n : int) (v1 : var_info) (v2 : var_info) s1 s2 : bsi list =
                   aux (n - 1) (si :: l) in
   aux n []
 
-let zero_list_op (n : int) (v1 : var_info) (v2 : var_info) s1 s2 : bsi list =
-  let rec aux n l =
-    if n = 0 then l
-    else let si = if n = v1.v_index + 1 then Some s1 else
-                  if n = v2.v_index + 1 then Some s2 else None in
-         aux (n - 1) (si :: l) in
-  aux n []
-
 (* Extension of operations on regular sensitivities to augmented
    sensitivities *)
 
@@ -193,85 +139,37 @@ let div_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
   | Some si1, Some si2 -> Some (SiDiv (si1, si2))
   | _, _ -> None
 
-(* we don't want to use this in bean because it maps None si to zero *)
-let si_of_bsi (bsi : bsi) : si =
-  Option.default si_zero bsi
-
 let lub_bsi (bsi1 : bsi) (bsi2 : bsi) : bsi =
   match bsi1, bsi2 with
-  | Some si1, Some si2 -> Some (SiLub(Simpl.si_simpl_compute  si1, Simpl.si_simpl_compute  si2))
+  | Some si1, Some si2 -> 
+      Some (SiLub (Simpl.si_simpl_compute si1, Simpl.si_simpl_compute si2))
   | Some si, None
   | None, Some si -> Some (Simpl.si_simpl_compute si)
   | None, None -> None
 
-let cs_add_eq (sil : si) (sir : si) =
-  extend_cs (SiEq (sil, sir))
-
 module TypeSub = struct
-
   let check_prim_sub (i : info) (ty_f : ty_prim) (ty_a : ty_prim) : unit checker =
     match ty_f, ty_a with
-    | _   when ty_f = ty_a -> return ()
-    | _                    -> fail i @@ NotSubtype (TyPrim ty_f, TyPrim ty_a)
+    | _  when ty_f = ty_a -> return ()
+    | _                   -> fail i @@ NotSubtype (TyPrim ty_f, TyPrim ty_a)
 
-
-  (* Check whether ty_1 is a subtype of ty_2, generating the necessary
-     constraints along the way. *)
-  let rec check_type_sub (i : info) (ty_1 : ty) (ty_2 : ty) : unit checker =
-    let fail = fail i @@ NotSubtype (ty_1, ty_2) in
+  let rec check_type_eq (i : info) (ty_1 : ty) (ty_2 : ty) : unit checker =
+    let fail = fail i @@ TypeMismatch (ty_1, ty_2) in
     match ty_1, ty_2 with
-    | TyVar v1, TyVar v2   ->
-      if v1 = v2 then return () else fail
-
     | TyPrim p1, TyPrim p2 -> check_prim_sub i p1 p2
-
     | TyUnion(tyl1, tyl2), TyUnion(tyr1, tyr2) ->
-      check_type_sub i tyl1 tyr1 >>
-      check_type_sub i tyl2 tyr2
-
+      check_type_eq i tyl1 tyr1 >>
+      check_type_eq i tyl2 tyr2
     | TyTensor(tyl1, tyl2), TyTensor(tyr1, tyr2) ->
-      check_type_sub i tyl1 tyr1 >>
-      check_type_sub i tyl2 tyr2
-
+      check_type_eq i tyl1 tyr1 >>
+      check_type_eq i tyl2 tyr2
     | _, _ -> fail
-
-    let check_type_sub' i (sty : ty)  (oty_x : ty option) =
-      match oty_x with
-      | Some ty' -> check_type_sub i sty ty'
-      | None -> return ()
-
-    let rec check_type_eq (i : info) (ty_1 : ty) (ty_2 : ty) : unit checker =
-      let fail = fail i @@ TypeMismatch (ty_1, ty_2) in
-      match ty_1, ty_2 with
-      | TyVar v1, TyVar v2   ->
-        if v1 = v2 then return () else fail
-
-      | TyPrim p1, TyPrim p2 -> check_prim_sub i p1 p2
-
-      | TyUnion(tyl1, tyl2), TyUnion(tyr1, tyr2) ->
-        check_type_eq i tyl1 tyr1 >>
-        check_type_eq i tyl2 tyr2
-
-      | TyTensor(tyl1, tyl2), TyTensor(tyr1, tyr2) ->
-        check_type_eq i tyl1 tyr1 >>
-        check_type_eq i tyl2 tyr2
-
-      | _, _ -> fail
 
   let check_ty_union i sityl sityr =
           check_type_eq i sityl sityr >>
           return sityl
 
-  (* Check whether ty is compatible (modulo subtyping) with annotation
-     ann, returning the resulting type. *)
-  let check_type_ann (i : info) (ann : ty option) (ty : ty) : ty checker =
-    match ann with
-    | Some ty' -> check_type_sub i ty ty' >> return ty'
-    | None -> return ty
-
   (* Checks for types of different shapes *)
-  let check_fuzz_shape i ty = fail i @@ WrongShape (ty, "fuzzy")
-
   let check_tensor_shape i ty =
     match ty with
     | TyTensor(ty1, ty2) -> return (ty1, ty2)
@@ -281,10 +179,6 @@ module TypeSub = struct
     match ty with
     | TyUnion(ty1, ty2) -> return (ty1, ty2)
     | _                 -> fail i @@ WrongShape (ty, "union")
-
- 
-  let check_sized_nat_shape i ty = fail i @@ WrongShape (ty, "nat")
-
 end
 
 open TypeSub
@@ -353,39 +247,6 @@ let union_ctx (ctx1 : bsi list) (ctx2 :  bsi list) : bsi list =
 let scale_sens (bsi : bsi) (bsis : bsi list) : bsi list =
   List.map (mult_bsi bsi) bsis
 
-let bsi_sens (bsis : bsi list) : si list =
-  List.map si_of_bsi bsis
-
-(**********************************************************************)
-(* Main typing routines                                               *)
-(**********************************************************************)
-let kind_of (i : info) (si : si) : kind checker =
-  ty_debug i "--> [%3d] Enter kind_of: @[%a@]" !ty_seq
-    (Print.limit_boxes Print.pp_si) si; incr ty_seq;
-
-  let ck k = return k in
-
-  (match si with
-  | SiInfty       -> return Sens
-  | SiConst _     -> return Sens
-
-  | SiVar   v     ->
-    get_ctx >>= fun ctx ->
-    ck @@ snd @@ access_ty_var ctx v.v_index
-
-  | SiAdd  (_ , _)
-  | SiMult (_ , _)
-  | SiDiv (_ , _)
-  | SiLub  (_ , _) -> return Sens
-
-  ) >>= fun k ->
-
-  decr ty_seq;
-  (* We limit pp_term *)
-  ty_debug i "<-- [%3d] Exit kind_of: @[%a@] with kind @[%a@]" !ty_seq
-    (Print.limit_boxes Print.pp_si) si Print.pp_kind k;
-  return k
-
 (* Given a term t and a context ctx for that term, check whether t is
    typeable under ctx, returning a type for t, a list of synthesized
    sensitivities for ctx, and a list of constraints that need to be
@@ -451,7 +312,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     check_disjoint i ctx_e ctx_f >> 
     let si = lub_bsi si_x si_y in
 
-    return (ty_f, union_ctx (shift_sens si ctx_e) ctx_f)
+    return (ty_e, union_ctx (shift_sens si ctx_e) ctx_f)
   
   (* dlet (x,y) = e in f *)
   | TmTensDDest(i, x, y, tm_e, tm_f) ->
@@ -464,7 +325,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
       (type_of tm_f) >>= fun (ty_f, ctx_f) ->
 
     check_disjoint i ctx_e ctx_f >> 
-    return (ty_f, union_ctx ctx_e ctx_f)
+    return (ty_e, union_ctx ctx_e ctx_f)
   
   | TmInl(_i, ty_r, tm_l)      ->
 
@@ -533,7 +394,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
         P.pp_vinfo y y.v_index;
   
       get_ctx_length              >>= fun len ->
-      return (TyPrim PrimNum,  binop_ctx len x y si_hlf si_hlf)
+      return (TyUnion (TyPrim PrimNum, TyPrim PrimUnit),  binop_ctx len x y si_hlf si_hlf)
 
   | TmDMul(i, z, x) ->
 
@@ -541,7 +402,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
         P.pp_vinfo x x.v_index;
 
       get_ctx_length              >>= fun len ->
-      return (TyPrim PrimNum, singleton len x si_hlf)
+      return (TyPrim PrimNum, singleton len x si_one)
   ) >>= fun (ty, sis) ->
 
   decr ty_seq;
@@ -569,7 +430,6 @@ let pp_tyerr ppf s = match s with
   | CannotApply(ty1, ty2) -> fprintf ppf "EEE [%3d] Cannot apply %a to %a"    !ty_seq pp_type ty1 pp_type ty2
   | OccursCheck(v, ty)    -> fprintf ppf "EEE [%3d] Cannot build infinite type %a = %a" !ty_seq pp_vinfo v pp_type ty
   | WrongShape(ty, sh)    -> fprintf ppf "EEE [%3d] Type %a has wrong shape, expected %s type." !ty_seq pp_type ty sh
-  | WrongKind(k1, k2)     -> fprintf ppf "EEE [%3d] Kind mismatch expected %a found %a." !ty_seq pp_kind k1 pp_kind k2
   | NotSubtype(ty1,ty2)   -> fprintf ppf "EEE [%3d] %a is not a subtype of %a" !ty_seq pp_type ty1 pp_type ty2
   | Internal s            -> fprintf ppf "EEE [%3d] Internal error: %s" !ty_seq s
 

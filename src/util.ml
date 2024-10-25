@@ -6,16 +6,7 @@
 
 *)
 
-(* Here we include general library and utility functions, not directly
-   related to fuzz.
-
-   In an ideal world they should be removed and the corresponding
-   existing libraries used.
-*)
-
 let get_terminal_size () =
-
-  (* let in_channel = Unix.open_process_in "tput cols" in *)
   let in_channel = Unix.open_process_in "stty size" in
   try
     begin

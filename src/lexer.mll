@@ -22,19 +22,10 @@ let reservedWords = [
   ("}", fun i -> Parser.RBRACE i);
   ("(", fun i -> Parser.LPAREN i);
   (")", fun i -> Parser.RPAREN i);
-  ("<", fun i -> Parser.LT i);
-  (">", fun i -> Parser.GT i);
-  ("[", fun i -> Parser.LBRACK i);
-  ("]", fun i -> Parser.RBRACK i);
   ("|", fun i -> Parser.PIPE i);
   ("`", fun i -> Parser.TICK i);
 
   (* Keywords *)
-  (* ("true", fun i -> Parser.TRUE i);
-  ("false", fun i -> Parser.FALSE i); *)
-  ("inf", fun i -> Parser.INF i); 
-  ("fun", fun i -> Parser.FUN i);
-  ("ret", fun i -> Parser.RET i);
   ("dmul", fun i -> Parser.DMULOP i);
   ("add", fun i -> Parser.ADDOP i);
   ("mul", fun i -> Parser.MULOP i);
@@ -43,19 +34,11 @@ let reservedWords = [
   ("case", fun i -> Parser.UNIONCASE i);
   ("inl", fun i -> Parser.INL i);
   ("inr", fun i -> Parser.INR i);
-  ("pi1", fun i -> Parser.PROJ1 i);
-  ("pi2", fun i -> Parser.PROJ2 i);
   ("of", fun i -> Parser.OF i);
   ("dlet", fun i -> Parser.DLET i);
   ("let", fun i -> Parser.LET i);
-  ("function", fun i -> Parser.FUNCTION i);
-  ("if", fun i -> Parser.IF i);
-  ("then", fun i -> Parser.THEN i);
-  ("else", fun i -> Parser.ELSE i);
   ("num", fun i -> Parser.NUM i);
   ("bool", fun i -> Parser.BOOL i);
-  ("string", fun i -> Parser.STRING i);
-  (* ("sens", fun i -> Parser.SENS i); *)
 ]
 
 (* Support functions *)
@@ -63,11 +46,11 @@ let reservedWords = [
 type buildfun = info -> Parser.token
 let (symbolTable : (string, buildfun) Hashtbl.t) = Hashtbl.create 1024
 let _ =
-  List.iter (fun (str,f) -> Hashtbl.add symbolTable str f) reservedWords
+  List.iter (fun (str, f) -> Hashtbl.add symbolTable str f) reservedWords
 
 let createID i str =
   try (Hashtbl.find symbolTable str) i
-  with _ -> Parser.ID {i=i;v=str}
+  with _ -> Parser.ID {i=i; v=str}
 
 let lineno   = ref 1
 and depth    = ref 0
@@ -117,13 +100,12 @@ let extractLineno yytext offset =
   int_of_string String.(sub yytext offset (length yytext - offset))
 }
 
-
 (* The main body of the lexical analyzer *)
 
 rule main = parse
-  [' ' '\009' '\012']+     { main lexbuf }
+  [' ' '\009' '\012'] + { main lexbuf }
 
-| [' ' '\009' '\012']*("\r")?"\n" { newline lexbuf; main lexbuf }
+| [' ' '\009' '\012'] * ("\r")?"\n" { newline lexbuf; main lexbuf }
 
 | "*/" { lex_error (info lexbuf) "Unmatched end of comment" }
 
@@ -137,11 +119,10 @@ rule main = parse
 | "# line " ['0'-'9']+
     { lineno := extractLineno (text lexbuf) 7 - 1; getFile lexbuf }
 
-
 | ['0'-'9']+ '.' ['0'-'9']+
     { Parser.FLOATV {i=info lexbuf; v=float_of_string (text lexbuf)} }
 
-| "inf" { Parser.INF(info lexbuf) }
+| "inf" { Parser.INF (info lexbuf) }
 
 | ['A'-'Z' 'a'-'z' '_']
   ['A'-'Z' 'a'-'z' '_' '0'-'9' '\'']*
@@ -154,13 +135,12 @@ rule main = parse
 | ['~' '%' '\\' '+' '-' '&' '|' ':' '@' '`' '$']+
     { createID (info lexbuf) (text lexbuf) }
 
-| ['*' '#' '/' '!' '?' '^' '(' ')' '{' '}' '[' ']' '<' '>' '.' ';' '_' ','
-   '=' '\'']
+| ['*' '#' '/' '!' '?' '^' '(' ')' '{' '}' '[' ']' '<' '>' '.' ';' '_' ',' '=' '\'']
     { createID (info lexbuf) (text lexbuf) }
 
 | "\"" { resetStr(); startLex := info lexbuf; string lexbuf }
 
-| eof { Parser.EOF(info lexbuf) }
+| eof { Parser.EOF (info lexbuf) }
 
 | _  { lex_error (info lexbuf) "Illegal character" }
 
@@ -202,11 +182,9 @@ and escaped = parse
     {
       let x = int_of_string(text lexbuf) in
       if x > 255 then
-	lex_error (info lexbuf) "Illegal character constant"
+	      lex_error (info lexbuf) "Illegal character constant"
       else
-	Char.chr x
+	      Char.chr x
     }
 | [^ '"' '\\' 't' 'n' '\'']
     { lex_error (info lexbuf) "Illegal character constant" }
-
-(*  *)
