@@ -1,5 +1,5 @@
 {(u : (num, num)) (v : (num, num))}
-`{(a : num)}
+`{(a : dnum)}
 
 /* let (u0, u1) = ScaleVec a u; */
 let (u0', u1') = u;

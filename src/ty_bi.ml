@@ -162,6 +162,11 @@ module TypeSub = struct
       check_type_eq i tyl2 tyr2
     | _, _ -> fail
 
+  let check_maybe_type_eq (i : info) (ty_1 : ty option) (ty_2 : ty) : unit checker =
+    match ty_1 with
+    | Some ty -> check_type_eq i ty ty_2
+    | None -> return ()
+
   let check_ty_union i sityl sityr =
       check_type_eq i sityl sityr >>
       return sityl
@@ -271,6 +276,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
   (* let (x : oty_x) = e in f *)
   | TmLet(i, x, oty_x, tm_e, tm_f) ->
     type_of tm_e >>= fun (ty_e, ctx_e) ->
+    check_maybe_type_eq i oty_x ty_e >>
     with_extended_ctx i x.b_name ty_e (type_of tm_f) >>= fun (ty_f, si_x, ctx_f) ->
     check_disjoint i ctx_e ctx_f >>
     return (ty_f, union_ctx (shift_sens si_x ctx_e) ctx_f)

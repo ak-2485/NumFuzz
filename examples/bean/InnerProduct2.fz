@@ -1,5 +1,5 @@
 {(v : (num, num))}
-`{(u : (num, num))}
+`{(u : (dnum, dnum))}
 
 dlet (u0, u1) = u;
 let (v0, v1) = v;

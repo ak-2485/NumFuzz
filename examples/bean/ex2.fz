@@ -1,5 +1,5 @@
 {(x : (num, num)) (y : num) (z : num)} 
 `{} 
 
-let a = add y z;
-x
+let a : dnum = add y z;
+a

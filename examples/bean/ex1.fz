@@ -1,5 +1,5 @@
 {(x : num) (y : num) (z : num)} 
-`{(a : num)} 
+`{(a : dnum)} 
 
 let w = mul x y; 
 add w z

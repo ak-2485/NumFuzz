@@ -67,13 +67,13 @@ let remove_nth_var n ctx =
       split_above ctx n   @ s_ctx
 
 (* Remove vars from ctx, l is list of indices *)
-let rec reduce_ctx l ctx2 =
+let rec reduce_ctx _ ctx2 =
   if ctx2 = empty_context then 
     ctx2
   else
     match ctx2 with
     | [] -> ctx2
-    | (var, value) :: l ->  
+    | (var, _) :: l ->  
       reduce_ctx l (remove_nth_var var.v_index ctx2)
 
 (* Accessing the variable in the context *)
