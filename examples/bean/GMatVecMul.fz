@@ -26,4 +26,4 @@ let x1' = dmul a x1;
 
 let x = add x0' y0;
 let y = add x1' y1;
-add x y 
+(x, y)

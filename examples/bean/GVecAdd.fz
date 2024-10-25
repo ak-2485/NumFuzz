@@ -9,4 +9,4 @@ let u1 = dmul a u1';
 let (v0, v1) = v;
 let x = add u0 v0;
 let y = add u1 v1;
-add x y 
+(x, y)
