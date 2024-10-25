@@ -3,7 +3,6 @@
 
    LICENSE:
    Based on PLEAC, adapted to use COLUMNS and tput
-
 *)
 
 let get_terminal_size () =

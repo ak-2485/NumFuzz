@@ -28,7 +28,7 @@ let rec lookup_var id ctx =
         lookup_var id l
 
 (* Shifting of v_names, this is mostly for debug and 
-  corresponds to a new abstraction *)
+   corresponds to a new abstraction *)
 let varctx_var_shift n d ctx =
   List.map (fun (v, ty) -> (var_shift n d v, ty)) ctx
 
@@ -67,14 +67,14 @@ let remove_nth_var n ctx =
       split_above ctx n   @ s_ctx
 
 (* Remove vars from ctx, l is list of indices *)
-let rec reduce_ctx l ctx2 = 
+let rec reduce_ctx l ctx2 =
   if ctx2 = empty_context then 
     ctx2
   else
     match ctx2 with
     | [] -> ctx2
     | (var, value) :: l ->  
-            reduce_ctx l (remove_nth_var var.v_index ctx2)
+      reduce_ctx l (remove_nth_var var.v_index ctx2)
 
 (* Accessing the variable in the context *)
 let access_var ctx i = List.nth ctx i

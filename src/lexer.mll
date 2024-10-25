@@ -50,11 +50,11 @@ let _ =
 
 let createID i str =
   try (Hashtbl.find symbolTable str) i
-  with _ -> Parser.ID {i=i; v=str}
+  with _ -> Parser.ID {i = i; v = str}
 
-let lineno   = ref 1
-and depth    = ref 0
-and start    = ref 0
+let lineno = ref 1
+and depth  = ref 0
+and start  = ref 0
 
 and filename = ref ""
 and startLex = ref dummyinfo
@@ -82,16 +82,16 @@ let addStr ch =
 in
   if x = Bytes.length buffer then
     begin
-      let newBuffer = Bytes.create (x*2) in
+      let newBuffer = Bytes.create (x * 2) in
       Bytes.blit buffer 0 newBuffer 0 x;
       Bytes.set newBuffer x ch;
       stringBuffer := newBuffer;
-      stringEnd := x+1
+      stringEnd := x + 1
     end
   else
     begin
       Bytes.set buffer x ch;
-      stringEnd := x+1
+      stringEnd := x + 1
     end
 
 let getStr () = Bytes.(to_string (sub (!stringBuffer) 0 (!stringEnd)))
@@ -99,8 +99,6 @@ let getStr () = Bytes.(to_string (sub (!stringBuffer) 0 (!stringEnd)))
 let extractLineno yytext offset =
   int_of_string String.(sub yytext offset (length yytext - offset))
 }
-
-(* The main body of the lexical analyzer *)
 
 rule main = parse
   [' ' '\009' '\012'] + { main lexbuf }
@@ -111,7 +109,7 @@ rule main = parse
 
 | "/*" { depth := 1; startLex := info lexbuf; comment lexbuf; main lexbuf }
 
-| "//" [^ '\n']* { main lexbuf }
+| "//" [^ '\n'] * { main lexbuf }
 
 | "# " ['0'-'9']+
     { lineno := extractLineno (text lexbuf) 2 - 1; getFile lexbuf }
@@ -120,19 +118,19 @@ rule main = parse
     { lineno := extractLineno (text lexbuf) 7 - 1; getFile lexbuf }
 
 | ['0'-'9']+ '.' ['0'-'9']+
-    { Parser.FLOATV {i=info lexbuf; v=float_of_string (text lexbuf)} }
+    { Parser.FLOATV {i = info lexbuf; v = float_of_string (text lexbuf)} }
 
 | "inf" { Parser.INF (info lexbuf) }
 
 | ['A'-'Z' 'a'-'z' '_']
-  ['A'-'Z' 'a'-'z' '_' '0'-'9' '\'']*
+  ['A'-'Z' 'a'-'z' '_' '0'-'9' '\''] *
     { createID (info lexbuf) (text lexbuf) }
 
 | ":=" | "<:" | "<-" | "->" | "=>" | "==>"
 | "{|" | "|}" | "<|" | "|>" | "[|" | "|]" | "=="
     { createID (info lexbuf) (text lexbuf) }
 
-| ['~' '%' '\\' '+' '-' '&' '|' ':' '@' '`' '$']+
+| ['~' '%' '\\' '+' '-' '&' '|' ':' '@' '`' '$'] +
     { createID (info lexbuf) (text lexbuf) }
 
 | ['*' '#' '/' '!' '?' '^' '(' ')' '{' '}' '[' ']' '<' '>' '.' ';' '_' ',' '=' '\'']
@@ -157,16 +155,16 @@ and comment = parse
     { newline lexbuf; comment lexbuf }
 
 and getFile = parse
-  " "* "\"" { getName lexbuf }
+  " " * "\"" { getName lexbuf }
 
 and getName = parse
-  [^ '"' '\n']+ { filename := (text lexbuf); finishName lexbuf }
+  [^ '"' '\n'] + { filename := (text lexbuf); finishName lexbuf }
 
 and finishName = parse
-  '"' [^ '\n']* { main lexbuf }
+  '"' [^ '\n'] * { main lexbuf }
 
 and string = parse
-  '"'  { Parser.STRINGV {i = !startLex; v=getStr()} }
+  '"'  { Parser.STRINGV {i = !startLex; v = getStr()} }
 | '\\' { addStr(escaped lexbuf); string lexbuf }
 | '\n' { addStr '\n'; newline lexbuf; string lexbuf }
 | eof  { lex_error (!startLex) "String not terminated" }
@@ -175,9 +173,9 @@ and string = parse
 and escaped = parse
   'n'	 { '\n' }
 | 't'	 { '\t' }
-| '\\'	 { '\\' }
-| '"'    { '\034'  }
-| '\''	 { '\'' }
+| '\\' { '\\' }
+| '"'  { '\034' }
+| '\'' { '\'' }
 | ['0'-'9']['0'-'9']['0'-'9']
     {
       let x = int_of_string(text lexbuf) in

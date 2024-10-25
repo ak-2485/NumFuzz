@@ -5,11 +5,12 @@
    See the LICENSE file for details on licensing.
 *)
 
-(* Pretty printing module. Currently it uses the standard Format facility. *)
+(* ---------------------------------------------------------------------- *)
+(* Pretty printing *)
+(* ---------------------------------------------------------------------- *)
 
 open Format
 
-open Ctx
 open Constr
 open Syntax
 
@@ -113,7 +114,6 @@ let rec pp_si fmt s =
   | SiInfty                -> fprintf fmt "%s" (u_sym Symbols.Inf)
   | SiLub  (s1, s2)        -> fprintf fmt "(%a @<1>%s %a)" pp_si s1 (u_sym Symbols.Lub) pp_si s2
 
-
 let pp_si_op fmt o =
   match o with
   | None    -> fprintf fmt "?"
@@ -189,7 +189,7 @@ let rec ldrop n l = if n = 0 then l else ldrop (n-1) (List.tl l)
 
 (* Operators *)
 let binary_op_table =
-  [("op_lor", "||");
+  [("op_lor",  "||");
    ("op_land", "&&");
    ("op_eq",   "==");
    ("op_neq",  "!=");

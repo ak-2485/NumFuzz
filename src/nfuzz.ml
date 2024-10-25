@@ -5,7 +5,6 @@
    LICENSE: 3-clause BSD style.
    See the LICENSE file for details on licensing.
 *)
-
 open Support.Options
 open Support.Error
 
@@ -85,7 +84,8 @@ let parse file =
 let type_check program context dcontext =
   let (ty, ctx) = Ty_bi.get_type program context dcontext in
   main_info dp "Type of the program: @[%a@]@\n" Print.pp_type ty;
-  main_info dp "Discrete Variables:@\n@[%a@]@\n" Print.pp_var_ctx dcontext;
+  if (dcontext != Ctx.empty_context) then
+    main_info dp "Discrete Variables:@\n@[%a@]@\n" Print.pp_var_ctx dcontext;
   main_info dp "Inferred Context:@\n@[%a@]@\n" Print.pp_var_ctx_si (List.combine context ctx)
 
 let main () =
@@ -113,9 +113,9 @@ let main () =
   let (context, dcontext, program) = parse !infile in
 
   (* Print the results of the parsing phase *)
-  main_debug dp "Parsed program:@\n@[%a@]@."  Print.pp_term program;
-  main_debug dp "Parsed discrete context:@\n@[%a@]@."  Print.pp_var_ctx dcontext;
-  main_debug dp "Parsed linear context:@\n@[%a@]@."  Print.pp_var_ctx context;
+  main_debug dp "Parsed program:@\n@[%a@]@." Print.pp_term program;
+  main_debug dp "Parsed discrete context:@\n@[%a@]@." Print.pp_var_ctx dcontext;
+  main_debug dp "Parsed linear context:@\n@[%a@]@." Print.pp_var_ctx context;
   main_debug dp "Parsed indices:@\n@[%a@]@." Print.pp_var_ctx_ind context;
 
   if comp_enabled TypeChecker then type_check program context dcontext

@@ -1,4 +1,5 @@
-{(x : (num, num)) (y : num) (z : num)} `{(a : (num, num))} 
+{(x : (num, num)) (y : num) (z : num)} 
+`{} 
 
-dlet (b, c) = a;
-dmul b x
+let a = add y z;
+x

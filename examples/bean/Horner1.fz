@@ -1,4 +1,6 @@
-{(a : (num, num))} `{(z : num)}
+{(a : (num, num))} 
+`{(z : num)}
+
 let (a0, a1) = a;
 let y = dmul z a1;
 add a0 y

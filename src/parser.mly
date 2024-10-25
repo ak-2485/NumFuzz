@@ -105,7 +105,7 @@ Term :
       { fun ctx dctx ->
         let dctx_x  = extend_var $3.v dctx   in
         let dctx_xy = extend_var $5.v dctx_x in
-        let _ = check_distinct ctx dctx_xy in
+        let _ = check_distinct ctx dctx_xy   in
         TmTensDDest($1, (nb_var $3.v), (nb_var $5.v), $8 ctx dctx, $10 ctx dctx_xy)
       }
   | LET LPAREN ID COMMA ID RPAREN EQUAL Term SEMI Term
@@ -119,8 +119,8 @@ Term :
   | UNIONCASE Val OF LBRACE INL LPAREN ID RPAREN DBLARROW Term PIPE 
     INR LPAREN ID RPAREN DBLARROW Term RBRACE
       { fun ctx dctx ->
-        let ctx_l = extend_var $7.v  ctx in
-        let ctx_r = extend_var $14.v ctx in
+        let ctx_l = extend_var $7.v  ctx  in
+        let ctx_r = extend_var $14.v ctx  in
         let _ = check_distinct ctx_l dctx in
         let _ = check_distinct ctx_r dctx in
         TmUnionCase($1, $2 ctx dctx, nb_var $7.v, $10 ctx_l dctx, 
@@ -128,7 +128,7 @@ Term :
   (* let expression *)
   | LET ID MaybeType EQUAL Term SEMI Term
       { fun ctx dctx ->
-        let ctx' = extend_var $2.v ctx in
+        let ctx' = extend_var $2.v ctx   in
         let _ = check_distinct ctx' dctx in
         TmLet($2.i, (nb_var $2.v), $3 ctx, $5 ctx dctx, $7 ctx' dctx)
       }
@@ -136,7 +136,7 @@ Term :
   | DMULOP ID ID
       { fun ctx dctx -> 
         let z = existing_var $2.i $2.v dctx in
-        let x = existing_var $3.i $3.v ctx in
+        let x = existing_var $3.i $3.v ctx  in
         TmDMul($1, z, x) }
   | ADDOP ID ID
       { fun ctx _dctx -> 
@@ -168,11 +168,9 @@ TyArgument :
 
 TyArguments :
       { fun ctx -> ctx }
-  | TyArgument
-      { $1 }
   | TyArgument TyArguments
       { fun ctx ->
-          let ctx'  = $1 ctx in
+          let ctx'  = $1 ctx  in
           let ctx'' = $2 ctx' in ctx'' }
 
 (* Sugar for n-ary tuples *)

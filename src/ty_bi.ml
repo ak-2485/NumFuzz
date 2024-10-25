@@ -211,7 +211,7 @@ let with_extended_ctx_2 (i : info)
   | _ -> fail i @@ Internal "Computation on extended context didn't produce enough results"
 
 (* Extends the discrete context with two variables *)
-let with_extended_dctx_2 (i : info)
+let with_extended_dctx_2
     (vx : string) (tyx : ty) (vy : string) (tyy : ty)
     (m : ('a * 'b list) checker) : ('a * 'b list) checker =
   with_new_dctx (fun dctx -> extend_var vy tyy (extend_var vx tyx dctx)) m
@@ -244,7 +244,6 @@ let union_ctx (ctx1 : bsi list) (ctx2 : bsi list) : bsi list =
    typeable under ctx, returning a type for t, and a list of synthesized
    sensitivities for ctx. Raises an error if it
    detects that no typing is possible. *)
-
 let rec type_of (t : term) : (ty * bsi list) checker =
 
   ty_debug (tmInfo t) "--> [%3d] Enter type_of: @[%a@]" !ty_seq
@@ -253,14 +252,14 @@ let rec type_of (t : term) : (ty * bsi list) checker =
   (match t with
   (* Variables *)
   | TmVar(_i, x) ->
-    get_ctx_length              >>= fun len ->
-    get_var_ty  x               >>= fun ty_x  ->
+    get_ctx_length >>= fun len ->
+    get_var_ty x >>= fun ty_x  ->
     (* variable typed with zero backward error *)
     return (ty_x, singleton len x si_zero)
 
   | TmDVar(_i, x) ->
-    get_ctx_length              >>= fun len ->
-    get_dvar_ty  x              >>= fun ty_x  ->
+    get_ctx_length >>= fun len ->
+    get_dvar_ty x >>= fun ty_x  ->
     (* empty linear context *)
     return (ty_x, zeros len)
 
@@ -271,10 +270,10 @@ let rec type_of (t : term) : (ty * bsi list) checker =
 
   (* let (x : oty_x) = e in f *)
   | TmLet(i, x, oty_x, tm_e, tm_f) ->
-    type_of tm_e >>= fun (ty_e, ctx_e)  ->
+    type_of tm_e >>= fun (ty_e, ctx_e) ->
     with_extended_ctx i x.b_name ty_e (type_of tm_f) >>= fun (ty_f, si_x, ctx_f) ->
     check_disjoint i ctx_e ctx_f >>
-    return (ty_e, union_ctx (shift_sens si_x ctx_e) ctx_f)
+    return (ty_f, union_ctx (shift_sens si_x ctx_e) ctx_f)
 
   (* Tensor product*)
   | TmTens(i, tm_e, tm_f) ->
@@ -287,7 +286,6 @@ let rec type_of (t : term) : (ty * bsi list) checker =
   | TmTensDest(i, x, y, tm_e, tm_f) ->
     type_of tm_e >>= fun (ty_e, ctx_e) ->
     check_tensor_shape i ty_e >>= fun (ty_x, ty_y) ->
-    (* Extend context with x and y *)
     with_extended_ctx_2 i x.b_name ty_x y.b_name ty_y 
       (type_of tm_f) >>= fun (ty_f, si_x, si_y, ctx_f) ->
     check_disjoint i ctx_e ctx_f >> 
@@ -298,8 +296,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
   | TmTensDDest(i, x, y, tm_e, tm_f) ->
     type_of tm_e >>= fun (ty_e, ctx_e) ->
     check_tensor_shape i ty_e >>= fun (ty_x, ty_y) ->
-    (* Extend context with x and y *)
-    with_extended_dctx_2 i x.b_name ty_x y.b_name ty_y 
+    with_extended_dctx_2 x.b_name ty_x y.b_name ty_y 
       (type_of tm_f) >>= fun (ty_f, ctx_f) ->
     check_disjoint i ctx_e ctx_f >> 
     return (ty_f, union_ctx ctx_e ctx_f)
@@ -324,7 +321,6 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     check_disjoint i ctx_v ctx_l >> 
     check_disjoint i ctx_v ctx_r >> 
 
-    (* take lub of x, y error *)
     let si = lub_bsi si_x si_y in
     (* non-disjoint union of left and right contexts *)
     let ctx_union = union_ctx ctx_l ctx_r in
@@ -387,13 +383,8 @@ let rec type_of (t : term) : (ty * bsi list) checker =
   ) >>= fun (ty, sis) ->
 
   decr ty_seq;
-  (* We limit pp_term *)
-  ty_debug (tmInfo t) "<-- [%3d] Exit type_of : @[%a@] with type @[%a@]" !ty_seq
+  ty_debug (tmInfo t) "<-- [%3d] Exit type_of: @[%a@] with type @[%a@]" !ty_seq
     (Print.limit_boxes Print.pp_term) t Print.pp_type ty;
-
-  (* TODO: pretty printer for sensitivities *)
-  (* ty_debug2 (tmInfo t) "<-- Context: @[%a@]" Print.pp_context ctx; *)
-
   return (ty, sis)
 
 open Format
