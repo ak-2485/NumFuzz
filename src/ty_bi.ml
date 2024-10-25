@@ -20,16 +20,9 @@ module P   = Print
 
 (* Errors *)
 type ty_error_elem =
-| SensErrorLe  of si * si
-| SensErrorLt  of si * si
-| SensErrorEq  of si * si
-| NotDisjoint  of si * si
-| SensErrorDiv of si * si
-| MoreGeneral  of ty * ty
+| NotDisjoint
 | TypeMismatch of ty * ty
-| TypeInst     of ty * ty
-| CannotApply  of ty * ty
-| OccursCheck  of var_info * ty
+| WrongType    of var_info * ty
 | WrongShape   of ty * string
 | NotSubtype   of ty * ty
 | Internal     of string
@@ -79,9 +72,13 @@ let with_new_ctx (f : context -> context) (m : 'a checker) : 'a checker =
 let with_new_dctx (f : context -> context) (m : 'a checker) : 'a checker =
   fun ctx dctx -> m ctx (f dctx)
 
-let with_new_ctx2 (f : context -> context -> context) (computed_ctx : context) 
-  (m : 'a checker) : 'a checker =
-  fun current_ctx -> m (f computed_ctx current_ctx)
+let get_var_ty (v : var_info) : ty checker =
+  get_ctx >>= fun ctx ->
+  return @@ snd (access_var ctx v.v_index)
+
+let get_dvar_ty (v : var_info) : ty checker =
+  get_dctx >>= fun dctx ->
+  return @@ snd (access_var dctx v.v_index)
 
 let fail (i : info) (e : ty_error_elem) : 'a checker = fun _ _ ->
   Left { i = i; v = e }
@@ -166,8 +163,8 @@ module TypeSub = struct
     | _, _ -> fail
 
   let check_ty_union i sityl sityr =
-          check_type_eq i sityl sityr >>
-          return sityl
+      check_type_eq i sityl sityr >>
+      return sityl
 
   (* Checks for types of different shapes *)
   let check_tensor_shape i ty =
@@ -179,6 +176,13 @@ module TypeSub = struct
     match ty with
     | TyUnion(ty1, ty2) -> return (ty1, ty2)
     | _                 -> fail i @@ WrongShape (ty, "union")
+  
+  (* Checks that variable has base numeric type *)
+  let check_prim_num (i : info) (v : var_info) : unit checker =
+    get_var_ty v >>= fun ty ->
+    match ty with
+    | TyPrim PrimNum -> return ()
+    | _              -> fail i @@ WrongType (v, TyPrim PrimNum)
 end
 
 open TypeSub
@@ -206,7 +210,7 @@ let with_extended_ctx_2 (i : info)
   | res_y :: res_x :: res_ctx -> return (res, res_x, res_y, res_ctx)
   | _ -> fail i @@ Internal "Computation on extended context didn't produce enough results"
 
-(* extends the discrete context with 2 variables *)
+(* Extends the discrete context with two variables *)
 let with_extended_dctx_2 (i : info)
     (vx : string) (tyx : ty) (vy : string) (tyy : ty)
     (m : ('a * 'b list) checker) : ('a * 'b list) checker =
@@ -218,21 +222,13 @@ let intersect_bsi (a : bsi) (b : bsi) : bool =
 let check_disjoint i (ctx1 : bsi list) (ctx2 : bsi list) : unit checker = 
   let s1 = List.find_opt (fun a -> a == true) (List.map2 intersect_bsi ctx1 ctx2) in
   match s1 with 
-    | Some _   -> fail i @@ Internal "Context check failed" 
-    | None     -> return ()
-
-let get_var_ty (v : var_info) : ty checker =
-  get_ctx >>= fun ctx ->
-  return @@ snd (access_var ctx v.v_index)
-
-let get_dvar_ty (v : var_info) : ty checker =
-  get_dctx >>= fun dctx ->
-  return @@ snd (access_var dctx v.v_index)
+    | Some _ -> fail i @@ NotDisjoint
+    | None   -> return ()
 
 let shift_sens (s : bsi) (l :  bsi list) :  bsi list =
   List.map (add_bsi s) l
 
-let rec union_ctx'  (ctx :  (bsi * bsi) list) : bsi list =
+let rec union_ctx' (ctx : (bsi * bsi) list) : bsi list =
    match ctx with 
     | (Some s1, Some s2) :: l -> (lub_bsi (Some s1) (Some s2)) :: union_ctx' l
     | (Some s1, _) :: l -> Some s1 :: union_ctx' l
@@ -241,16 +237,12 @@ let rec union_ctx'  (ctx :  (bsi * bsi) list) : bsi list =
     | [] -> []
 
 (* if contexts are not disjoint, takes greater of error bounds *)
-let union_ctx (ctx1 : bsi list) (ctx2 :  bsi list) : bsi list =
+let union_ctx (ctx1 : bsi list) (ctx2 : bsi list) : bsi list =
   union_ctx' (List.combine ctx1 ctx2)
 
-let scale_sens (bsi : bsi) (bsis : bsi list) : bsi list =
-  List.map (mult_bsi bsi) bsis
-
 (* Given a term t and a context ctx for that term, check whether t is
-   typeable under ctx, returning a type for t, a list of synthesized
-   sensitivities for ctx, and a list of constraints that need to be
-   satisfied in order for the type to be valid. Raises an error if it
+   typeable under ctx, returning a type for t, and a list of synthesized
+   sensitivities for ctx. Raises an error if it
    detects that no typing is possible. *)
 
 let rec type_of (t : term) : (ty * bsi list) checker =
@@ -260,13 +252,13 @@ let rec type_of (t : term) : (ty * bsi list) checker =
 
   (match t with
   (* Variables *)
-  | TmVar(_i, x)  ->
+  | TmVar(_i, x) ->
     get_ctx_length              >>= fun len ->
     get_var_ty  x               >>= fun ty_x  ->
     (* variable typed with zero backward error *)
     return (ty_x, singleton len x si_zero)
 
-  | TmDVar(_i, x)  ->
+  | TmDVar(_i, x) ->
     get_ctx_length              >>= fun len ->
     get_dvar_ty  x              >>= fun ty_x  ->
     (* empty linear context *)
@@ -277,72 +269,53 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     get_ctx_length >>= fun len ->
     return (type_of_prim pt, zeros len)
 
-  (* Standard let-binding *)
   (* let (x : oty_x) = e in f *)
-  | TmLet(i, x, oty_x, tm_e, tm_f)         ->
-
+  | TmLet(i, x, oty_x, tm_e, tm_f) ->
     type_of tm_e >>= fun (ty_e, ctx_e)  ->
-
     with_extended_ctx i x.b_name ty_e (type_of tm_f) >>= fun (ty_f, si_x, ctx_f) ->
-
     check_disjoint i ctx_e ctx_f >>
-
     return (ty_e, union_ctx (shift_sens si_x ctx_e) ctx_f)
 
   (* Tensor product*)
   | TmTens(i, tm_e, tm_f) ->
-
     type_of tm_e >>= fun (ty_e, ctx_e) ->
     type_of tm_f >>= fun (ty_f, ctx_f) ->
-
     check_disjoint i ctx_e ctx_f >>
-
     return (TyTensor(ty_e, ty_f), union_ctx ctx_e ctx_f)
 
-  (* let (x,y) = e in f *)
+  (* let (x, y) = e in f *)
   | TmTensDest(i, x, y, tm_e, tm_f) ->
-
     type_of tm_e >>= fun (ty_e, ctx_e) ->
     check_tensor_shape i ty_e >>= fun (ty_x, ty_y) ->
-
     (* Extend context with x and y *)
     with_extended_ctx_2 i x.b_name ty_x y.b_name ty_y 
       (type_of tm_f) >>= fun (ty_f, si_x, si_y, ctx_f) ->
-
     check_disjoint i ctx_e ctx_f >> 
     let si = lub_bsi si_x si_y in
-
-    return (ty_e, union_ctx (shift_sens si ctx_e) ctx_f)
+    return (ty_f, union_ctx (shift_sens si ctx_e) ctx_f)
   
-  (* dlet (x,y) = e in f *)
+  (* dlet (x, y) = e in f *)
   | TmTensDDest(i, x, y, tm_e, tm_f) ->
-
     type_of tm_e >>= fun (ty_e, ctx_e) ->
     check_tensor_shape i ty_e >>= fun (ty_x, ty_y) ->
-
     (* Extend context with x and y *)
     with_extended_dctx_2 i x.b_name ty_x y.b_name ty_y 
       (type_of tm_f) >>= fun (ty_f, ctx_f) ->
-
     check_disjoint i ctx_e ctx_f >> 
-    return (ty_e, union_ctx ctx_e ctx_f)
+    return (ty_f, union_ctx ctx_e ctx_f)
   
-  | TmInl(_i, ty_r, tm_l)      ->
-
+  | TmInl(_i, ty_r, tm_l) ->
       type_of tm_l >>= fun (ty, ctx) ->
       return (TyUnion(ty, ty_r), ctx)
 
-  | TmInr(_i, ty_l, tm_r)      ->
-
+  | TmInr(_i, ty_l, tm_r) ->
       type_of tm_r >>= fun (ty, ctx) ->
       return (TyUnion(ty_l, ty), ctx)
 
   (* case v of (x.e_l | y.f_r) *)
   | TmUnionCase(i, v, b_x, e_l, b_y, f_r) ->
-
     type_of v >>= fun (ty_v, ctx_v) ->
     check_union_shape i ty_v >>= fun (ty1, ty2) ->
-
     with_extended_ctx i b_x.b_name ty1 (type_of e_l) >>= fun (tyl, si_x, ctx_l) ->
     with_extended_ctx i b_y.b_name ty2 (type_of f_r) >>= fun (tyr, si_y, ctx_r) ->
     (* check that e_l and f_r have the same type *)
@@ -356,44 +329,50 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     (* non-disjoint union of left and right contexts *)
     let ctx_union = union_ctx ctx_l ctx_r in
     return (ty_exp, union_ctx (shift_sens si ctx_v) ctx_union)
+
   (* Ops *)
   | TmAdd(i, x, y) ->
-
     ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
       P.pp_vinfo x x.v_index;
     ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
       P.pp_vinfo y y.v_index;
 
-    get_ctx_length              >>= fun len ->  
-    return (TyPrim PrimNum,  binop_ctx len x y si_one si_one)
+    check_prim_num i x >>
+    check_prim_num i y >>
+    get_ctx_length >>= fun len ->  
+    return (TyPrim PrimNum, binop_ctx len x y si_one si_one)
   
   | TmSub(i, x, y) ->
-
     ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
       P.pp_vinfo x x.v_index;
     ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
       P.pp_vinfo y y.v_index;
 
-    get_ctx_length              >>= fun len ->
-    return (TyPrim PrimNum,  binop_ctx len x y si_one si_one)
+    check_prim_num i x >>
+    check_prim_num i y >>
+    get_ctx_length >>= fun len ->
+    return (TyPrim PrimNum, binop_ctx len x y si_one si_one)
   
   | TmMul(i, x, y) ->
-
       ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
         P.pp_vinfo x x.v_index;
       ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
         P.pp_vinfo y y.v_index;
-  
-      get_ctx_length              >>= fun len ->
-      return (TyPrim PrimNum,  binop_ctx len x y si_hlf si_hlf)
+
+      check_prim_num i x >>
+      check_prim_num i y >>
+      get_ctx_length >>= fun len ->
+      return (TyPrim PrimNum, binop_ctx len x y si_hlf si_hlf)
   | TmDiv(i, x, y) ->
     
       ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
         P.pp_vinfo x x.v_index;
       ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
         P.pp_vinfo y y.v_index;
-  
-      get_ctx_length              >>= fun len ->
+
+      check_prim_num i x >>
+      check_prim_num i y >>
+      get_ctx_length >>= fun len ->
       return (TyUnion (TyPrim PrimNum, TyPrim PrimUnit),  binop_ctx len x y si_hlf si_hlf)
 
   | TmDMul(i, z, x) ->
@@ -401,7 +380,9 @@ let rec type_of (t : term) : (ty * bsi list) checker =
       ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
         P.pp_vinfo x x.v_index;
 
-      get_ctx_length              >>= fun len ->
+      check_prim_num i z >>
+      check_prim_num i x >>
+      get_ctx_length >>= fun len ->
       return (TyPrim PrimNum, singleton len x si_one)
   ) >>= fun (ty, sis) ->
 
@@ -419,19 +400,12 @@ open Format
 open Print
 
 let pp_tyerr ppf s = match s with
-  | SensErrorEq (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a = %a" !ty_seq pp_si si1 pp_si si2
-  | SensErrorLe (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a <= %a" !ty_seq pp_si si1 pp_si si2
-  | SensErrorLt (si1, si2)  -> fprintf ppf "EEE [%3d] Cannot satisfy constraint %a < %a" !ty_seq pp_si si1 pp_si si2
-  | NotDisjoint (si1, si2)  -> fprintf ppf "EEE [%3d] Some linear context error %a and %a" !ty_seq pp_si si1 pp_si si2
-  | SensErrorDiv (_si1, _si2)  -> fprintf ppf "Some sens div error" 
-  | MoreGeneral(ty1, ty2) -> fprintf ppf "EEE [%3d] %a is not more general than %a"     !ty_seq pp_type ty1 pp_type ty2
-  | TypeInst(ty1, ty2)    -> fprintf ppf "EEE [%3d] Type %a is not instance of %a"      !ty_seq pp_type ty1 pp_type ty2
-  | TypeMismatch(ty1, ty2)-> fprintf ppf "EEE [%3d] Cannot unify %a with %a"        !ty_seq pp_type ty1 pp_type ty2
-  | CannotApply(ty1, ty2) -> fprintf ppf "EEE [%3d] Cannot apply %a to %a"    !ty_seq pp_type ty1 pp_type ty2
-  | OccursCheck(v, ty)    -> fprintf ppf "EEE [%3d] Cannot build infinite type %a = %a" !ty_seq pp_vinfo v pp_type ty
-  | WrongShape(ty, sh)    -> fprintf ppf "EEE [%3d] Type %a has wrong shape, expected %s type." !ty_seq pp_type ty sh
-  | NotSubtype(ty1,ty2)   -> fprintf ppf "EEE [%3d] %a is not a subtype of %a" !ty_seq pp_type ty1 pp_type ty2
-  | Internal s            -> fprintf ppf "EEE [%3d] Internal error: %s" !ty_seq s
+  | NotDisjoint            -> fprintf ppf "EEE [%3d] Some linear context error" !ty_seq
+  | TypeMismatch(ty1, ty2) -> fprintf ppf "EEE [%3d] Cannot unify %a with %a" !ty_seq pp_type ty1 pp_type ty2
+  | WrongType(v, ty2)      -> fprintf ppf "EEE [%3d] Expected %a to have type %a" !ty_seq pp_vinfo v pp_type ty2
+  | WrongShape(ty, sh)     -> fprintf ppf "EEE [%3d] Type %a has wrong shape, expected %s type" !ty_seq pp_type ty sh
+  | NotSubtype(ty1,ty2)    -> fprintf ppf "EEE [%3d] %a is not a subtype of %a" !ty_seq pp_type ty1 pp_type ty2
+  | Internal s             -> fprintf ppf "EEE [%3d] Internal error: %s" !ty_seq s
 
 (* Equivalent to run *)
 let get_type program context dcontext =
