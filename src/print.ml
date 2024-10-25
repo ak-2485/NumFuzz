@@ -124,8 +124,8 @@ let pp_si_op fmt o =
 (* Primitive types *)
 let pp_primtype fmt ty = match ty with
     PrimNum     -> fprintf fmt "@<1>%s" (u_sym Symbols.Num)
+  | PrimDNum    -> fprintf fmt "@<1>d%s" (u_sym Symbols.Num)
   | PrimUnit    -> fprintf fmt "()"
-  | PrimString  -> fprintf fmt "string"
 
 (* Helper for our sensitivity annotated arrows *)
 let pp_arrow fmt s = match s with

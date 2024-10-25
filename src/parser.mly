@@ -44,6 +44,21 @@ let check_distinct ctx dctx =
       else aux (v.v_name :: seen) vs
   in aux [] ctx'
 
+(* Checks that a type is linear/discrete *)
+let rec check_type (linear : bool) (v, ty) = 
+  match ty with
+    TyPrim PrimNum -> if not linear then 
+      parser_error dummyinfo "Identifier %s has malformed type" v.v_name
+  | TyPrim PrimDNum -> if linear then
+      parser_error dummyinfo "Identifier %s has malformed type" v.v_name
+  | TyUnion (t1, t2) ->  
+    let _ = check_type linear (v, t1) in
+    let _ = check_type linear (v, t2) in ()
+  | TyTensor (t1, t2) -> 
+    let _ = check_type linear (v, t1) in
+    let _ = check_type linear (v, t2) in ()
+  | _ -> ()
+
 (* Create a new binder *)
 let nb_var n = {b_name = n; b_size = -1; b_prim = false}
 %}
@@ -57,6 +72,7 @@ let nb_var n = {b_name = n; b_size = -1; b_prim = false}
 %token <Support.FileInfo.info> DIVOP
 %token <Support.FileInfo.info> DLET
 %token <Support.FileInfo.info> DMULOP
+%token <Support.FileInfo.info> DNUM
 %token <Support.FileInfo.info> EQUAL
 %token <Support.FileInfo.info> EOF
 %token <Support.FileInfo.info> INL
@@ -93,6 +109,8 @@ body :
         let ctx_args = ($2 Ctx.empty_context) in
         let ctx_dargs = ($6 Ctx.empty_context) in
         let _ = check_distinct ctx_args ctx_dargs in
+        let _ = List.map (check_type true) ctx_args in
+        let _ = List.map (check_type false) ctx_dargs in
         (ctx_args, ctx_dargs, $8 ctx_args ctx_dargs)
       }
 
@@ -221,6 +239,8 @@ TPairSeq :
 AType :
     LPAREN Type RPAREN
       { $2 }
+  | DNUM
+      { fun _ctx -> TyPrim PrimDNum}
   | NUM
       { fun _ctx -> TyPrim PrimNum }
   | BOOL 

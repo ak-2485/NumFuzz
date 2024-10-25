@@ -1,5 +1,5 @@
 {(A : ((num, num), (num, num))) (u : (num, num))}
-`{(a : num) (b : num) (v : (num, num))}
+`{(a : dnum) (b : dnum) (v : (dnum, dnum))}
 
 /* let x = MatVecMul A v */
 let (A0, A1) = A;

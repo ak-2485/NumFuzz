@@ -54,7 +54,7 @@ let rec si_map n f si =
   | SiLub (s1, s2) -> SiLub (smf s1, smf s2)
 
 (* Primitive types *)
-type ty_prim = PrimNum | PrimUnit | PrimString
+type ty_prim = PrimNum | PrimDNum | PrimUnit
 
 (* Types *)
 type ty =
