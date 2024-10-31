@@ -1,5 +1,5 @@
-{(x : num) (y : num) (z : num)} 
+{(x : num)} 
 `{(a : dnum)} 
 
-let w = mul x y; 
-add w z
+let y = x;
+add x y

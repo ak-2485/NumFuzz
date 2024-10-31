@@ -1,0 +1,9 @@
+{(A : ((num, num), (num, num)))}
+`{}
+
+let (r1, r2) = A;
+let (a00, a01) = r1;
+let (a10, a11) = r2;
+let x = mul a00 a11;
+let y = mul a01 a10;
+sub x y
