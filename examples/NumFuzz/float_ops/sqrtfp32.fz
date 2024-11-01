@@ -1,4 +1,0 @@
-function sqrtfp32 (x: ![0.5]num) : M[eps32_up]num {
-  s = sqrt x;
-  rnd32 s
-}

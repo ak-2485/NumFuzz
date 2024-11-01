@@ -1,4 +1,0 @@
-function addfp (xy: <num, num>) : M[eps64_up]num {
-  s = add xy;
-  rnd s
-}

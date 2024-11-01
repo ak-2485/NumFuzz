@@ -1,4 +1,0 @@
-function sqrtfp16 (x: ![0.5]num) : M[eps16_up]num {
-  s = sqrt x;
-  rnd16 s
-}

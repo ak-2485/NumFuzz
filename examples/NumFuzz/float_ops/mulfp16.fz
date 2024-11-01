@@ -1,4 +1,0 @@
-function mulfp16 (xy: (num, num)) : M[eps16_up]num {
-  s = mul xy;
-  rnd16 s
-}

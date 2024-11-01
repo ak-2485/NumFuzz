@@ -1,7 +1,0 @@
-{(x : num + num) (w : num)} 
-`{} 
-
-case x of { 
-    inl(y) => add y w 
-  | inr(z) => z
-}

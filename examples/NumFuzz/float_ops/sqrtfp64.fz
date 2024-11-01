@@ -1,4 +1,0 @@
-function sqrtfp64 (x: ![0.5]num) : M[eps64_up]num {
-  s = sqrt x;
-  rnd64 s
-}

@@ -1,9 +1,0 @@
-#include "pow2.fz"
-
-function pow4 (x : ![4.0]num) 
-{
-  let [x1] = x;
-  z = pow2 [x1{2.0}];
-  let z1 = z;
-  pow2 [z1{2.0}]
-}

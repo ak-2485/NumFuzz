@@ -1,8 +1,0 @@
-{
-Variables
-	float64 x in [0.1,100];
-	float64 y in [0.1, 100];
-
-Expressions
-	x_by_xy1 = rnd32_up(x / (rnd64_up (x + y)) );
-}

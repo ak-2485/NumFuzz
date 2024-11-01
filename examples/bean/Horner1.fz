@@ -1,6 +1,0 @@
-{(a : (num, num))} 
-`{(z : dnum)}
-
-let (a0, a1) = a;
-let y = dmul z a1;
-add a0 y

@@ -1,7 +1,0 @@
-{(u : (num, num))}
-`{(a : dnum)}
-
-let (u0, u1) = u;
-let x = dmul a u0;
-let y = dmul a u1;
-(x, y)

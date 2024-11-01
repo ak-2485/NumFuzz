@@ -1,5 +1,0 @@
-{(x : num)} 
-`{(a : dnum)} 
-
-let y = x;
-add x y
