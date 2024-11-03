@@ -33,6 +33,12 @@ let extend_var id ctx =
 let extend_var_ty id ty ctx =
   Ctx.extend_var id ty ctx
 
+(* Checks that two variables are distinct *)
+let check_distinct_vars fi x y = 
+  if x = y then
+    parser_error fi "Inputs are required to be distinct"
+  else ()
+
 (* Checks that ctx and dctx are distinct *)
 let check_distinct ctx dctx = 
   let ctx' = ctx @ dctx in
@@ -160,21 +166,25 @@ Term :
       { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
+        let _ = check_distinct_vars $3.i x y in
         TmAdd($1, x, y) }
   | SUBOP ID ID
       { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
+        let _ = check_distinct_vars $3.i x y in
         TmSub($1, x, y) }
   | MULOP ID ID
       { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
+        let _ = check_distinct_vars $3.i x y in
         TmMul($1, x, y) }
   | DIVOP ID ID
       { fun ctx _dctx -> 
         let x = existing_var $2.i $2.v ctx in
         let y = existing_var $3.i $3.v ctx in
+        let _ = check_distinct_vars $3.i x y in
         TmDiv($1, x, y) }
   (* extra *)
   | LPAREN Term RPAREN
