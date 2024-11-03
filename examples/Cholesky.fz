@@ -1,4 +1,4 @@
-{(A : ((num, num), (num, num))) (x : num) ( y : num)}
+{(A : ((num, num), (num, num))) (x : num) ( y : bool)}
 `{}
 
 /* 
@@ -11,4 +11,4 @@ let (A1, A2) = A;
 let (A11, A12) = A1;
 let (A21, A22) = A2;
 
-mul A11 A11
+mul A11 A12
