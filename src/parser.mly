@@ -101,7 +101,6 @@ let nb_var n = {b_name = n; b_size = -1; b_prim = false}
 
 (* Identifier and constant value tokens *)
 %token <string Support.FileInfo.withinfo> ID
-%token <string Support.FileInfo.withinfo> D_ID
 %token <float Support.FileInfo.withinfo> FLOATV
 %token <string Support.FileInfo.withinfo> STRINGV
 

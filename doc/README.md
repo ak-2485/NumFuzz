@@ -9,7 +9,7 @@ Building Bean requires Dune 3.14.0, Ocaml version 4.14.1 with a native compiler,
 
 ### Running a Bean program
 
-Run the `InnerProduct` Bean program as follows: `cd examples; dune exec -- nfuzz InnerProduct.fz`. 
+Run the `InnerProduct` Bean program as follows: `dune exec -- bean examples/InnerProduct.be`. 
 
 In Bean, programs start with a list of input variables which may be *linear* or *discrete*. 
 The sole linear input to `InnerProduct` is `v : (num, num)` and the sole discrete input is `u : (dnum, dnum)`.

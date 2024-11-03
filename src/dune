@@ -13,15 +13,15 @@
    (:standard -O2 -Werror))))
 
 (library
- (name nfuzz)
+ (name bean)
  (wrapped false)
- (modules :standard \ nfuzz)
+ (modules :standard \ bean)
  (libraries unix menhirLib))
 
 (executable
- (public_name nfuzz)
- (modules nfuzz)
- (libraries nfuzz))
+ (public_name bean)
+ (modules bean)
+ (libraries bean))
 
 (ocamllex lexer)
 (menhir

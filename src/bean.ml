@@ -56,7 +56,7 @@ let parseArgs () =
       match !inFile with
       | Some _ -> main_error dp "You must specify exactly one input file"
       | None -> inFile := Some s)
-    "Usage: fuzz [options] inputfile";
+    "Usage: bean [options] inputfile";
   match !inFile with
   | None ->
       main_error dp "No input file specified (use --help to display usage info)";
