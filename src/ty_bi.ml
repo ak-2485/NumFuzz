@@ -188,6 +188,12 @@ module TypeSub = struct
     match ty with
     | TyPrim PrimNum -> return ()
     | _              -> fail i @@ WrongType (v, TyPrim PrimNum)
+
+  let check_prim_dnum (i : info) (v : var_info) : unit checker =
+    get_dvar_ty v >>= fun ty ->
+    match ty with
+    | TyPrim PrimDNum -> return ()
+    | _              -> fail i @@ WrongType (v, TyPrim PrimNum)
 end
 
 open TypeSub
@@ -382,7 +388,7 @@ let rec type_of (t : term) : (ty * bsi list) checker =
       ty_debug i "### In case, [%3d] index for binder @[%a@] is @[%d@]" !ty_seq 
         P.pp_vinfo x x.v_index;
 
-      check_prim_num i z >>
+      check_prim_dnum i z >>
       check_prim_num i x >>
       get_ctx_length >>= fun len ->
       return (TyPrim PrimNum, singleton len x si_one)

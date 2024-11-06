@@ -1,5 +1,5 @@
 {(y : num)}
-`{(x : dnum)}
+`{(x : (dnum, dnum))}
 
-let z = dmul x y;
-(x, z)
+dlet (x1, x2) = x;
+dmul x1 y
