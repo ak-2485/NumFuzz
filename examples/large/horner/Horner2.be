@@ -1,0 +1,12 @@
+{(a : (num, num, num))}
+`{(z : dnum)}
+
+let (a_1, b_1) = a;
+let (a_2, a_3) = b_1;
+
+let y_1 = a_3;
+let x_1 = dmul z y_1;
+let y_2 = add a_2 x_1;
+let x_2 = dmul z y_2;
+let y_3 = add a_1 x_2;
+y_3

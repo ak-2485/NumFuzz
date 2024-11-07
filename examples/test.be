@@ -1,5 +1,4 @@
-{(y : num)}
-`{(x : (dnum, dnum))}
+{(a : num) (_ : num)}
+`{}
 
-dlet (x1, x2) = x;
-dmul x1 y
+a

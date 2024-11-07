@@ -1,4 +1,4 @@
-{(A : ((num, (num, num)), (num, (num, num)), (num, (num, num)))) (b : (num, num, num))}
+{(A : ((num, num, num), (num, (num, num)), (num, (num, num)))) (b : (num, num, num))}
 `{}
 
 /* 
