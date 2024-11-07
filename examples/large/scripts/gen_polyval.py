@@ -18,5 +18,6 @@ def gen_polyval(n):
 
 gen_polyval(2)
 gen_polyval(3)
+gen_polyval(4)
 gen_polyval(10)
 gen_polyval(50)

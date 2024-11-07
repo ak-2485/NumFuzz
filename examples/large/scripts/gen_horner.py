@@ -16,5 +16,6 @@ def gen_horner(n):
 gen_horner(1)
 gen_horner(2)
 gen_horner(3)
+gen_horner(4)
 gen_horner(50)
 gen_horner(100)
