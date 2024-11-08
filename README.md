@@ -20,9 +20,7 @@ Build via dune:
 dune build
 ```
 
-Type check an example in the examples directory with the following command.
+Type check an example in the `examples` directory with the following command.
 ```
 dune exec -- bean examples/EXAMPLE.fz
 ```
-
-

@@ -1,4 +1,4 @@
-{(a : (num, (num, num)))}
+{(a : (num, num, num))}
 `{(z : dnum)}
 
 /*

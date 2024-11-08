@@ -1,4 +1,4 @@
-{(v : (num, (num, num)))} 
+{(v : (num, num, num))} 
 `{}
 
 /* 

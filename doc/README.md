@@ -5,7 +5,7 @@ This is the artifact for Bean ("Backward Error Analysis").
 # Getting Started
 
 ### Requirements
-Building Bean requires Dune 3.14.0, Ocaml version 4.14.1 with a native compiler, and Menhir version 20220210. 
+Building Bean requires Dune 3.14.0, OCaml version 4.14.1 with a native compiler, and Menhir version 20220210. 
 
 ### Running a Bean program
 
@@ -13,8 +13,7 @@ Run the `InnerProduct` Bean program as follows: `dune exec -- bean examples/Inne
 
 In Bean, programs start with a list of input variables which may be *linear* or *discrete*. 
 The sole linear input to `InnerProduct` is `v : (num, num)` and the sole discrete input is `u : (dnum, dnum)`.
-In other words, `u` and `v` are real vectors in ℝ². 
-However, `v` may have backward error while `u` may not.
+This means that `u` and `v` are real vectors in ℝ²; however, `v` may have backward error while `u` may not.
 
 The output tells us:
 ```
@@ -28,7 +27,7 @@ I  [General] : Inferred Context:
 ```
 The return type of `InnerProduct` is `ℝ` and the only discrete variable is `u`. 
 The inferred context tells us that our input vector `v` has a backward error bound of `2ϵ` where ϵ is machine epsilon.
-Note that for vectors and matrices, we report the max element-wise backward error bound produced by Bean. 
+Note that for vectors and matrices, we report the maximum element-wise backward error bound. 
 
 # Writing Bean Programs
 
