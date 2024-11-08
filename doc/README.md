@@ -23,7 +23,7 @@ I  [General] : Discrete Variables:
                u : (dℝ ⊗ dℝ)
                
 I  [General] : Inferred Context:
-               v :4e-53 (ℝ ⊗ ℝ)
+               v :[4e-53] (ℝ ⊗ ℝ)
 ```
 The return type of `InnerProduct` is `ℝ` and the only discrete variable is `u`. 
 The inferred context tells us that our input vector `v` has a backward error bound of `4e-53`.

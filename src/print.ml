@@ -110,7 +110,7 @@ let pp_binfo fmt b = pp_name fmt b.b_name
 let machine_eps = 2e-53
 let rec pp_si fmt s =
   match s with
-  | SiConst flt            -> fprintf fmt "%s" (string_of_float (flt *. machine_eps))
+  | SiConst flt            -> fprintf fmt "[%s]" (string_of_float (flt *. machine_eps))
   | SiAdd (si1, si2)       -> fprintf fmt "(%a + %a)" pp_si si1 pp_si si2
   | SiMult(si1, si2)       -> fprintf fmt "(%a * %a)" pp_si si1 pp_si si2
   | SiDiv(si1, si2)        -> fprintf fmt "(%a / %a)" pp_si si1 pp_si si2
