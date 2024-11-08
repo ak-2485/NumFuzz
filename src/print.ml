@@ -40,6 +40,7 @@ module Symbols = struct
     | Vdash
     | Geq
     | Lub
+    | Eps
 
   let pp_symbol_table s = match s with
       Inf      -> ("inf",     "∞")
@@ -62,6 +63,7 @@ module Symbols = struct
     | Vdash    -> ("|-",      "⊢")
     | Geq      -> (">=",      "≥")
     | Lub      -> ("U",       "⊔")
+    | Eps      -> ("e",       "ε")
 
   let string_of_symbol s =
     let select = if !debug_options.unicode then snd else fst in
@@ -105,9 +107,10 @@ let pp_binfo fmt b = pp_name fmt b.b_name
 
 (* Pretty printing for sensitivities *)
 
+let machine_eps = 2e-53
 let rec pp_si fmt s =
   match s with
-  | SiConst flt            -> fprintf fmt "%s" (string_of_float flt)
+  | SiConst flt            -> fprintf fmt "%s" (string_of_float (flt *. machine_eps))
   | SiAdd (si1, si2)       -> fprintf fmt "(%a + %a)" pp_si si1 pp_si si2
   | SiMult(si1, si2)       -> fprintf fmt "(%a * %a)" pp_si si1 pp_si si2
   | SiDiv(si1, si2)        -> fprintf fmt "(%a / %a)" pp_si si1 pp_si si2

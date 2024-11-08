@@ -23,10 +23,11 @@ I  [General] : Discrete Variables:
                u : (dℝ ⊗ dℝ)
                
 I  [General] : Inferred Context:
-               v :2. (ℝ ⊗ ℝ)
+               v :4e-53 (ℝ ⊗ ℝ)
 ```
 The return type of `InnerProduct` is `ℝ` and the only discrete variable is `u`. 
-The inferred context tells us that our input vector `v` has a backward error bound of `2ϵ` where ϵ is machine epsilon.
+The inferred context tells us that our input vector `v` has a backward error bound of `4e-53`.
+(We assume the IEEE 754 double precision standard, though Bean may be instantiated for other values of unit roundoff.)
 Note that for vectors and matrices, we report the maximum element-wise backward error bound. 
 
 # Writing Bean Programs
