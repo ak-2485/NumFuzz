@@ -355,7 +355,7 @@ Several operations that perform rounding are included in the directory  `NumFuzz
 3. Division `divfp64: (num ⊗ num) -o M[eps64_up]num`
 4. Square root `sqrtfp64: ![0.5]num -o M[eps64_up]num`
 5. Fused multiply-add `FMA64: num -o num -o num -o M[eps64_up]num`
-6. Multiply-add `ma64: num -o num -o num -o M[eps64_up]num`
+6. Multiply-add `MA64: num -o num -o num -o M[eps64_up]num`
 
 These operations can be used in NumFuzz programs using an include statement; e.g., 
 ```
