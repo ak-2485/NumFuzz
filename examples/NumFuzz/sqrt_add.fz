@@ -5,7 +5,7 @@
 function sqrt_add1 (x : ![0.5]num) 
 {
   let [x'] = x;
-  sd2 = addfp64 (|x',1.0|);
+  sd2 = addfp64 <x',1.0>;
   let d2 = sd2;
   sqrtfp64 [d2{0.5}]
 }
@@ -16,7 +16,7 @@ function sqrt_add (x : num) : M[9.993e-16]num
   let d1 = sd1;
   sd2 = sqrtfp64 [x{0.5}];
   let d2 = sd2;
-  sd = addfp64 (|d1,d2|);
+  sd = addfp64 <d1,d2>;
   let d  = sd;
   divfp64 (1.0,d)
 }

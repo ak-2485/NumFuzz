@@ -4,7 +4,7 @@
 function nonlin1 (t : ![2.0]num) 
 {
   let [t'] = t;
-  s = addfp64 (|t',1.0|);
+  s = addfp64 <t',1.0>;
   let d = s;
   divfp64 (t',d)
 }

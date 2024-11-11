@@ -8,7 +8,7 @@ function verhulst
  let [x] = x';
  s1 = divfp64 (x,1.11);
  let s2 = s1;
- s3 = addfp64 (|1.0, s2|);
+ s3 = addfp64 <1.0, s2>;
  let s4 = s3;
  s5 = mulfp64 (4.0,x);
  let s6 = s5;

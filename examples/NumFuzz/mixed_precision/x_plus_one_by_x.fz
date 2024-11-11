@@ -5,7 +5,7 @@
 function x_plus_one_by_x (x : ![2.0]num)
 {
   let [x2] = x;
-  y = addfp32 (|x2, 1.0|);
+  y = addfp32 <x2, 1.0>;
   let y2 = y;
   divfp64 (x2,y2)
 }

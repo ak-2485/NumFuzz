@@ -5,7 +5,7 @@ function x_by_xy
   (x : ![2.0]num) (y : num) 
 {
   let [x'] = x;
-  s = addfp64(|x',y|);
+  s = addfp64<x',y>;
   let z = s;
   divfp64 (x',z)
 }

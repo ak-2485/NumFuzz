@@ -12,7 +12,7 @@ function predatorPrey
  let s2 = s1;
  s3 = mulfp64 (s2, s2);
  let s4 = s3;
- s4 = addfp64 (|1.0,s4|);
+ s4 = addfp64 <1.0,s4>;
  let s5 = s4;
  s6 = mulfp64 (4.0,x);
  let s7 = s6;
