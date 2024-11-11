@@ -249,7 +249,7 @@ v, w ::=                                        VALUES
       ()                                        value of unit type
       k in R                                    constants (reals > 0)
       (v,w)                                     tensor pairs
-      (|v,w|)                                   cartesian pairs
+      <v,w>                                     cartesian pairs
       inl v                                     injection into sum
       inr v                                     injection into sum
       fun (x:T) {e}                             ordinary function
@@ -266,8 +266,8 @@ e, f ::=                                        EXPRESSIONS
       fst v                                     cartesian pair destructor
       snd v                                     cartesian pair destructor
       let (x,y) = v; e                          tensor destructor
-      case v {inl x => e | inr x => f}        case analysis
-      if v then {e} else {f}			        conditional (case sugar)
+      case v {inl x => e | inr x => f}          case analysis
+      if v then {e} else {f}			      conditional (case sugar)
       let [x] = v; e                            co-monadic sequencing
       let x = v; e                              monadic sequencing
       x = e; f                                  pure sequencing
@@ -337,7 +337,7 @@ followed by the input function to be applied to each element in the input tuple.
 
 ### Arithmetic Operations with Rounding
 
-Arithmetic operations that perform rounding can be built from primitive operations. One example is `addfp_64`, which adds two numbers and rounds the result to the nearest 64-bit floating point number: 
+Arithmetic operations that perform rounding can be built from primitive operations. One example is `addfp64`, which adds two numbers and rounds the result to the nearest 64-bit floating point number: 
 
 ```ocaml
 function addfp_64 (xy: <num, num>) 
