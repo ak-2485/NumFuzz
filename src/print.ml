@@ -107,7 +107,7 @@ let pp_binfo fmt b = pp_name fmt b.b_name
 
 (* Pretty printing for sensitivities *)
 
-let machine_eps = 2e-53
+let machine_eps = 2.**(-53.)
 let rec pp_si fmt s =
   match s with
   | SiConst flt            -> fprintf fmt "[%s]" (string_of_float (flt *. machine_eps))
