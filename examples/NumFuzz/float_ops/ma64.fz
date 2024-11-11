@@ -1,5 +1,7 @@
+#include "addfp64.fz"
+#include "mulfp64.fz"
 function MA64 (x : num) (y : num) (z : num) : M[4.441e-16]num {
   s = mulfp64 (x,y);
   let a = s;
-  addfp64 (|a,z|)
+  addfp64 <a,z>
 }
