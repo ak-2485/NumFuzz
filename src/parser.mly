@@ -56,6 +56,7 @@ let from_args_to_type arg_list oty = match oty with
 /* Keyword tokens */
 %token <Support.FileInfo.info> ADD
 %token <Support.FileInfo.info> ADDOP
+%token <Support.FileInfo.info> SUBOP
 %token <Support.FileInfo.info> AMP
 %token <Support.FileInfo.info> BANG
 %token <Support.FileInfo.info> COLON
@@ -197,6 +198,8 @@ Term :
   (* primitive ops *)
   | ADDOP Val
       { fun ctx -> TmOp($1, AddOp, $2 ctx) }
+  | SUBOP Val
+      { fun ctx -> TmOp($1, SubOp, $2 ctx) }
   | MULOP Val
       { fun ctx -> TmOp($1, MulOp, $2 ctx) }
   | DIVOP Val

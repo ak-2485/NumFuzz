@@ -37,6 +37,7 @@ let gen_primitive prim =
 let gen_op op =
   match op with
     AddOp        -> "add"
+  | SubOp        -> "sub"
   | MulOp        -> "mul"
   | SqrtOp       -> "sqrt"
   | DivOp        -> "div"
