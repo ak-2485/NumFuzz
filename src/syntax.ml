@@ -176,7 +176,8 @@ let type_of_prim t =
   | PrimTString _ -> TyPrim PrimString
   | PrimTFun (_, ty) -> ty
 
-type op = AddOp | MulOp | SqrtOp | DivOp | GtOp | EqOp
+type op = AddOp | SubOp | MulOp | SqrtOp | DivOp | GtOp | EqOp
+type op_core = AddOpCore | MulOpCore | SqrtOpCore | DivOpCore | GtOpCore | EqOpCore
 
 type term =
   | TmVar of info * var_info
@@ -211,6 +212,40 @@ type term =
   | TmLetBind of info * binder_info * term * term
   (* Basic ops *)
   | TmOp of info * op * term
+
+type term_core =
+  | TmVarCore of info * var_info
+  (*  *)
+  | TmTensCore of info * term * term
+  | TmTensDestCore of info * binder_info * binder_info * term * term
+  | TmInlCore of info * term
+  | TmInrCore of info * term
+  | TmUnionCaseCore of info * term * binder_info * term * binder_info * term
+  (*                      t  of { inl(x)     => tm1  | inl(y)     => tm2  } *)
+  (* Primitive terms *)
+  | TmPrimCore of info * term_prim
+  (* Rounding *)
+  | TmRnd64Core of info * term
+  | TmRnd32Core of info * term
+  | TmRnd16Core of info * term
+  (* Ret *)
+  | TmRetCore of info * term
+  (* Regular Abstraction and Applicacion *)
+  | TmAppCore of info * term * term
+  | TmAbsCore of info * binder_info * ty * term
+  (* & constructor and eliminator *)
+  | TmAmpersandCore of info * term * term
+  | TmAmp1Core of info * term
+  | TmAmp2Core of info * term
+  (* Box constructor and elim *)
+  | TmBoxCore of info * si * term
+  | TmBoxDestCore of info * binder_info * term * term
+  (* Regular sequencing *)
+  | TmLetCore of info * binder_info * ty option * term * term
+  (* Monadic sequencing *)
+  | TmLetBindCore of info * binder_info * term * term
+  (* Basic ops *)
+  | TmOpCore of info * op_core * term
 
 let map_prim_ty n f p =
   match p with
