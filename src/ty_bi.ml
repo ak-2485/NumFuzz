@@ -324,13 +324,13 @@ module TypeSub = struct
     let num  = (TyPrim PrimNum) in
     let ty_bool = (TyUnion(TyPrim PrimUnit, TyPrim PrimUnit)) in
     match op with
-    | AddOp  -> return (TyLollipop((TyAmpersand(num, num)),num))
-    | MulOp  -> return (TyLollipop((TyTensor(num, num)),num))
-    | SqrtOp -> return (TyLollipop((TyBang(si_hlf, num)),num))
-    | DivOp  -> return (TyLollipop((TyTensor(num, num)),num))
-    | GtOp   -> 
+    | AddOpCore  -> return (TyLollipop((TyAmpersand(num, num)),num))
+    | MulOpCore  -> return (TyLollipop((TyTensor(num, num)),num))
+    | SqrtOpCore -> return (TyLollipop((TyBang(si_hlf, num)),num))
+    | DivOpCore  -> return (TyLollipop((TyTensor(num, num)),num))
+    | GtOpCore   -> 
         return (TyLollipop((TyTensor(TyBang(si_infty,num),TyBang(si_infty,num))),ty_bool))
-    | EqOp   -> 
+    | EqOpCore   -> 
         return (TyLollipop((TyTensor(TyBang(si_infty,num),TyBang(si_infty,num))),ty_bool))
 
 let check_is_num' ty : bool =
@@ -460,39 +460,39 @@ let kind_of (i : info) (si : si) : kind checker =
    satisfied in order for the type to be valid. Raises an error if it
    detects that no typing is possible. *)
 
-let rec type_of (t : term) : (ty * bsi list) checker  =
-
-  ty_debug (tmInfo t) "--> [%3d] Enter type_of: @[%a@]" !ty_seq
-    (Print.limit_boxes Print.pp_term) t; incr ty_seq;
+let rec type_of (t : term_core) : (ty * bsi list) checker  =
+  let t_lifted = Paired.lift_core_to_term t in
+  ty_debug (tmInfo t_lifted) "--> [%3d] Enter type_of: @[%a@]" !ty_seq
+    (Print.limit_boxes Print.pp_term) t_lifted; incr ty_seq;
 
   (match t with
   (* Variables *)
-  | TmVar(_i, x)  ->
+  | TmVarCore(_i, x)  ->
     get_ctx_length              >>= fun len ->
     get_var_ty x                >>= fun ty_x  ->
     return (ty_x, singleton len x)
 
   (* Primitive terms *)
-  | TmPrim(_, pt) ->
+  | TmPrimCore(_, pt) ->
     get_ctx_length >>= fun len ->
     return (type_of_prim pt, zeros len)
 
   (* Rounding *)
-  | TmRnd64(i, v) ->
+  | TmRnd64Core(i, v) ->
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
     
     let eps = SiConst ( (2.220446049250313e-16)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
   
-  | TmRnd32(i, v) ->
+  | TmRnd32Core(i, v) ->
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
       
     let eps = SiConst ( (1.192092895507812e-7)) in
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
   
-  | TmRnd16(i, v) ->
+  | TmRnd16Core(i, v) ->
     type_of v    >>= fun (ty_v, sis_v)  ->
     check_is_num i ty_v >>
       
@@ -500,7 +500,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return (TyMonad(eps, TyPrim PrimNum), sis_v)
 
   (* Ret *)
-  | TmRet(_i, v) ->
+  | TmRetCore(_i, v) ->
     type_of v    >>= fun (ty_v, sis_v)  ->
 
     return (TyMonad(si_zero, ty_v), sis_v)
@@ -508,14 +508,13 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
   (* Abstraction and Application *)
 
   (* λ (x : tya_x) { tm }        *)
-  | TmAbs(i, b_x, tya_x, tm) ->
-
+  | TmAbsCore(i, b_x, tya_x, tm) ->
     with_extended_ctx i b_x.b_name tya_x (type_of tm) >>= fun (ty_tm, si_x, sis) ->
 
     let si_x1 =  si_of_bsi si_x in
     let si_x2 =  Simpl.si_simpl_compute si_x1 in
 
-    ty_debug (tmInfo t) "### [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si si_x2;
+    ty_debug (tmInfo t_lifted) "### [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si si_x2;
 
       let si_x3  = Simpl.si_simpl si_x2 in
       let si_x4  = Simpl.si_simpl_compute si_x3 in
@@ -524,7 +523,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
       return (TyLollipop (tya_x, ty_tm), sis)
 
   (* tm1 β → α, tm2: β *)
-  | TmApp(i, tm1, tm2)                             ->
+  | TmAppCore(i, tm1, tm2)                             ->
 
     type_of tm1 >>= fun (ty1, sis1) ->
     type_of tm2 >>= fun (ty2, sis2) ->
@@ -537,7 +536,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
   (* Standard let-binding *)
   (* x : oty_x = tm_x ; e *)
-  | TmLet(i, x, oty_x, tm_x, e)                   ->
+  | TmLetCore(i, x, oty_x, tm_x, e)                   ->
 
     type_of tm_x >>= fun (ty_x, sis_x)  ->
 
@@ -558,7 +557,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return (ty_e, add_sens sis_e (scale_sens (Some si_x) sis_x))
 
   (* Monadic let-binding x = v ; e *)
-  | TmLetBind(i, x, v, e)                   ->
+  | TmLetBindCore(i, x, v, e)                   ->
 
     type_of v >>= fun (ty_v, sis_v)  ->
 
@@ -577,28 +576,28 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return (TyMonad(si_total,ty_e'), add_sens sis_e (scale_sens (Some si_x) sis_v))
 
   (* Tensor product and Cartesian product (ampersand &)*)
-  | TmAmpersand(_i, tm1, tm2)      ->
+  | TmAmpersandCore(_i, tm1, tm2)      ->
 
     type_of tm1 >>= fun (ty1, sis1) ->
     type_of tm2 >>= fun (ty2, sis2) ->
 
     return (TyAmpersand(ty1, ty2), lub_sens sis1 sis2)
 
-  | TmAmp1(i, tm1)      ->
+  | TmAmp1Core(i, tm1)      ->
 
       type_of tm1 >>= fun (ty, sis1) ->
       check_amp_shape i ty >>= fun(ty_1, _ty_2) ->
 
       return (ty_1, sis1)
 
-  | TmAmp2(i, tm2)      ->
+  | TmAmp2Core(i, tm2)      ->
 
       type_of tm2 >>= fun (ty, sis2) ->
       check_amp_shape i ty >>= fun(_ty_1, ty_2) ->
 
       return (ty_2, sis2)
 
-  | TmTens(_i, e1, e2) ->
+  | TmTensCore(_i, e1, e2) ->
 
     type_of e1 >>= fun (ty1, sis1) ->
     type_of e2 >>= fun (ty2, sis2) ->
@@ -606,7 +605,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return @@ (TyTensor(ty1, ty2), add_sens sis1 sis2)
 
   (* let (x,y) = v in e *)
-  | TmTensDest(i, x, y, v, e) ->
+  | TmTensDestCore(i, x, y, v, e) ->
 
     type_of v >>= fun (ty_v, sis_v) ->
     check_tensor_shape i ty_v >>= fun (ty_x, ty_y) ->
@@ -621,14 +620,14 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
     return (ty_e, add_sens sis_e (scale_sens (Some si_max) sis_v))
 
   (* Exponentials (bangs and boxes) *)
-  | TmBox(_i,si_v,v) ->
+  | TmBoxCore(_i,si_v,v) ->
 
     type_of v >>= fun (ty_v, sis_v) ->
 
     return(TyBang(si_v, ty_v), scale_sens (Some si_v) sis_v)
 
   (* let [x] = v in e *)
-  | TmBoxDest(i,x,tm_v,tm_e) ->
+  | TmBoxDestCore(i,x,tm_v,tm_e) ->
 
     type_of tm_v >>= fun (sity_v, sis_v) ->
 
@@ -648,7 +647,7 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
   (* Case analysis *)
   (* case v of inl(x) => e_l | inr(y) => f_r *)
-  | TmUnionCase(i, v, b_x, e_l, b_y, f_r)      ->
+  | TmUnionCaseCore(i, v, b_x, e_l, b_y, f_r)      ->
 
     type_of v >>= fun (ty_v, sis_v) ->
 
@@ -660,9 +659,11 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
     check_ty_union i tyl tyr >>= fun ty_exp ->
 
-    ty_debug (tmInfo v) "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si (si_of_bsi si_x);
+    let v_lifted = Paired.lift_core_to_term v in
 
-    ty_debug (tmInfo v) "*** Context: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_v); 
+    ty_debug (tmInfo v_lifted) "### In case, [%3d] Inferred sensitivity for binder @[%a@] is @[%a@]" !ty_seq P.pp_binfo b_x P.pp_si (si_of_bsi si_x);
+
+    ty_debug (tmInfo v_lifted) "*** Context: @[%a@]" (Print.pp_list Print.pp_si) (bsi_sens sis_v); 
 
       let si_x = si_of_bsi si_x in
       let si_y = si_of_bsi si_y in
@@ -676,18 +677,18 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
       else
         return (ty_exp, add_sens theta (scale_sens (Some si_x) sis_v))
 
-  | TmInl(_i, tm_l)      ->
+  | TmInlCore(_i, tm_l)      ->
 
       type_of tm_l >>= fun (ty, sis) ->
       return (TyUnion(ty, TyPrim PrimUnit), sis)
 
-  | TmInr(_i, tm_r)      ->
+  | TmInrCore(_i, tm_r)      ->
 
       type_of tm_r >>= fun (ty, sis) ->
       return (TyUnion(TyPrim PrimUnit, ty), sis)
 
   (* Ops *)
-  | TmOp(i, fop, v) ->
+  | TmOpCore(i, fop, v) ->
 
     type_of v >>= fun (ty_v, sis_v) ->
 
@@ -702,8 +703,8 @@ let rec type_of (t : term) : (ty * bsi list) checker  =
 
   decr ty_seq;
   (* We limit pp_term *)
-  ty_debug (tmInfo t) "<-- [%3d] Exit type_of : @[%a@] with type @[%a@]" !ty_seq
-    (Print.limit_boxes Print.pp_term) t Print.pp_type ty;
+  ty_debug (tmInfo t_lifted) "<-- [%3d] Exit type_of : @[%a@] with type @[%a@]" !ty_seq
+    (Print.limit_boxes Print.pp_term) t_lifted Print.pp_type ty;
 
   (* TODO: pretty printer for sensitivities *)
   (* ty_debug2 (tmInfo t) "<-- Context: @[%a@]" Print.pp_context ctx; *)
