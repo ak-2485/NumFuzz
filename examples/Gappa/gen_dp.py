@@ -15,7 +15,7 @@ def generate_dp_script(n):
     
     # Sum all terms for the rounded dot product
     rounded_sum = " + ".join([f"z{i}" for i in range(n)])
-    script += f"\nz = rnd({rounded_sum});\n\n"
+    script += f"\nz rnd= ({rounded_sum});\n\n"
     
     # Add the logical formula for Gappa to prove
     script += "# the logical formula that Gappa will try (and succeed) to prove\n"
