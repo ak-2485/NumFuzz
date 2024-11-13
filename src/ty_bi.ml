@@ -22,7 +22,8 @@ module P   = Print
 type ty_error_elem =
 | NotDisjoint
 | TypeMismatch of ty * ty
-| WrongType    of var_info * ty
+| WrongVarType of var_info * ty
+| WrongType    of ty * ty
 | WrongShape   of ty * string
 | NotSubtype   of ty * ty
 | Internal     of string
@@ -183,17 +184,22 @@ module TypeSub = struct
     | _                 -> fail i @@ WrongShape (ty, "union")
   
   (* Checks that variable has base numeric type *)
+  let check_prim_dnum_ty (i : info) (ty : ty) : unit checker = 
+    match ty with
+    | TyPrim PrimDNum -> return ()
+    | _              -> fail i @@ WrongType (ty, TyPrim PrimDNum)
+
   let check_prim_num (i : info) (v : var_info) : unit checker =
     get_var_ty v >>= fun ty ->
     match ty with
     | TyPrim PrimNum -> return ()
-    | _              -> fail i @@ WrongType (v, TyPrim PrimNum)
+    | _              -> fail i @@ WrongVarType (v, TyPrim PrimNum)
 
   let check_prim_dnum (i : info) (v : var_info) : unit checker =
     get_dvar_ty v >>= fun ty ->
     match ty with
     | TyPrim PrimDNum -> return ()
-    | _              -> fail i @@ WrongType (v, TyPrim PrimNum)
+    | _              -> fail i @@ WrongVarType (v, TyPrim PrimNum)
 end
 
 open TypeSub
@@ -209,6 +215,12 @@ let with_extended_ctx (i : info) (v : string) (ty : ty) (m : ('a * 'b list) chec
   match res_ext_ctx with
   | res_v :: res_ctx -> return (res, res_v, res_ctx)
   | [] -> fail i @@ Internal "Computation on extended context didn't produce enough results"
+
+(* Extends the discrete context with one variable,
+   discretizing the type if necessary *)
+let with_extended_dctx (v : string) (ty : ty) (m : ('a * 'b list) checker) :
+    ('a * 'b list) checker =
+    with_new_dctx (extend_var v (disc ty)) m
 
 (* Similar to the one above, but with two variables. vx has index 1 in
    the extended context, while vy has index 0. The order of the
@@ -286,6 +298,16 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     with_extended_ctx i x.b_name ty_e (type_of tm_f) >>= fun (ty_f, si_x, ctx_f) ->
     check_disjoint i ctx_e ctx_f >>
     return (ty_f, union_ctx (shift_sens si_x ctx_e) ctx_f)
+
+  (* dlet (z : oty_z) = e in f *)
+  | TmDLet(i, z, oty_z, tm_e, tm_f) ->
+    type_of tm_e >>= fun (ty_e, ctx_e) ->
+    check_maybe_type_eq i oty_z ty_e >>
+    (* for now: must have e : num *)
+    check_prim_dnum_ty i ty_e >>
+    with_extended_dctx z.b_name ty_e (type_of tm_f) >>= fun (ty_f, ctx_f) ->
+    check_disjoint i ctx_e ctx_f >>
+    return (ty_f, union_ctx ctx_e ctx_f)
 
   (* Tensor product*)
   | TmTens(i, tm_e, tm_f) ->
@@ -405,7 +427,8 @@ open Print
 let pp_tyerr ppf s = match s with
   | NotDisjoint            -> fprintf ppf "EEE [%3d] Some linear context error" !ty_seq
   | TypeMismatch(ty1, ty2) -> fprintf ppf "EEE [%3d] Cannot unify %a with %a" !ty_seq pp_type ty1 pp_type ty2
-  | WrongType(v, ty2)      -> fprintf ppf "EEE [%3d] Expected %a to have type %a" !ty_seq pp_vinfo v pp_type ty2
+  | WrongVarType(v, ty2)   -> fprintf ppf "EEE [%3d] Expected %a to have type %a" !ty_seq pp_vinfo v pp_type ty2
+  | WrongType(ty1, ty2)    -> fprintf ppf "EEE [%3d] Expected %a to be %a" !ty_seq pp_type ty1 pp_type ty2
   | WrongShape(ty, sh)     -> fprintf ppf "EEE [%3d] Type %a has wrong shape, expected %s type" !ty_seq pp_type ty sh
   | NotSubtype(ty1,ty2)    -> fprintf ppf "EEE [%3d] %a is not a subtype of %a" !ty_seq pp_type ty1 pp_type ty2
   | Internal s             -> fprintf ppf "EEE [%3d] Internal error: %s" !ty_seq s

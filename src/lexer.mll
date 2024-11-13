@@ -24,6 +24,7 @@ let reservedWords = [
   (")", fun i -> Parser.RPAREN i);
   ("|", fun i -> Parser.PIPE i);
   ("`", fun i -> Parser.TICK i);
+  ("!", fun i -> Parser.BANG i);
 
   (* Keywords *)
   ("dmul", fun i -> Parser.DMULOP i);

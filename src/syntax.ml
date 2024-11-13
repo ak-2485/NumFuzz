@@ -72,6 +72,14 @@ let type_of_prim t =
   | PrimTUnit -> TyPrim PrimUnit
   | PrimTNum _ -> TyPrim PrimNum
 
+(* Turns linear type into discrete type *)
+let rec disc t = 
+  match t with
+  | TyPrim PrimNum -> TyPrim PrimDNum
+  | TyUnion (t1, t2) -> TyUnion (disc t1, disc t2)
+  | TyTensor (t1, t2) -> TyTensor (disc t1, disc t2)
+  | _ -> t
+
 (* Terms *)
 type op = AddOp | MulOp | DivOp | SubOp
 
@@ -90,6 +98,7 @@ type term =
   | TmUnionCase of info * term * binder_info * term * binder_info * term
   (* Let bindings *)
   | TmLet of info * binder_info * ty option * term * term
+  | TmDLet of info * binder_info * ty option * term * term
   (* Basic ops *)
   | TmAdd of info * var_info * var_info
   | TmSub of info * var_info * var_info
@@ -110,6 +119,7 @@ let tmInfo t =
   | TmInr (fi, _, _) -> fi
   | TmUnionCase (fi, _, _, _, _, _) -> fi
   | TmLet (fi, _, _, _, _) -> fi
+  | TmDLet (fi, _, _, _, _) -> fi
   | TmAdd (fi, _, _) -> fi
   | TmSub (fi, _, _) -> fi
   | TmDiv (fi, _, _) -> fi
