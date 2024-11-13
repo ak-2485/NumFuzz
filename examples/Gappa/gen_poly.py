@@ -1,4 +1,4 @@
-def generate_straightforward_script(order):
+def generate_poly_script(order):
     script = "@rnd = float<ieee_64, up>;\n\n"
     
     # Generate terms without rounding
@@ -7,7 +7,7 @@ def generate_straightforward_script(order):
             script += f"r{i} = a{i};\n"
         else:
             term = " * ".join(["x"] * i)  # Creates x^i by multiplying x i times
-            script += f"r{i} = (a{i} * {term});  // a{i} * x^{i}\n"
+            script += f"r{i} = (a{i} * {term}); \n"
 
     # Sum up all terms for the exact polynomial
     exact_sum = " + ".join([f"r{i}" for i in range(order + 1)])
@@ -19,7 +19,7 @@ def generate_straightforward_script(order):
             script += f"z{i} = rnd(a{i});\n"
         else:
             term = " * ".join(["x"] * i)
-            script += f"z{i} = rnd(a{i} * {term});  // a{i} * x^{i}\n"
+            script += f"z{i} = rnd(a{i} * {term});\n"
 
     # Sum up all terms for the rounded polynomial
     rounded_sum = " + ".join([f"z{i}" for i in range(order + 1)])
@@ -36,6 +36,6 @@ def generate_straightforward_script(order):
 
 # Generate the script for a 500th-order polynomial
 order = 500
-straightforward_script = generate_straightforward_script(order)
-print(straightforward_script)
+with open(f"Poly{order}.g","w") as f:
+    f.write(f"{generate_poly_script(order)}")
 
