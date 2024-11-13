@@ -23,7 +23,7 @@ def generate_poly_script(order):
 
     # Sum up all terms for the rounded polynomial
     rounded_sum = " + ".join([f"z{i}" for i in range(order + 1)])
-    script += f"\nz = rnd({rounded_sum});\n\n"
+    script += f"\nz rnd= ({rounded_sum});\n\n"
 
     # Add the logical formula for Gappa to prove
     script += "# the logical formula that Gappa will try (and succeed) to prove\n"
@@ -35,7 +35,7 @@ def generate_poly_script(order):
     return script
 
 # Generate the script for a 500th-order polynomial
-order = 500
+order = 100
 with open(f"Poly{order}.g","w") as f:
     f.write(f"{generate_poly_script(order)}")
 
