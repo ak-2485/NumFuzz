@@ -86,6 +86,7 @@ type op = AddOp | MulOp | DivOp | SubOp
 type term =
   | TmVar of info * var_info
   | TmDVar of info * var_info
+  | TmDisc of info * term
   (* Tensor *)
   | TmTens of info * term * term
   | TmTensDest of info * binder_info * binder_info * term * term
@@ -111,6 +112,7 @@ let tmInfo t =
   match t with
   | TmVar (fi, _) -> fi
   | TmDVar (fi, _) -> fi
+  | TmDisc (fi, _) -> fi
   | TmPrim (fi, _) -> fi
   | TmTens (fi, _, _) -> fi
   | TmTensDest (fi, _, _, _, _) -> fi

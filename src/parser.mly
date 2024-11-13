@@ -220,6 +220,8 @@ Val :
       { fun _ctx _dctx -> TmPrim ($1, PrimTUnit) }
   | ID
       { fun ctx dctx -> var_or_dvar $1.i $1.v ctx dctx }
+  | BANG Term
+      { fun ctx dctx -> TmDisc ($1, $2 ctx dctx) }
   | INL Type Val
       { fun ctx dctx -> TmInl($1, $2 ctx, $3 ctx dctx)  }
   | INR Type Val

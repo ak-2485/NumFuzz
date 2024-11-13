@@ -184,10 +184,15 @@ module TypeSub = struct
     | _                 -> fail i @@ WrongShape (ty, "union")
   
   (* Checks that variable has base numeric type *)
+  let check_prim_num_ty (i : info) (ty : ty) : unit checker = 
+    match ty with
+    | TyPrim PrimNum -> return ()
+    | _              -> fail i @@ WrongType (ty, TyPrim PrimNum)
+
   let check_prim_dnum_ty (i : info) (ty : ty) : unit checker = 
     match ty with
     | TyPrim PrimDNum -> return ()
-    | _              -> fail i @@ WrongType (ty, TyPrim PrimDNum)
+    | _              -> fail i @@ WrongType (ty, TyPrim PrimNum)
 
   let check_prim_num (i : info) (v : var_info) : unit checker =
     get_var_ty v >>= fun ty ->
@@ -220,7 +225,7 @@ let with_extended_ctx (i : info) (v : string) (ty : ty) (m : ('a * 'b list) chec
    discretizing the type if necessary *)
 let with_extended_dctx (v : string) (ty : ty) (m : ('a * 'b list) checker) :
     ('a * 'b list) checker =
-    with_new_dctx (extend_var v (disc ty)) m
+    with_new_dctx (fun dctx -> extend_var v (disc ty) dctx) m
 
 (* Similar to the one above, but with two variables. vx has index 1 in
    the extended context, while vy has index 0. The order of the
@@ -285,6 +290,11 @@ let rec type_of (t : term) : (ty * bsi list) checker =
     get_dvar_ty x >>= fun ty_x  ->
     (* empty linear context *)
     return (ty_x, zeros len)
+
+  | TmDisc(i, tm_e) ->
+    type_of tm_e >>= fun (ty_e, ctx_e) ->
+    check_prim_num_ty i ty_e >>
+    return (TyPrim PrimDNum, ctx_e)
 
   (* Primitive terms *)
   | TmPrim(_, pt) ->

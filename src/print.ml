@@ -110,7 +110,7 @@ let pp_binfo fmt b = pp_name fmt b.b_name
 let machine_eps = 2.**(-53.)
 let rec pp_si fmt s =
   match s with
-  | SiConst flt            -> fprintf fmt "[%s]" (string_of_float (flt *. machine_eps))
+  | SiConst flt            -> fprintf fmt "[%s]" (string_of_float (flt))
   | SiAdd (si1, si2)       -> fprintf fmt "(%a + %a)" pp_si si1 pp_si si2
   | SiMult(si1, si2)       -> fprintf fmt "(%a * %a)" pp_si si1 pp_si si2
   | SiDiv(si1, si2)        -> fprintf fmt "(%a / %a)" pp_si si1 pp_si si2
@@ -255,7 +255,8 @@ let pp_maybe_type ppf oty =
 let rec pp_term ppf t =
   match t with
     TmVar(_, v)             -> fprintf ppf "%a" pp_vinfo v
-  | TmDVar(_, v)             -> fprintf ppf "%a" pp_vinfo v
+  | TmDVar(_, v)            -> fprintf ppf "%a" pp_vinfo v
+  | TmDisc(_, tm)            -> fprintf ppf "!%a" pp_term tm
   | TmPrim(_, pt)           -> fprintf ppf "%s" (string_of_term_prim pt)
   | TmTens(_, tm1, tm2)     -> fprintf ppf "(@[%a@], @[%a@])" pp_term tm1 pp_term tm2
   | TmTensDest(_, x, y, tm, term) -> fprintf ppf "@[<v>let (%a, %a) : = @[%a@];@,@[%a@]@]" 
