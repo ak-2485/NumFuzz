@@ -1,0 +1,66 @@
+{(a : (num, num, num, num, num, num, num, num, num, num, num, num, num, num, num, num, num, num, num, num, num))}
+`{(z : dnum)}
+
+let (a_1, b_1) = a;
+let (a_2, b_2) = b_1;
+let (a_3, b_3) = b_2;
+let (a_4, b_4) = b_3;
+let (a_5, b_5) = b_4;
+let (a_6, b_6) = b_5;
+let (a_7, b_7) = b_6;
+let (a_8, b_8) = b_7;
+let (a_9, b_9) = b_8;
+let (a_10, b_10) = b_9;
+let (a_11, b_11) = b_10;
+let (a_12, b_12) = b_11;
+let (a_13, b_13) = b_12;
+let (a_14, b_14) = b_13;
+let (a_15, b_15) = b_14;
+let (a_16, b_16) = b_15;
+let (a_17, b_17) = b_16;
+let (a_18, b_18) = b_17;
+let (a_19, b_19) = b_18;
+let (a_20, a_21) = b_19;
+
+let y_1 = a_21;
+let x_1 = dmul z y_1;
+let y_2 = add a_20 x_1;
+let x_2 = dmul z y_2;
+let y_3 = add a_19 x_2;
+let x_3 = dmul z y_3;
+let y_4 = add a_18 x_3;
+let x_4 = dmul z y_4;
+let y_5 = add a_17 x_4;
+let x_5 = dmul z y_5;
+let y_6 = add a_16 x_5;
+let x_6 = dmul z y_6;
+let y_7 = add a_15 x_6;
+let x_7 = dmul z y_7;
+let y_8 = add a_14 x_7;
+let x_8 = dmul z y_8;
+let y_9 = add a_13 x_8;
+let x_9 = dmul z y_9;
+let y_10 = add a_12 x_9;
+let x_10 = dmul z y_10;
+let y_11 = add a_11 x_10;
+let x_11 = dmul z y_11;
+let y_12 = add a_10 x_11;
+let x_12 = dmul z y_12;
+let y_13 = add a_9 x_12;
+let x_13 = dmul z y_13;
+let y_14 = add a_8 x_13;
+let x_14 = dmul z y_14;
+let y_15 = add a_7 x_14;
+let x_15 = dmul z y_15;
+let y_16 = add a_6 x_15;
+let x_16 = dmul z y_16;
+let y_17 = add a_5 x_16;
+let x_17 = dmul z y_17;
+let y_18 = add a_4 x_17;
+let x_18 = dmul z y_18;
+let y_19 = add a_3 x_18;
+let x_19 = dmul z y_19;
+let y_20 = add a_2 x_19;
+let x_20 = dmul z y_20;
+let y_21 = add a_1 x_20;
+y_21

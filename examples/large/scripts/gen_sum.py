@@ -12,6 +12,10 @@ def gen_sum(n):
 
 gen_sum(2)
 gen_sum(3)
+gen_sum(20)
 gen_sum(50)
 gen_sum(100)
+gen_sum(200)
 gen_sum(500)
+gen_sum(1000)
+gen_sum(2000)

@@ -15,6 +15,9 @@ def gen_dotprod(n):
 
 gen_dotprod(2)
 gen_dotprod(5)
+gen_dotprod(20)
 gen_dotprod(50)
 gen_dotprod(100)
+gen_dotprod(200)
 gen_dotprod(500)
+gen_dotprod(1000)

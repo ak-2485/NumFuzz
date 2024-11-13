@@ -1,15 +1,24 @@
-{(a : (num, num, num, num))}
+{(a0 : num) (a1 : num) (a2 : num) (a : num) (b : num) (c : num)}
 `{(z : dnum)}
 
-let (a_1, b_1) = a;
-let (a_2, b_2) = b_1;
-let (a_3, a_4) = b_2;
 
-let y_1 = a_4;
-let x_1 = dmul z y_1;
-let y_2 = add a_3 x_1;
-let x_2 = dmul z y_2;
-let y_3 = add a_2 x_2;
-let x_3 = dmul z y_3;
-let y_4 = add a_1 x_3;
-y_4
+/* let x1 = dmul z a2 ;
+let y1 = add a1 x1 ;
+let x2 = dmul z y1;
+add a0 x2 */
+
+/* let y1 = dmul z a1 ;
+
+let y2' = dmul z a2 ;
+let y2 = dmul z y2' ;
+
+let x = add a0 y1 ;
+add x y2 */
+
+let div_or_err = div c a;
+case div_or_err of {
+     inl (y) =>
+        let y' = sub y b;
+        inl () y'
+    | inr (err) => inr num ()
+}

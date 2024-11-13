@@ -18,5 +18,8 @@ def gen_matvecmul(n):
 
 gen_matvecmul(2)
 gen_matvecmul(3)
+gen_matvecmul(5)
 gen_matvecmul(10)
 gen_matvecmul(20)
+gen_matvecmul(50)
+gen_matvecmul(100)
