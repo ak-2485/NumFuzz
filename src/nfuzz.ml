@@ -186,8 +186,14 @@ let main () =
   (* Print the results of the parsing phase *)
   main_debug dp "Parsed program:@\n@[%a@]@." Print.pp_term program;
 
-  let paired_program = Paired.lower_term_to_core program in
-  if comp_enabled TypeChecker then type_check paired_program;
+  (* Lower the program to core NumFuzz, without subtraction, using paired floats *)
+  (*let lowered_program = Paired.lower_term_to_core program in*)
+  let lowered_program = Paired.cast_term_to_core program in
+  (* Print the lowered program *)
+  main_debug dp "Lowered program:@\n@[%a@]@." Print.pp_term (Paired.lift_core_to_term lowered_program);
+
+  if comp_enabled TypeChecker then type_check lowered_program;
+
 
   (if comp_enabled Backend then
      match !outfile with

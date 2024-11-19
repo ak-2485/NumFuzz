@@ -1,0 +1,56 @@
+#include "../NumFuzz/float_ops/addfp64.fz"
+#include "../NumFuzz/float_ops/mulfp64.fz"
+
+function addfp64p
+  (x0 : (num, num))
+  (x1 : (num, num))
+{
+  let (x0_1, x0_2) = x0;
+  let (x1_1, x1_2) = x1;
+  x2_1 = addfp64 (|x0_1, x1_1|);
+  x2_2 = addfp64 (|x0_2, x1_2|);
+  (|x2_1, x2_2|)
+}
+
+function subfp64p
+  (x : <(num, num), (num, num)>)
+{
+  x0 = pi1 x;
+  x1 = pi2 x;
+  let (x0_1, x0_2) = x0;
+  let (x1_1, x1_2) = x1;
+  x2_1 = addfp64 (|x0_1, x1_2|);
+  x2_2 = addfp64 (|x0_2, x1_1|);
+  (|x2_1, x2_2|)
+}
+
+subfp64p
+
+function mulfp64p
+  (x0 : (num, num))
+  (x1 : (num, num))
+{
+  let (x0_1, x0_2) = x0;
+  let (x1_1, x1_2) = x1;
+
+  x2_1 = mulfp64 (x0_1, x1_1);
+  let x2_1' = x2_1;
+
+  x2_2 = mulfp64 (x0_1, x1_2);
+  let x2_2' = x2_2;
+
+  x2_3 = mulfp64 (x0_2, x1_1);
+  let x2_3' = x2_3;
+
+  x2_4 = mulfp64 (x0_2, x1_2);
+  let x2_4' = x2_4;
+
+  x3_1 = addfp64 (|x2_1', x2_4'|);
+  let x3_1' = x3_1;
+  x3_2 = addfp64 (|x2_2', x2_3'|);
+  let x3_2' = x3_2;
+
+  let x4 = (|x3_1', x3_2'|);
+}
+
+mulfp64p
