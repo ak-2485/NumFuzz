@@ -138,6 +138,7 @@ let relative_error1 ty =
 let relative_error2 si =
   match si with SiConst f -> Some (f /. (1.0 -. f)) | _ -> None
 
+
 let type_check program =
   let ty = Ty_bi.get_type program in
   main_info dp "Type of the program: @[%a@]" Print.pp_type ty;
@@ -185,7 +186,8 @@ let main () =
   (* Print the results of the parsing phase *)
   main_debug dp "Parsed program:@\n@[%a@]@." Print.pp_term program;
 
-  (* if comp_enabled TypeChecker then type_check program; *)
+  let paired_program = Paired.lower_term_to_core program in
+  if comp_enabled TypeChecker then type_check paired_program;
 
   (if comp_enabled Backend then
      match !outfile with

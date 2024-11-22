@@ -216,36 +216,36 @@ type term =
 type term_core =
   | TmVarCore of info * var_info
   (*  *)
-  | TmTensCore of info * term * term
-  | TmTensDestCore of info * binder_info * binder_info * term * term
-  | TmInlCore of info * term
-  | TmInrCore of info * term
-  | TmUnionCaseCore of info * term * binder_info * term * binder_info * term
+  | TmTensCore of info * term_core * term_core
+  | TmTensDestCore of info * binder_info * binder_info * term_core * term_core
+  | TmInlCore of info * term_core
+  | TmInrCore of info * term_core
+  | TmUnionCaseCore of info * term_core * binder_info * term_core * binder_info * term_core
   (*                      t  of { inl(x)     => tm1  | inl(y)     => tm2  } *)
-  (* Primitive terms *)
+  (* Primitive core terms *)
   | TmPrimCore of info * term_prim
   (* Rounding *)
-  | TmRnd64Core of info * term
-  | TmRnd32Core of info * term
-  | TmRnd16Core of info * term
+  | TmRnd64Core of info * term_core
+  | TmRnd32Core of info * term_core
+  | TmRnd16Core of info * term_core
   (* Ret *)
-  | TmRetCore of info * term
+  | TmRetCore of info * term_core
   (* Regular Abstraction and Applicacion *)
-  | TmAppCore of info * term * term
-  | TmAbsCore of info * binder_info * ty * term
+  | TmAppCore of info * term_core * term_core
+  | TmAbsCore of info * binder_info * ty * term_core
   (* & constructor and eliminator *)
-  | TmAmpersandCore of info * term * term
-  | TmAmp1Core of info * term
-  | TmAmp2Core of info * term
+  | TmAmpersandCore of info * term_core * term_core
+  | TmAmp1Core of info * term_core
+  | TmAmp2Core of info * term_core
   (* Box constructor and elim *)
-  | TmBoxCore of info * si * term
-  | TmBoxDestCore of info * binder_info * term * term
+  | TmBoxCore of info * si * term_core
+  | TmBoxDestCore of info * binder_info * term_core * term_core
   (* Regular sequencing *)
-  | TmLetCore of info * binder_info * ty option * term * term
+  | TmLetCore of info * binder_info * ty option * term_core * term_core
   (* Monadic sequencing *)
-  | TmLetBindCore of info * binder_info * term * term
+  | TmLetBindCore of info * binder_info * term_core * term_core
   (* Basic ops *)
-  | TmOpCore of info * op_core * term
+  | TmOpCore of info * op_core * term_core
 
 let map_prim_ty n f p =
   match p with
