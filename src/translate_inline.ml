@@ -186,7 +186,7 @@ let replace_map args size anon_func_map =
                   [
                     ERef
                       ( ESymbol lst,
-                        [ EOP (Sub, [ EInt (size - 2); ESymbol ctr ]) ] );
+                        [ EOP (Minus, [ EInt (size - 2); ESymbol ctr ]) ] );
                     ESymbol construct;
                   ] );
             ],
@@ -232,7 +232,7 @@ let replace_fold args size anon_func_map =
                     [
                       ERef
                         ( ESymbol lst,
-                          [ EOP (Sub, [ EInt (size - 2); ESymbol ctr ]) ] );
+                          [ EOP (Minus, [ EInt (size - 2); ESymbol ctr ]) ] );
                       ESymbol construct;
                     ] ) );
             ],

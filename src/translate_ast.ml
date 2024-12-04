@@ -24,7 +24,7 @@ and expr =
   | EFor of symbol * expr * (symbol * expr * expr) list * expr
 
 and data = DSymbol of symbol | DNum of float
-and fpop = Plus | Sub | Times | Divide | Sqrt | Equals | GreaterThan | Cast
+and fpop = Minus | Plus | Times | Divide | Sqrt | Equals | GreaterThan | Cast
 and constant = True | False
 and property = Prec of precision | PRound
 
