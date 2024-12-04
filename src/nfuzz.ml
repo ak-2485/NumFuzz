@@ -185,7 +185,7 @@ let main () =
   (* Print the results of the parsing phase *)
   main_debug dp "Parsed program:@\n@[%a@]@." Print.pp_term program;
 
-  (* if comp_enabled TypeChecker then type_check program; *)
+  if comp_enabled TypeChecker then type_check program;
 
   (if comp_enabled Backend then
      match !outfile with

@@ -13,7 +13,6 @@ let lex_error fi s = error_msg Support.Options.Lexer fi "%s" s
 let reservedWords = [
   (* Symbols *)
   ("+", fun i -> Parser.ADD i);
-  ("-", fun i -> Parser.ADD i);
   ("&", fun i -> Parser.AMP i);
   ("!", fun i -> Parser.BANG i);
   (":", fun i -> Parser.COLON i);
@@ -42,7 +41,6 @@ let reservedWords = [
   ("rnd64", fun i -> Parser.RND64 i);
   ("ret", fun i -> Parser.RET i);
   ("add", fun i -> Parser.ADDOP i);
-  ("sub", fun i -> Parser.SUBOP i);
   ("mul", fun i -> Parser.MULOP i);
   ("div", fun i -> Parser.MULOP i);
   ("sqrt", fun i -> Parser.SQRTOP i);

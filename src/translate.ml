@@ -62,7 +62,6 @@ let rnd_and_prec = [ Prec Binary64; PRound ]
 let translate_op (op : op) : fpop =
   match op with
   | AddOp -> Plus
-  | SubOp -> Sub
   | MulOp -> Times
   | SqrtOp -> Sqrt
   | DivOp -> Divide
@@ -329,7 +328,7 @@ and translate_expr (body : term) dct : expr =
 (** [translate_expr_op] converts a NumFuzz operator application [op] [t] into its FPCore equivalent*)
 and translate_expr_op op (t : expr) =
   match op with
-  | Plus | Times | Divide | Equals | Sub | GreaterThan ->
+  | Plus | Times | Divide | Equals | Minus | GreaterThan ->
       EOP (op, [ ERef (t, [ EInt 0 ]); ERef (t, [ EInt 0 ]) ])
   | Sqrt | Cast -> EOP (op, [ t ])
 
@@ -360,7 +359,7 @@ let rec string_of_args (args : argument list) : string =
 let string_of_op (op : fpop) : string =
   match op with
   | Plus -> "+"
-  | Sub -> "-"
+  | Minus -> "-"
   | Times -> "*"
   | Divide -> "/"
   | Sqrt -> "sqrt"
@@ -556,8 +555,8 @@ let check_elementary (core : fpcore) =
     | EArray lst -> List.exists check_elem_helper lst
     | EOP (op, lst) ->
         (match op with
-        | Plus | Sub | Times | Sqrt | Divide -> true
-        | Equals | GreaterThan | Cast -> false)
+        | Plus | Times | Sqrt | Divide -> true
+        | Minus | Equals | GreaterThan | Cast -> false)
         || List.exists check_elem_helper lst
     | ERef (expr, _) -> check_elem_helper expr
     | ETensor (_, e1, lst, e2) | EFor (_, e1, lst, e2) ->

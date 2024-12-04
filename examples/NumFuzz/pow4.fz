@@ -14,4 +14,4 @@ function pow4 (x : ![4.0]num)
   pow2 [xs {2.0}]
 }
 
-pow4
+

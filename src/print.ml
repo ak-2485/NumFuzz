@@ -241,7 +241,6 @@ let string_of_op s = List.assoc s binary_op_table
 
 let string_of_op2 fop = match fop with
     AddOp  -> "add"
-  | SubOp  -> "sub"
   | MulOp  -> "mul"
   | SqrtOp -> "sqrt"
   | DivOp  -> "div"
