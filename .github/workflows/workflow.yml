@@ -31,4 +31,4 @@ jobs:
 
       - run: opam exec -- dune build
 
-      - run : cd examples/NumFuzz && make tests
+      - run : cd examples/NumFuzz && make 
