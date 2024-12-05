@@ -9,7 +9,7 @@ function verhulst_mixed
  let [x] = x';
  s1 = divfp32 (x,1.11);
  let s2 = s1;
- s3 = addfp32 (|1.0, s2|);
+ s3 = addfp32 <1.0, s2>;
  let s4 = s3;
  s5 = mulfp32 (4.0,x);
  let s6 = s5;

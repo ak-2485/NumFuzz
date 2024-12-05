@@ -4,7 +4,7 @@
 function test05_nonlin1
   (x : num) 
 {
-  sy= addfp64 (|x,1.0|);
+  sy= addfp64 <x,1.0>;
   let y = sy;
   divfp64 (1.0,y)
 }

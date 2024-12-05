@@ -4,19 +4,19 @@ function test02_sum8
   (x0 : num) (x1 : num) (x2 : num) (x3 : num)
   (x4 : num) (x5 : num) (x6 : num) (x7 : num) 
 {
-  sa = addfp64 (|x0,x1|);
+  sa = addfp64 <x0,x1>;
   let a = sa;
-  sb = addfp64 (|a,x2|);
+  sb = addfp64 <a,x2>;
   let b = sb;
-  sc = addfp64 (|b,x3|);
+  sc = addfp64 <b,x3>;
   let c = sc;
-  sd = addfp64 (|c,x4|);
+  sd = addfp64 <c,x4>;
   let d = sd;
-  se = addfp64 (|d,x5|);
+  se = addfp64 <d,x5>;
   let e = se;
-  sf = addfp64 (|e,x6|);
+  sf = addfp64 <e,x6>;
   let f = sf;
-  addfp64 (|f,x7|)
+  addfp64 <f,x7>
 }
 
 test02_sum8

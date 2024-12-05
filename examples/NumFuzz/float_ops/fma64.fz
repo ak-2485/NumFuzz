@@ -2,6 +2,6 @@ function FMA64
   (x : num) (y : num) (z : num) : M[eps64_up]num 
 {
   a = mul (x,y);
-  b = add (|a,z|);
+  b = add <a,z>;
   rnd64 b
 }

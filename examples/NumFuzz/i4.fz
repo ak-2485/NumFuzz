@@ -9,7 +9,7 @@ function i4
  s1 = mulfp64(y,y);
  let s2 = s1;
  let [x] = x';
- s3 = addfp64 (|x, s2|);
+ s3 = addfp64 <x, s2>;
  let s4 = s3;
  sqrtfp64 [s4{0.5}]
 }

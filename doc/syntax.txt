@@ -19,7 +19,7 @@ v, w ::=                                        VALUES
       ()                                        value of unit type
       k in R                                    constants (reals > 0)
       (v,w)                                     tensor pairs
-      (|v,w|)                                   cartesian pairs
+      <v,w>                                     cartesian pairs
       inl v                                     injection into sum
       inr v                                     injection into sum
       fun (x:T) {e}                             ordinary function

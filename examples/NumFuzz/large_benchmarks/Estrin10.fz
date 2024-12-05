@@ -31,15 +31,15 @@ function Estrin10
     let t7' = t7;
     let t9' = t9;
 
-    z0 = addfp64(|a0,t1'|);
+    z0 = addfp64<a0,t1'>;
     let z0' = z0;
-    z2 = addfp64(|a2,t3'|);
+    z2 = addfp64<a2,t3'>;
     let z2' = z2;
-    z4 = addfp64(|a4,t5'|);
+    z4 = addfp64<a4,t5'>;
     let z4' = z4;
-    z6 = addfp64(|a6,t7'|);
+    z6 = addfp64<a6,t7'>;
     let z6' = z6;
-    z8 = addfp64(|a8,t9'|);
+    z8 = addfp64<a8,t9'>;
     let z8' = z8;
 
     p2 =  mulfp64(x,x);
@@ -57,11 +57,11 @@ function Estrin10
     s2 = mulfp64(a10,p10'); 
     let s2' = s2;
 
-    u0 = addfp64(|z0',s0'|);
+    u0 = addfp64<z0',s0'>;
     let u0' = u0;
-    u1 = addfp64(|z4',s1'|);
+    u1 = addfp64<z4',s1'>;
     let u1' = u1;
-    u2 = addfp64(|z8',s2'|);
+    u2 = addfp64<z8',s2'>;
     let u2' = u2;
 
     r4 =  pow4fp [x{4.0}];
@@ -71,13 +71,13 @@ function Estrin10
 
     v00 = mulfp64(u1',r4');
     let v00' = v00;
-    v0 = addfp64(|u0',v00'|);
+    v0 = addfp64<u0',v00'>;
     let v0' = v0;
 
     v1 = mulfp64(u2',r8');
     let v1' = v1;
 
-    addfp64(|v0',v1'|)
+    addfp64<v0',v1'>
 }
 
 Estrin10

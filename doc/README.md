@@ -41,11 +41,11 @@ FPTaylor requires the [OCaml Num library](https://github.com/ocaml/num) which ca
 ```
 opam install num
 ```
-Now, in the directory `NumFuzz/examples/FPTaylor`, extract FPTaylor to the directory `FPTaylor-9.4.0` by running the command  
+Now, in the directory `NumFuzz/examples/FPTaylor`, extract FPTaylor to the directory `FPTaylor-0.9.4` by running the command  
 ```
 tar -xzf v0.9.4.tar.gz
 ```
-In the directory `FPTaylor-9.4.0` run
+In the directory `FPTaylor-0.9.4` run
 ```
 make all
 ```
@@ -249,7 +249,7 @@ v, w ::=                                        VALUES
       ()                                        value of unit type
       k in R                                    constants (reals > 0)
       (v,w)                                     tensor pairs
-      (|v,w|)                                   cartesian pairs
+      <v,w>                                     cartesian pairs
       inl v                                     injection into sum
       inr v                                     injection into sum
       fun (x:T) {e}                             ordinary function
@@ -266,8 +266,8 @@ e, f ::=                                        EXPRESSIONS
       fst v                                     cartesian pair destructor
       snd v                                     cartesian pair destructor
       let (x,y) = v; e                          tensor destructor
-      case v {inl x => e | inr x => f}        case analysis
-      if v then {e} else {f}			        conditional (case sugar)
+      case v {inl x => e | inr x => f}          case analysis
+      if v then {e} else {f}			      conditional (case sugar)
       let [x] = v; e                            co-monadic sequencing
       let x = v; e                              monadic sequencing
       x = e; f                                  pure sequencing
@@ -337,47 +337,50 @@ followed by the input function to be applied to each element in the input tuple.
 
 ### Arithmetic Operations with Rounding
 
-Arithmetic operations that perform rounding can be built from primitive operations. One example is `addfp`, which adds two numbers and rounds the result: 
+Arithmetic operations that perform rounding can be built from primitive operations. One example is `addfp64`, which adds two numbers and rounds the result to the nearest 64-bit floating point number: 
 
 ```ocaml
-function addfp (xy: <num, num>) 
+function addfp_64 (xy: <num, num>) 
 {
   s = add xy;
-  rnd s
+  rnd_64 s
 } 
 ```
 
-Several operations that perform rounding are included in the directory  `NumFuzz/examples/NumFuzz/float_ops`; we list them here with their type signatures.
+Several operations that perform rounding are included in the directory  `NumFuzz/examples/NumFuzz/float_ops`; we list the
+64-bit ones here with their type signatures.
 
-1. Addition `addfp: (num × num) -o M[eps64_up]num`
-2. Multiplication `mulfp: (num ⊗ num) -o M[eps64_up]num`
-3. Division `divfp: (num ⊗ num) -o M[eps64_up]num`
-4. Square root `sqrtfp: ![0.5]num -o M[eps64_up]num`
-5. Fused multiply-add `FMA: num -o num -o num -o M[eps64_up]num`
-6. Multiply-add `MA: num -o num -o num -o M[eps64_up]num`
+1. Addition `addfp64: (num × num) -o M[eps64_up]num`
+2. Multiplication `mulfp64: (num ⊗ num) -o M[eps64_up]num`
+3. Division `divfp64: (num ⊗ num) -o M[eps64_up]num`
+4. Square root `sqrtfp64: ![0.5]num -o M[eps64_up]num`
+5. Fused multiply-add `FMA64: num -o num -o num -o M[eps64_up]num`
+6. Multiply-add `MA64: num -o num -o num -o M[eps64_up]num`
 
 These operations can be used in NumFuzz programs using an include statement; e.g., 
 ```
-#include PATH/float_ops/addfp.fz
+#include PATH/float_ops/addfp64.fz
 ``` 
-where `PATH` is the path relative to the directory of your program.
+where `PATH` is the path relative to the directory of your program. Operations
+using 16, and 32 bit floating-point numbers are also available. For example, `addfp32`
+is the 32-bit addition operator.  
 
 ### A Simple Benchmark
 
 As an example, let us consider the benchmark `one_by_sqrtxx`, where we are tasked with computing a relative error bound for the expression $1/\sqrt{x^2}$. We can use NumFuzz to derive a bound using the following program.
 
 ```ocaml
-1.  #include "float_ops/mulfp.fz"
-2.  #include "float_ops/divfp.fz"
-3.  #include "float_ops/sqrtfp.fz"
+1.  #include "float_ops/mulfp64.fz"
+2.  #include "float_ops/divfp64.fz"
+3.  #include "float_ops/sqrtfp64.fz"
 4.
 5.  function one_by_sqrtxx (x : num)
 6.  {
-7.   sz = mulfp (x,x);
+7.   sz = mulfp64 (x,x);
 8.   let z = sz;
-9.   sy = sqrtfp ([z{0.5}]);
+9.   sy = sqrtfp64 ([z{0.5}]);
 10.  let y = sy;
-11.  divfp (1.0,y)
+11.  divfp64 (1.0,y)
 12. }
 13.
 14. one_by_sqrtxx

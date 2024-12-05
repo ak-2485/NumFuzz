@@ -251,8 +251,8 @@ Val:
       { fun ctx -> TmInr($1, $2 ctx)  }
   | LPAREN PairSeq RPAREN
       { fun ctx -> $2 ctx }
-  | LPAREN PIPE Val COMMA Val PIPE RPAREN
-      { fun ctx -> TmAmpersand($1, $3 ctx, $5 ctx) }
+  | LT; v1 = Val; COMMA; v2 = Val; GT
+      { fun ctx -> TmAmpersand($1, v1 ctx, v2 ctx) }
   | LBRACK Val SensTerm RBRACK
       { fun ctx -> TmBox($1, $3 ctx, $2 ctx) }
       

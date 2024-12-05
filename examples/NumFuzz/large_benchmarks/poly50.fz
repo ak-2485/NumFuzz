@@ -6,7 +6,7 @@ function poly50
 (a :
 (num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,(num,num)))))))))))))))))))))))))))))))))))))))))))))))))))
 {
-g = fun (x2:num) {fun (y2:num) {addfp64 (|x2,y2|)}};
+g = fun (x2:num) {fun (y2:num) {addfp64 <x2,y2>}};
 let (a0, as1) = a;
 let (a1, as2)= as1;
 let (a2, as3)= as2;
