@@ -217,6 +217,8 @@ Term :
         let e2 = $2 ctx in
         TmApp(tmInfo e1, e1, e2)
       }
+  | LPAREN PIPE Term COMMA Term PIPE RPAREN
+      { fun ctx -> TmAmpersand($1, $3 ctx, $5 ctx) }
   (* extra *)
   | LPAREN Term RPAREN
     { $2 }
@@ -254,8 +256,6 @@ Val:
       { fun ctx -> TmInr($1, $2 ctx)  }
   | LPAREN PairSeq RPAREN
       { fun ctx -> $2 ctx }
-  | LPAREN PIPE Val COMMA Val PIPE RPAREN
-      { fun ctx -> TmAmpersand($1, $3 ctx, $5 ctx) }
   | LBRACK Val SensTerm RBRACK
       { fun ctx -> TmBox($1, $3 ctx, $2 ctx) }
       
