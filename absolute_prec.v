@@ -98,6 +98,7 @@ Section MultDiv.
            rewrite H1 => //. rewrite normrM /u /v ler_pM => //; 
            [rewrite H1 => // | rewrite H2 => //]. rewrite /u /v; ring. Qed.
 
+
    (* Theorem 2.2 *)
    (* Can we prove this without |b| > β? The hypothesis isn't used in the paper. *)
    Theorem APDiv : 
@@ -118,5 +119,25 @@ Section MultDiv.
             rewrite (abs_eq (b' + _) b) => //; [|ring]. rewrite -lerBlDr. 
             rewrite (@le_trans _ _ `|b' - b|) => //. rewrite lerB_dist => //. 
             rewrite Prop1 => //. apply /andP; split; rewrite -normr_gt0 (@le_lt_trans _ _ β) => //. Qed.
-     
+
 End MultDiv.
+
+Section MultDiv2.
+
+Variable (a a' α b b' β : R).
+Hypothesis Halpha : 0 <= α.
+Hypothesis Hbeta  : 0 <= β.
+
+     Corollary APMul2 :
+       a ~ a'; α -> b ~ b' ; β -> a * b ~ a' * b' ; `|a| * β + `|b| * α + α * β.
+       Proof. move => H1 H2. apply: Prop1; apply: APMul => //; apply Prop1 => //. Qed.
+
+     Corollary APDiv2 : 
+     a ~ a' ; α -> b ~ b' ; β -> `|b'| > β -> `|b| > β ->  
+     a/b ~ a'/b' ;  (`|a|*β + `|b|*α)/(`|b|*(`|b| - β)).
+       Proof. move => H1 H2 H3 H4. apply: Prop1; apply APDiv => //; apply Prop1 => //. Qed.
+
+End MultDiv2.
+
+
+
