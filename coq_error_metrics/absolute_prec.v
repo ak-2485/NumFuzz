@@ -8,22 +8,23 @@ Import Order.TTheory GRing.Theory Num.Def Num.Theory.
 
 Local Open Scope ring_scope.
 
-Context {R : realType}.
-
 Section AbsPrec.
 
-  Definition AbsPrec (a a' α : R) : Prop := α >= 0 -> `| (a - a')%R | <= α.    
+  Context {R : realType}.
+
+  Definition AbsPrec (a a' α : R) : Prop := α >= 0 -> `| (a - a') | <= α.    
 
 End AbsPrec.
 
 Notation "a ~ a' ; α" := (AbsPrec a a' α) (at level 99).
 
-Fact abs_eq : forall (a b : R), a = b -> `|a| = `|b|. 
-Proof. move => a b H1; by rewrite H1. Qed.
+Fact abs_eq : forall {R : realType} (a b : R), a = b -> `|a| = `|b|. 
+Proof. move => HR a b H1; by rewrite H1. Qed.
 
 (* Properties from Olver Section 2.2 *)
 Section ElementaryProperties.
 
+  Context {R : realType}.
   Variables (a a' α : R). 
   Hypothesis Halpha : 0 <= α.  
   
@@ -67,18 +68,19 @@ Section ElementaryProperties.
 
 End ElementaryProperties.
 
-Fact normr_inv : forall (x : R), `|1/x| = 1/`|x|.
-Proof. move => x; have Hx : (0 <= x) \/ (x < 0) by nra. destruct Hx;
+Fact normr_inv : forall {R : realType} (x : R), `|1/x| = 1/`|x|.
+Proof. move => H x; have Hx : (0 <= x) \/ (x < 0) by nra. destruct Hx;
          [rewrite !ger0_norm => //|]. rewrite divr_ge0 => //.
        rewrite !ltr0_norm => //; [nra|]. rewrite ltr_ndivrMr; nra. Qed.
 
-Fact divr_le : forall (x y : R), 0< y -> y <= x  -> 1/x <= 1/y.
-Proof. move => x y H1 H2. rewrite ler_pdivrMr => //; [|nra].
+Fact divr_le : forall {R : realType} (x y : R), 0< y -> y <= x  -> 1/x <= 1/y.
+Proof. move => H x y H1 H2. rewrite ler_pdivrMr => //; [|nra].
 rewrite div1r ler_pdivlMl => //; nra. Qed.
 
 (* Theorems from Section 2.3 *)
 Section MultDiv.
 
+  Context {R : realType}.
   Variables (a a' b b' α β : R). 
 
   Hypothesis Halpha : 0 <= α.
@@ -124,6 +126,7 @@ End MultDiv.
 
 Section MultDiv2.
 
+Context {R: realType}.
 Variable (a a' α b b' β : R).
 Hypothesis Halpha : 0 <= α.
 Hypothesis Hbeta  : 0 <= β.
