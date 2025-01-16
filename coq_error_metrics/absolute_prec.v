@@ -16,7 +16,7 @@ Section AbsPrec.
 
 End AbsPrec.
 
-Notation "a ~ a' ; α" := (AbsPrec a a' α) (at level 99).
+Notation "a ~ a' ; ap( α )" := (AbsPrec a a' α) (at level 99).
 
 Fact abs_eq : forall {R : realType} (a b : R), a = b -> `|a| = `|b|. 
 Proof. move => HR a b H1; by rewrite H1. Qed.
@@ -28,31 +28,31 @@ Section ElementaryProperties.
   Variables (a a' α : R). 
   Hypothesis Halpha : 0 <= α.  
   
-  Theorem Prop1 : (a ~ a' ; α) -> (a' ~ a ; α).
+  Theorem Prop1 : (a ~ a' ; ap(α)) -> (a' ~ a ; ap(α)).
   Proof. rewrite /AbsPrec. move => H1 H2. 
          rewrite Num.Theory.distrC H1 => //=. Qed.
 
-  Theorem Prop2 : forall (δ : R), (a ~ a' ; α) -> 0 <= α -> α <= δ -> (a ~ a' ; δ).
+  Theorem Prop2 : forall (δ : R), (a ~ a' ; ap(α)) -> 0 <= α -> α <= δ -> (a ~ a' ; ap(δ)).
   Proof. rewrite /AbsPrec; move => δ H1 H2 H3 H4.
          rewrite (@le_trans _ _ α) => //. rewrite H1 => //=. Qed.
 
-  Theorem Prop3 : forall (k : R), (a ~ a'; α) -> (a+k ~ a'+k ; α).
+  Theorem Prop3 : forall (k : R), (a ~ a'; ap(α)) -> (a+k ~ a'+k ; ap(α)).
   Proof. rewrite /AbsPrec; move => k H1 H2. rewrite (abs_eq _ (a-a')) => //;
          [rewrite H1 => //| ring]. Qed.
 
   Fact abs_mul_eq : forall (k : R), `|k * a| = `|k| * `|a|. 
   Proof. move => k; by rewrite normrM. Qed.
 
-  Theorem Prop4 : forall (k : R), a ~ a' ; α -> 0 <= α -> a*k ~ a'*k ; `|k|*α.
+  Theorem Prop4 : forall (k : R), (a ~ a' ; ap(α)) -> 0 <= α -> a*k ~ a'*k ; ap(`|k|*α).
   Proof. rewrite /AbsPrec; move => k H1 H2 H3. rewrite (abs_eq _ (k * (a-a'))) => //;
          [rewrite normrM ler_pM => //=; rewrite H1 => //= | ring]. Qed.
 
-  Lemma Prop4_1 :  a ~ a' ; α -> -a ~ -a' ; α.
+  Lemma Prop4_1 :  a ~ a' ; ap(α) -> -a ~ -a' ; ap(α).
   Proof. rewrite /AbsPrec; move => H1 H2. rewrite -(abs_eq (a' - a)) => //;
          [rewrite Prop1 => //| ring]. Qed.
                                                               
   Theorem Prop5 : forall (b b' β : R), 
-      a ~ a' ; α ->  b ~ b' ; β -> 0 <= β -> a + b ~ a' + b' ; α + β.
+      a ~ a' ; ap(α) ->  b ~ b' ; ap(β) -> 0 <= β -> a + b ~ a' + b' ; ap(α + β).
   Proof. rewrite /AbsPrec; move => b b' β H1 H2 H3 H4.
          rewrite (@le_trans _ _ (normr (a-a') + normr (b -b'))) => //.
          rewrite -(abs_eq ((a-a')+(b-b'))) => //; 
@@ -60,7 +60,7 @@ Section ElementaryProperties.
           [rewrite H1 => //| rewrite H2 => //]. Qed.
 
   Theorem Prop6 : forall (a'' δ : R ), 
-      a ~ a' ; α -> a' ~ a'' ; δ -> 0 <= δ -> a ~ a'' ; α + δ.
+      a ~ a' ; ap(α) -> a' ~ a'' ; ap(δ) -> 0 <= δ -> a ~ a'' ; ap(α + δ).
   Proof. rewrite /AbsPrec. move => a'' δ H1 H2 H3 H4.
          rewrite -(abs_eq ((a-a') + (a' -a''))) => //; [|ring].
          rewrite (@le_trans _ _ (normr (a-a') + normr (a'-a''))) => //. 
@@ -88,7 +88,7 @@ Section MultDiv.
 
   (* Theorem 2.1 *)
   Theorem APMul : 
-    a ~ a' ; α -> b ~ b' ; β -> a * b ~ a' * b' ; `|a'| * β + `|b'| * α + α * β.
+    a ~ a' ; ap(α) -> b ~ b' ; ap(β) -> a * b ~ a' * b' ; ap(`|a'| * β + `|b'| * α + α * β).
     Proof. rewrite /AbsPrec. move => H1 H2 H3. 
            set (u := a - a'); set (v := b - b').
            rewrite -(abs_eq (a'*v + (b'*u + u * v))) => //.
@@ -104,8 +104,8 @@ Section MultDiv.
    (* Theorem 2.2 *)
    (* Can we prove this without |b| > β? The hypothesis isn't used in the paper. *)
    Theorem APDiv : 
-     a ~ a' ; α -> b ~ b' ; β -> `|b'| > β -> `|b| > β ->  
-     a/b ~ a'/b' ;  (`|a'|*β + `|b'|*α)/(`|b'|*(`|b'| - β)). 
+     a ~ a' ; ap(α) -> b ~ b' ; ap(β) -> `|b'| > β -> `|b| > β ->
+     a/b ~ a'/b' ;  ap((`|a'|*β + `|b'|*α)/(`|b'|*(`|b'| - β))).
      Proof. rewrite /AbsPrec. move => H1 H2 H3 H4 H5.
             set (u := a - a'); set (v:= b - b').
             rewrite -(abs_eq ((b'*u - a'*v) *  (1/ (b' * (b' + v))))) => //; 
@@ -132,12 +132,12 @@ Hypothesis Halpha : 0 <= α.
 Hypothesis Hbeta  : 0 <= β.
 
      Corollary APMul2 :
-       a ~ a'; α -> b ~ b' ; β -> a * b ~ a' * b' ; `|a| * β + `|b| * α + α * β.
+       a ~ a'; ap(α) -> b ~ b' ; ap(β) -> a * b ~ a' * b' ; ap(`|a| * β + `|b| * α + α * β).
        Proof. move => H1 H2. apply: Prop1; apply: APMul => //; apply Prop1 => //. Qed.
 
      Corollary APDiv2 : 
-     a ~ a' ; α -> b ~ b' ; β -> `|b'| > β -> `|b| > β ->  
-     a/b ~ a'/b' ;  (`|a|*β + `|b|*α)/(`|b|*(`|b| - β)).
+     a ~ a' ; ap(α) -> b ~ b' ; ap(β) -> `|b'| > β -> `|b| > β ->
+     a/b ~ a'/b' ;  ap((`|a|*β + `|b|*α)/(`|b|*(`|b| - β))).
        Proof. move => H1 H2 H3 H4. apply: Prop1; apply APDiv => //; apply Prop1 => //. Qed.
 
 End MultDiv2.
