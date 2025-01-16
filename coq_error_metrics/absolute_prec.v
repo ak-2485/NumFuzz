@@ -16,7 +16,16 @@ Section AbsPrec.
 
 End AbsPrec.
 
+Section RelPrec.
+
+  Context {R : realType}.
+
+  Definition RelPrec (a a' α : R) : Prop := α >= 0 -> ln(a - a') <= α.
+
+End RelPrec.
+
 Notation "a ~ a' ; ap( α )" := (AbsPrec a a' α) (at level 99).
+Notation "a ~ a' ; rp( α )" := (RelPrec a a' α) (at level 99).
 
 Fact abs_eq : forall {R : realType} (a b : R), a = b -> `|a| = `|b|. 
 Proof. move => HR a b H1; by rewrite H1. Qed.
