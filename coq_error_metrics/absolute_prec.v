@@ -16,22 +16,13 @@ Section AbsPrec.
 
 End AbsPrec.
 
-Section RelPrec.
-
-  Context {R : realType}.
-
-  Definition RelPrec (a a' α : R) : Prop := α >= 0 -> ln(a - a') <= α.
-
-End RelPrec.
-
 Notation "a ~ a' ; ap( α )" := (AbsPrec a a' α) (at level 99).
-Notation "a ~ a' ; rp( α )" := (RelPrec a a' α) (at level 99).
 
 Fact abs_eq : forall {R : realType} (a b : R), a = b -> `|a| = `|b|. 
 Proof. move => HR a b H1; by rewrite H1. Qed.
 
 (* Properties from Olver Section 2.2 *)
-Section ElementaryProperties.
+Section APElementaryProperties.
 
   Context {R : realType}.
   Variables (a a' α : R). 
@@ -75,7 +66,7 @@ Section ElementaryProperties.
          rewrite (@le_trans _ _ (normr (a-a') + normr (a'-a''))) => //. 
          rewrite ler_normD => //. rewrite lerD => //; [rewrite H1|rewrite H2] => //=. Qed.
 
-End ElementaryProperties.
+End APElementaryProperties.
 
 Fact normr_inv : forall {R : realType} (x : R), `|1/x| = 1/`|x|.
 Proof. move => H x; have Hx : (0 <= x) \/ (x < 0) by nra. destruct Hx;
@@ -87,7 +78,7 @@ Proof. move => H x y H1 H2. rewrite ler_pdivrMr => //; [|nra].
 rewrite div1r ler_pdivlMl => //; nra. Qed.
 
 (* Theorems from Section 2.3 *)
-Section MultDiv.
+Section APMultDiv.
 
   Context {R : realType}.
   Variables (a a' b b' α β : R). 
@@ -131,7 +122,7 @@ Section MultDiv.
             rewrite (@le_trans _ _ `|b' - b|) => //. rewrite lerB_dist => //. 
             rewrite Prop1 => //. apply /andP; split; rewrite -normr_gt0 (@le_lt_trans _ _ β) => //. Qed.
 
-End MultDiv.
+End APMultDiv.
 
 Section MultDiv2.
 
@@ -152,4 +143,77 @@ Hypothesis Hbeta  : 0 <= β.
 End MultDiv2.
 
 
+Section RelPrec.
 
+  Context {R : realType}.
+
+  Definition RelPrec (a a' α : R) : Prop :=
+    α >= 0 ->
+    (a > 0 /\ a' > 0) \/ (a < 0 /\ a' < 0) ->
+    `|ln(a / a')| <= α.
+
+End RelPrec.
+
+Notation "a ~ a' ; rp( α )" := (RelPrec a a' α) (at level 99).
+
+Section RPElementaryProperties.
+
+  Context {R : realType}.
+  Variables (a a' α : R).
+  Hypothesis Halpha : 0 <= α.
+
+  Theorem RPProp1 : (a ~ a' ; rp(α)) -> (a' ~ a ; rp(α)).
+  Proof. rewrite /RelPrec.
+         move => H1 H2 H3.
+         apply H1 in H2.
+         suff sym : ((`|ln (R:=R) (a' / a)|) = `|ln (R:=R) (a / a')|).
+         rewrite sym.
+         apply: H2.
+         suff inv_neg : (ln (R:=R) (a' / a) =  - 1 * ln (R:=R) (a / a')).
+         rewrite inv_neg.
+         suff neg_1_swap : ( - 1 * ln (R:=R) (a / a') = - ln (R:=R) (a / a')).
+         rewrite neg_1_swap.
+         apply normrN.
+         apply mulN1r.
+         rewrite - (GRing.invf_div a a').
+         rewrite - ln_powR.
+         rewrite powRN.
+         rewrite powRr1.
+         reflexivity.
+         destruct H3.
+         + destruct H.
+           apply divr_ge0; lra.
+         + destruct H.
+           suff temp: 0 <= (- a) / (- a') by lra.
+           suff neg_a: 0 <= - a'.
+           suff neg_a': 0 <= - a.
+           apply divr_ge0; lra.
+           lra.
+           lra.
+         + destruct H3; auto; destruct H; try split; auto.
+         Qed.
+
+  Theorem RPProp2 : forall (δ : R), (a ~ a' ; rp(α)) -> 0 <= α -> α <= δ -> (a ~ a' ; rp(δ)).
+  Proof. Admitted.
+
+  Theorem RPProp3 : forall (k : R), (a ~ a'; rp(α)) -> (a+k ~ a'+k ; rp(α)).
+  Proof. Admitted.
+
+  Fact RPabs_mul_eq : forall (k : R), `|k * a| = `|k| * `|a|.
+  Proof. Admitted.
+
+  Theorem RPProp4 : forall (k : R), (a ~ a' ; rp(α)) -> 0 <= α -> a*k ~ a'*k ; rp(`|k|*α).
+  Proof. Admitted.
+
+  Lemma RPProp4_1 :  a ~ a' ; rp(α) -> -a ~ -a' ; rp(α).
+  Proof. Admitted.
+
+  Theorem RPProp5 : forall (b b' β : R),
+      a ~ a' ; rp(α) ->  b ~ b' ; rp(β) -> 0 <= β -> a + b ~ a' + b' ; rp(α + β).
+  Proof. Admitted.
+
+  Theorem RPProp6 : forall (a'' δ : R ),
+      a ~ a' ; rp(α) -> a' ~ a'' ; rp(δ) -> 0 <= δ -> a ~ a'' ; rp(α + δ).
+  Proof. Admitted.
+
+End RPElementaryProperties.
