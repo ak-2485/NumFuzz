@@ -70,15 +70,15 @@ Section RPElementaryProperties.
 
   Theorem RPProp4 : forall (k : R), (a ~ a' ; rp(α)) -> 0 <= α -> a `^ k ~ a' `^ k ; rp(`|k|*α).
   Proof. rewrite /RelPrec. move => k H1 H2 H3 H4.
-         rewrite factor_exp. rewrite ln_powR.
+         Check factor_exp.
+         rewrite (factor_exp a a' k). rewrite ln_powR.
          rewrite norm_mul_split.
          suff key_rel : `|ln (R:=R) (a / a')| <= α.
          apply (le_mul_pos k _ _) => //.
          apply H1 => //=.
          Check NonZeroSameSignMul.
          apply (NonZeroSameSignExp a a' k) => //.
-         give_up.
-  Admitted.
+  Qed.
 
   Theorem RPProp5 : forall (b b' β : R),
       a ~ a' ; rp(α) ->  b ~ b' ; rp(β) -> 0 <= β -> a * b ~ a' * b' ; rp(α + β).
