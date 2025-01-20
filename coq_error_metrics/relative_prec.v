@@ -96,7 +96,7 @@ Section RPAddSub.
   Variables (a a' b b' α β : R).
 
   Variables (e : R).
-  (* change with canonical def in mathcomp *)
+  (* TODO: change with canonical def in mathcomp *)
   Parameter e_is_e : ln(e) = 1.
 
   Hypothesis Halpha : 0 <= α.
