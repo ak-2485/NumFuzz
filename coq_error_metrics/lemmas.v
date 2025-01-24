@@ -17,17 +17,35 @@ Section HelperLemmas.
   Definition NonZeroSameSign (a b : R) : Prop :=
     (a > 0 /\ b > 0) \/ (a < 0 /\ b < 0).
 
+  Lemma NonZeroSameSignMulGen : forall (a a' b b' : R),
+    (NonZeroSameSign a a') -> (NonZeroSameSign b b') ->(NonZeroSameSign (a * b) (a' * b')).
+  Proof. Admitted.
+
+  (* TODO: prove that it is reflexive + derive the following from the above lemma *)
+
   Lemma NonZeroSameSignMul : forall (a b : R),
+    forall k, k != 0 ->
+              (NonZeroSameSign a b) -> (NonZeroSameSign (k * a) (k * b)).
+  Proof. Admitted.
+
+  Lemma NonZeroSameSignMulInv : forall (a b : R),
     forall k, k != 0 ->
               (NonZeroSameSign (k * a) (k * b) -> NonZeroSameSign a b).
   Proof. Admitted.
 
   Lemma NonZeroSameSignExp : forall (a b : R),
+    forall k, (NonZeroSameSign a b) -> (NonZeroSameSign (a `^ k) (b `^ k)).
+  Proof. Admitted.
+
+  Lemma NonZeroSameSignExpInv : forall (a b : R),
     forall k, (NonZeroSameSign (a `^ k) (b `^ k) -> NonZeroSameSign a b).
   Proof. Admitted.
 
+  Lemma NonZeroSameSignDivPos : forall (a a' : R),
+    NonZeroSameSign (a) (a') -> 0 < a / a'.
+  Proof. Admitted.
 
   Lemma le_mul_pos : forall (k a b : R), a <= b -> (`|k| * a <= `|k| * b). Admitted.
   Lemma norm_mul_split : forall (a b : R), `| a * b | = `| a | * `| b |. Admitted.
-  Lemma factor_exp : forall (a a' b k : R), (a `^ k / a' `^ k = (a / a') `^ k). Admitted.
+  Lemma factor_exp : forall (a a' k : R), (a `^ k / a' `^ k = (a / a') `^ k). Admitted.
 End HelperLemmas.
