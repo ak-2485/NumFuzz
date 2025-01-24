@@ -88,9 +88,53 @@ Section RPElementaryProperties.
          move=> w x y z P1 P2. lra.
          apply NonZeroSameSignDivPos => //. apply NonZeroSameSignDivPos => //. lra. Qed.
 
+  Lemma ln_dist_triangle :
+    forall (x y z c d : R),
+      0 < x -> 0 < y -> 0 < z -> 0 <= c -> 0 <= d ->
+      `|ln (R:=R) (x / y)| <= c -> `|ln (R:=R) (y / z)| <= d ->
+      `|ln (R:=R) (x / z)| <= c + d.
+  Proof. move=> x y z c d xgt0 ygt0 zgt0 cge0 dge0 H1 H2.
+         rewrite ln_div; auto. rewrite ln_div in H1; auto. rewrite ln_div in H2; auto.
+         have Hceq: `|c| = c. apply ger0_norm => //. rewrite -Hceq. rewrite -Hceq in H1.
+         have Hdeq: `|d| = d. apply ger0_norm => //. rewrite -Hdeq. rewrite -Hdeq in H2.
+         have Hnormleq: `|(ln (R:=R) x - ln (R:=R) y) + (ln (R:=R) y - ln (R:=R) z)| <= `|ln (R:=R) x - ln (R:=R) y| + `|ln (R:=R) y - ln (R:=R) z|.
+         apply ler_normD => //.
+         have Haddleq: `|ln (R:=R) x - ln (R:=R) y| + `|ln (R:=R) y - ln (R:=R) z| <= `|c| + `|d|.
+         apply lerD => //.
+         have norm_simpl: `|ln (R:=R) x - ln (R:=R) z| =  `|(ln (R:=R) x - ln (R:=R) y) + (ln (R:=R) y - ln (R:=R) z)|.
+         rewrite subrKA => //.
+         rewrite -norm_simpl in Hnormleq.
+         apply (@le_trans _ _ _ _ _ Hnormleq Haddleq). Qed.
+
   Theorem RPProp6 : forall (a'' δ : R ),
       a ~ a' ; rp(α) -> a' ~ a'' ; rp(δ) -> 0 <= δ -> a ~ a'' ; rp(α + δ).
-  Proof. Admitted.
+  Proof. rewrite /RelPrec. move=> a'' δ [H1 [H2 H3]] [H4 [H5 H6]] H7. repeat split; auto.
+         rewrite addr_ge0 => //.
+         apply (@trans_NonZeroSameSign _ _ _ _ H2 H5).
+         case: (@real_ltP _ a 0 _ _) => //= a_ltP.
+         {
+           have a'lt0: (a' < 0) by apply (lt0_NonZeroSameSign a).
+           have a''lt0: (a'' < 0) by apply (lt0_NonZeroSameSign a').
+           remember (- a) as b.
+           remember (- a') as b'.
+           remember (- a'') as b''.
+           move: H3 H6.
+           replace a with (- b) by lra.
+           replace a' with (- b') by lra.
+           replace a'' with (- b'') by lra.
+           have blt0: (0 < b) by lra.
+           have b'lt0: (0 < b') by lra.
+           have b''lt0: (0 < b'') by lra.
+           rewrite !divrNN.
+           move=> H3 H6.
+           apply (ln_dist_triangle b b' b'') => //.
+         }
+         rewrite /NonZeroSameSign in H2.
+         have a_gt0: 0 < a by lra.
+         have a'gt0: (0 < a') by apply (gt0_NonZeroSameSign a).
+         have a''gt0: (0 < a'') by apply (gt0_NonZeroSameSign a').
+         apply (ln_dist_triangle a a' a'') => //.
+  Qed.
 
 End RPElementaryProperties.
 

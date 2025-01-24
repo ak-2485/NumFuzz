@@ -1,3 +1,4 @@
+Require Import Relation_Definitions Morphisms.
 From mathcomp Require Export all_ssreflect ssralg ssrnum.
 From mathcomp Require Export mathcomp_extra exp reals signed.
 From mathcomp Require Export boolp Rstruct.
@@ -17,11 +18,29 @@ Section HelperLemmas.
   Definition NonZeroSameSign (a b : R) : Prop :=
     (a > 0 /\ b > 0) \/ (a < 0 /\ b < 0).
 
+  Instance trans_NonZeroSameSign : Transitive NonZeroSameSign.
+  Proof.
+    rewrite /NonZeroSameSign /Transitive => x y z H1 H2.
+    case: H1 H2 => H3 H4; destruct H3; destruct H4; lra. Qed.
+
+  Instance sym_NonZeroSameSign : Symmetric NonZeroSameSign.
+  Proof.
+    rewrite /NonZeroSameSign /Symmetric => x y H1.
+    case: H1 => H2. lra. lra. Qed.
+
+  (* NB: x is not reflexive *)
+
+  Lemma lt0_NonZeroSameSign x y : x < 0 -> NonZeroSameSign x y -> y < 0.
+  Proof. Admitted.
+
+  Lemma gt0_NonZeroSameSign x y : 0 < x -> NonZeroSameSign x y -> 0 < y.
+  Proof. Admitted.
+
   Lemma NonZeroSameSignMulGen : forall (a a' b b' : R),
     (NonZeroSameSign a a') -> (NonZeroSameSign b b') ->(NonZeroSameSign (a * b) (a' * b')).
   Proof. Admitted.
 
-  (* TODO: prove that it is reflexive + derive the following from the above lemma *)
+  (* TODO: prove that it is transitive + reflexive; derive the following from the above lemma *)
 
   Lemma NonZeroSameSignMul : forall (a b : R),
     forall k, k != 0 ->
