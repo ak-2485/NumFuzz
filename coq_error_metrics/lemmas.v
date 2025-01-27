@@ -76,8 +76,6 @@ Section HelperLemmas.
          suff opp: (0 < (- a') * (- b')) by lra.
          apply mulr_gt0 => //; lra. Qed.
 
-  (* TODO: prove that it is transitive + reflexive; derive the following from the above lemma *)
-
   Lemma NonZeroSameSignMul : forall (a b : R),
     forall k, k != 0 ->
               (NonZeroSameSign a b) -> (NonZeroSameSign (k * a) (k * b)).
