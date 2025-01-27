@@ -30,15 +30,51 @@ Section HelperLemmas.
 
   (* NB: x is not reflexive *)
 
-  Lemma lt0_NonZeroSameSign x y : x < 0 -> NonZeroSameSign x y -> y < 0.
-  Proof. Admitted.
+  Lemma lt0_NonZeroSameSign : forall x y, x < 0 -> NonZeroSameSign x y -> y < 0.
+  Proof. rewrite /NonZeroSameSign. move=> x y H1 H2.
+         case: H2 => H3; lra. Qed.
 
-  Lemma gt0_NonZeroSameSign x y : 0 < x -> NonZeroSameSign x y -> 0 < y.
-  Proof. Admitted.
+  Lemma gt0_NonZeroSameSign : forall x y, 0 < x -> NonZeroSameSign x y -> 0 < y.
+  Proof. rewrite /NonZeroSameSign. move=> x y H1 H2.
+         case: H2 => H3; lra. Qed.
 
   Lemma NonZeroSameSignMulGen : forall (a a' b b' : R),
     (NonZeroSameSign a a') -> (NonZeroSameSign b b') ->(NonZeroSameSign (a * b) (a' * b')).
-  Proof. Admitted.
+  Proof. rewrite /NonZeroSameSign. move=> a a' b b' H1 H2.
+         case: H1 => H3; case: H2 => H4.
+         left.
+         split; destruct H3; destruct H4; apply mulr_gt0 => //.
+         right.
+         split; destruct H3; destruct H4.
+         replace (a * b) with (b * a) by lra.
+
+         remember (- b) as n.
+         replace b with (- n) by lra.
+         assert (0 < n) by lra.
+         suff opp: 0 < (n * a) by lra.
+         apply mulr_gt0 => //.
+
+         remember (- b') as n.
+         replace b' with (- n) by lra.
+         assert (0 < n) by lra.
+         suff opp: (0 < n * a') by lra.
+         apply mulr_gt0 => //.
+
+         destruct H3. destruct H4.
+         right.
+         remember (- a) as n. remember (- a') as n'.
+         replace a with (- n) by lra. replace a' with (- n') by lra.
+         assert (0 < n) by lra. assert (0 < n') by lra.
+         split.
+         suff opp: (0 < n * b) by lra. apply mulr_gt0 => //.
+         suff opp: (0 < n' * b') by lra. apply mulr_gt0 => //.
+
+         destruct H3. destruct H4.
+         left. split.
+         suff opp: (0 < (- a) * (- b)) by lra.
+         apply mulr_gt0 => //; lra.
+         suff opp: (0 < (- a') * (- b')) by lra.
+         apply mulr_gt0 => //; lra. Qed.
 
   (* TODO: prove that it is transitive + reflexive; derive the following from the above lemma *)
 
